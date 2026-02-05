@@ -120,7 +120,7 @@
                 <div>
                     <h4 class="text-[10px] font-black text-emerald-500 uppercase mb-3 border-b border-slate-700 pb-1">Global</h4>
                     <div class="grid grid-cols-2 gap-2">
-                        <div><label class="text-[8px] font-bold">Erro Adv</label><input type="number" step="0.05" id="wErr" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Erro adversário</label><input type="number" step="0.05" id="wErr" class="config-input"></div>
                         <div><label class="text-[8px] font-bold">Vitória</label><input type="number" step="0.5" id="wVit" class="config-input"></div>
                     </div>
                 </div>
@@ -156,10 +156,10 @@
                     </select>
                 </div>                
                 <button onclick="abrirWeights()" class="w-full bg-blue-900/40 text-blue-400 p-4 rounded-xl font-black uppercase text-xs border border-blue-900/50">📊 Definir Pesos do Score</button>
-                <button onclick="abrirBloqueioDuplas()" class="w-full bg-slate-700 p-4 rounded-xl font-black uppercase text-xs">⚠️ Bloqueio de Duplas</button>
-                <button onclick="limparSistema()" class="w-full text-red-500 text-[10px] font-black uppercase py-2">Reset Total</button>
+                <button onclick="abrirBloqueioDuplas()" class="w-full bg-slate-700 p-4 rounded-xl font-black uppercase text-xs">🚫 Bloqueio de Duplas</button>
+                <button onclick="limparSistema()" class="w-full text-red-500 text-[10px] font-black uppercase py-2">Redefinir tudo</button>
             </div>
-            <button onclick="salvarConfigEClose()" class="w-full bg-orange-600 p-4 rounded-xl font-black uppercase italic">Gravar Config</button>
+            <button onclick="salvarConfigEClose()" class="w-full bg-orange-600 p-4 rounded-xl font-black uppercase italic">Salvar</button>
             <button onclick="fecharModais()" class="w-full py-4 text-slate-500 text-[10px] font-bold uppercase">Fechar</button>
         </div>
     </div>
@@ -435,5 +435,6 @@
     </script>
 </body>
 </html>
+
 
 
