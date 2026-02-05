@@ -135,26 +135,26 @@
             <h2 class="text-xl font-black text-orange-500 uppercase mb-6 italic">Configurações</h2>
             <div class="space-y-4 mb-6">
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="text-[9px] uppercase font-bold text-slate-500">Jogs/Time</label><input type="number" id="cSize" class="config-input"></div>
-                    <div><label class="text-[9px] uppercase font-bold text-slate-500">Estrelas/Time</label><input type="number" id="cStars" class="config-input"></div>
+                    <div><label class="text-[9px] uppercase font-bold text-slate-500">Qtd. jogadores (total) por equipe</label><input type="number" id="cSize" class="config-input"></div>
+                    <div><label class="text-[9px] uppercase font-bold text-slate-500">Qtd. ESTRELAS por equipe</label><input type="number" id="cStars" class="config-input"></div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="text-[9px] uppercase font-bold text-slate-500">Pts por Set</label><input type="number" id="cPoints" class="config-input"></div>
-                    <div><label class="text-[9px] uppercase font-bold text-slate-500">Vitórias Limite</label><input type="number" id="cMax" class="config-input"></div>
+                    <div><label class="text-[9px] uppercase font-bold text-slate-500">Pontos por SET</label><input type="number" id="cPoints" class="config-input"></div>
+                    <div><label class="text-[9px] uppercase font-bold text-slate-500">Qtd. limite vitórias (consecutivas)</label><input type="number" id="cMax" class="config-input"></div>
+                </div>
+                <div><label class="text-[9px] uppercase font-bold text-slate-500">Ao atingir limite de vitórias:</label>
+                    <select id="cReaction" class="config-input">
+                        <option value="dividir">Dividir time vencedor (2/2)</option>
+                        <option value="sairDois">Saem ambos os times</option>
+                    </select>
                 </div>
                 <div><label class="text-[9px] uppercase font-bold text-slate-500">Regra de Desempate</label>
                     <select id="cDesempate" class="config-input">
-                        <option value="3direto">3 Pontos Direto</option>
-                        <option value="2vantagem">2 Pontos Vantagem</option>
+                        <option value="3direto">3 Pontos direto</option>
+                        <option value="2vantagem">2 Pontos vantagem</option>
                         <option value="sem">Sem Desempate</option>
                     </select>
-                </div>
-                <div><label class="text-[9px] uppercase font-bold text-slate-500">Consequência de Limite</label>
-                    <select id="cReaction" class="config-input">
-                        <option value="dividir">Dividir Vencedor (Snake)</option>
-                        <option value="sairDois">Sair Ambos</option>
-                    </select>
-                </div>
+                </div>                
                 <button onclick="abrirWeights()" class="w-full bg-blue-900/40 text-blue-400 p-4 rounded-xl font-black uppercase text-xs border border-blue-900/50">📊 Definir Pesos do Score</button>
                 <button onclick="abrirBloqueioDuplas()" class="w-full bg-slate-700 p-4 rounded-xl font-black uppercase text-xs">⚠️ Bloqueio de Duplas</button>
                 <button onclick="limparSistema()" class="w-full text-red-500 text-[10px] font-black uppercase py-2">Reset Total</button>
@@ -435,4 +435,5 @@
     </script>
 </body>
 </html>
+
 
