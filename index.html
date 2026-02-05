@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V61</title>
+    <title>Vôlei Hub PRO - V62</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -67,8 +67,8 @@
         <section class="bg-slate-800/50 rounded-2xl border border-slate-700 overflow-hidden">
             <div class="p-3 bg-slate-800/80 border-b border-slate-700 flex justify-between items-center">
                 <div class="flex gap-2">
-                    <button onclick="setFilaTab('geral')" id="tabGeral" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg">Geral</button>
-                    <button onclick="setFilaTab('estrela')" id="tabEstrela" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg">Estrelas ⭐</button>
+                    <button onclick="setFilaTab('geral')" id="tabGeral" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg">Geral <span id="countGeral" class="ml-1 opacity-50"></span></button>
+                    <button onclick="setFilaTab('estrela')" id="tabEstrela" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg">Estrelas ⭐ <span id="countEstrela" class="ml-1 opacity-50"></span></button>
                 </div>
             </div>
             <div id="esperaContainer" class="p-4 space-y-2 max-h-[250px] overflow-y-auto"></div>
@@ -196,6 +196,7 @@
                 <div class="space-y-2"><p class="text-[8px] font-black text-orange-400 uppercase text-center italic">Time B</p><button onclick="escalarParaTime('B')" class="w-full bg-orange-600 p-4 rounded-xl font-black uppercase text-[10px]">Escalar B</button><div id="subsB" class="space-y-1"></div></div>
             </div>
             <button id="btnStatusBloqueio" class="w-full bg-slate-700 p-4 rounded-xl font-black uppercase text-xs mb-2">---</button>
+            <button id="btnTrocarCategoria" class="w-full bg-blue-900/40 text-blue-400 p-4 rounded-xl font-black uppercase text-[10px] border border-blue-900/30 mb-2">Trocar Categoria</button>
             <button onclick="fecharModais()" class="w-full py-2 text-slate-500 uppercase text-[10px] font-bold">Voltar</button>
         </div>
     </div>
@@ -283,6 +284,15 @@
             
             const rk = Object.entries(game.ranking).map(([n, s]) => ({ n, ...s, score: getPlayerScore(n) })).filter(x => x.score > 0 && (rkTab==='tudo'?true:rkTab==='estrela'?x.estrela:!x.estrela)).sort((a,b) => b.score - a.score);
             document.getElementById('rankingContainer').innerHTML = rk.map((j, i) => `<div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 cursor-pointer mb-1" onclick="abrirAuditModal('${j.n}')"><div class="flex items-center gap-3"><span class="text-[10px] text-slate-600 w-4">${i+1}</span><div class="rank-name uppercase text-[11px] font-bold">${j.estrela?'⭐':''} ${j.n}</div></div><div class="text-orange-500 font-black">${j.score}</div></div>`).join('');
+            
+            // Atualizar contagem de jogadores desbloqueados
+            const todosNoJogo = [...game.timeA, ...game.timeB];
+            const contGeral = game.esperaGeral.filter(j => !j.bloqueado).length + todosNoJogo.filter(j => !j.estrela).length;
+            const contEstrela = game.esperaEstrela.filter(j => !j.bloqueado).length + todosNoJogo.filter(j => j.estrela).length;
+            
+            document.getElementById('countGeral').innerText = contGeral;
+            document.getElementById('countEstrela').innerText = contEstrela;
+
             renderLeaders();
         }
 
@@ -353,10 +363,9 @@
         }
 
         function abrirAuditModal(n) { const s = game.ranking[n]; const w = game.weights; const atqW = s.estrela ? w.atqE : w.atqG; const blqW = s.estrela ? w.blqE : w.blqG; const aceW = s.estrela ? w.aceE : w.aceG; document.getElementById('auditNome').innerText = (s.estrela?'⭐ ':'')+n; document.getElementById('auditContent').innerHTML = `<div class="audit-line"><span>Vitórias (x${w.vit})</span> <span>${s.v}</span></div><div class="audit-line"><span>Ataques (x${atqW})</span> <span>${s.ptsAtaque}</span></div><div class="audit-line"><span>Bloqueios (x${blqW})</span> <span>${s.ptsBloqueio}</span></div><div class="audit-line"><span>Aces (x${aceW})</span> <span>${s.ptsAce}</span></div><div class="audit-line"><span>Erro Adv (x${w.err})</span> <span>${s.ptsErroAdversario}</span></div><div class="audit-line text-slate-500 italic"><span>Derrotas</span> <span>${s.d}</span></div>`; document.getElementById('auditTotal').innerText = getPlayerScore(n); document.getElementById('modalAudit').classList.remove('hidden'); }
-        function fecharModais() { document.querySelectorAll('.modal-global, #modalPontoTec, #modalWeights, #modalAudit').forEach(m => m.classList.add('hidden')); }
+        function fecharModais() { document.querySelectorAll('.modal-global, #modalPontoTec, #modalWeights, #modalAudit, #modalFilaEscala').forEach(m => m.classList.add('hidden')); }
         function estaoBloqueados(p1, p2) { if(!p1 || !p2) return false; return game.restricoes.some(d => (d[0] == p1.id && d[1] == p2.id) || (d[1] == p1.id && d[0] == p2.id)); }
         
-        // CORREÇÃO: FILTRO DE ACE PARA SACADOR
         function abrirPontoTecnico(l, i) { 
             modalCtx = { lado: l, idx: i }; 
             const p = (l==='A' ? game.timeA : game.timeB)[i]; 
@@ -366,7 +375,6 @@
             document.getElementById('labelBlq').innerText = `+${p.estrela ? w.blqE : w.blqG}`; 
             document.getElementById('labelAce').innerText = `+${p.estrela ? w.aceE : w.aceG}`; 
             
-            // Lógica de visibilidade do Ace
             const isSacador = (game.saqueLado === l && (l === 'A' ? game.idxA : game.idxB) === i);
             document.getElementById('btnAceTec').classList.toggle('hidden', !isSacador);
             
@@ -377,7 +385,41 @@
         function initDragSystem() { Sortable.create(document.getElementById('areaA'), { group: 'q', animation: 150, onEnd: syncQuadra }); Sortable.create(document.getElementById('areaB'), { group: 'q', animation: 150, onEnd: syncQuadra }); Sortable.create(document.getElementById('esperaContainer'), { animation: 150, onEnd: syncFila }); }
         function syncQuadra() { const p = [...game.timeA, ...game.timeB]; const get = (id) => [...document.getElementById(id).children].map(el => p.find(x => x.id == el.dataset.id)).filter(x=>x); game.timeA = get('areaA'); game.timeB = get('areaB'); salvar(); }
         function syncFila() { const f = filaTab === 'geral' ? game.esperaGeral : game.esperaEstrela; const pool = [...f]; const newF = [...document.getElementById('esperaContainer').children].map(el => pool.find(p => p.id == el.dataset.id)).filter(p => p); if(filaTab === 'geral') game.esperaGeral = newF; else game.esperaEstrela = newF; salvar(); }
-        function abrirEscalacao(tab, idx) { const list = tab === 'geral' ? game.esperaGeral : game.esperaEstrela; modalCtx = { pFila: list[idx], idxFila: idx, tabFila: tab }; document.getElementById('modalNomeFila').innerText = modalCtx.pFila.nome; document.getElementById('btnStatusBloqueio').innerText = modalCtx.pFila.bloqueado ? "LIBERAR" : "BLOQUEAR"; document.getElementById('btnStatusBloqueio').onclick = () => { modalCtx.pFila.bloqueado = !modalCtx.pFila.bloqueado; fecharModais(); salvar(); }; const gen = (t, l) => t.map((j, i) => `<button onclick="substituirJogador('${l}', ${i})" class="w-full bg-slate-700 p-2 rounded text-[8px] font-black uppercase truncate border border-slate-600 ${estaoBloqueados(modalCtx.pFila, j)?'opacity-20':''}">Sub: ${j.nome}</button>`).join(''); document.getElementById('subsA').innerHTML = gen(game.timeA, 'A'); document.getElementById('subsB').innerHTML = gen(game.timeB, 'B'); document.getElementById('modalFilaEscala').classList.remove('hidden'); }
+        
+        function abrirEscalacao(tab, idx) { 
+            const list = tab === 'geral' ? game.esperaGeral : game.esperaEstrela; 
+            modalCtx = { pFila: list[idx], idxFila: idx, tabFila: tab }; 
+            document.getElementById('modalNomeFila').innerText = modalCtx.pFila.nome; 
+            document.getElementById('btnStatusBloqueio').innerText = modalCtx.pFila.bloqueado ? "LIBERAR" : "BLOQUEAR"; 
+            document.getElementById('btnStatusBloqueio').onclick = () => { modalCtx.pFila.bloqueado = !modalCtx.pFila.bloqueado; fecharModais(); salvar(); }; 
+            
+            document.getElementById('btnTrocarCategoria').onclick = () => { trocarCategoria(modalCtx.pFila, tab, idx); };
+            
+            const gen = (t, l) => t.map((j, i) => `<button onclick="substituirJogador('${l}', ${i})" class="w-full bg-slate-700 p-2 rounded text-[8px] font-black uppercase truncate border border-slate-600 ${estaoBloqueados(modalCtx.pFila, j)?'opacity-20':''}">Sub: ${j.nome}</button>`).join(''); 
+            document.getElementById('subsA').innerHTML = gen(game.timeA, 'A'); 
+            document.getElementById('subsB').innerHTML = gen(game.timeB, 'B'); 
+            document.getElementById('modalFilaEscala').classList.remove('hidden'); 
+        }
+
+        function trocarCategoria(jogador, tabOriginal, indexOriginal) {
+            salvar(true);
+            const listaOriginal = tabOriginal === 'geral' ? game.esperaGeral : game.esperaEstrela;
+            const listaDestino = tabOriginal === 'geral' ? game.esperaEstrela : game.esperaGeral;
+            
+            // Alterar flag do objeto
+            jogador.estrela = !jogador.estrela;
+            if (game.ranking[jogador.nome]) {
+                game.ranking[jogador.nome].estrela = jogador.estrela;
+            }
+            
+            // Mover de lista
+            const removido = listaOriginal.splice(indexOriginal, 1)[0];
+            listaDestino.push(removido);
+            
+            fecharModais();
+            salvar(false);
+        }
+
         function substituirJogador(lado, idxQ) { const team = lado === 'A' ? game.timeA : game.timeB; if(estaoBloqueados(modalCtx.pFila, team[idxQ])) return alert("Dupla Bloqueada!"); salvar(true); const sai = team.splice(idxQ, 1)[0]; const list = modalCtx.tabFila === 'geral' ? game.esperaGeral : game.esperaEstrela; const entra = list.splice(modalCtx.idxFila, 1)[0]; entra.bloqueado = false; team.splice(idxQ, 0, entra); (sai.estrela?game.esperaEstrela:game.esperaGeral).push(sai); fecharModais(); salvar(false); }
         function escalarParaTime(lado) { const t = lado==='A'?game.timeA:game.timeB; if(t.length < game.config.size) { const l = modalCtx.tabFila==='geral'?game.esperaGeral:game.esperaEstrela; const entra = l.splice(modalCtx.idxFila, 1)[0]; entra.bloqueado = false; t.push(entra); fecharModais(); salvar(); } }
         function adicionarNovoJogador() { const input = document.getElementById('novoNome'), nome = input.value.toUpperCase().trim(); if(!nome) return; salvar(true); const isEstrela = filaTab === 'estrela'; const novoJ = { id: Math.random().toString(36).substr(2, 9), nome: nome, estrela: isEstrela, bloqueado: true }; if(!game.ranking[nome]) game.ranking[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, estrela:isEstrela }; if(isEstrela) game.esperaEstrela.unshift(novoJ); else game.esperaGeral.unshift(novoJ); input.value = ''; salvar(false); }
@@ -392,6 +434,4 @@
         init();
     </script>
 </body>
-
 </html>
-
