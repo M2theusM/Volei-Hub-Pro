@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vôlei Hub PRO - V61</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <style>
+        .jogador-card { touch-action: none; border: 2px solid transparent; transition: all 0.2s; cursor: pointer; position: relative; z-index: 10; }
+        .sacando { border-color: #f59e0b !important; background-color: #2d3748 !important; box-shadow: 0 0 12px rgba(245, 158, 11, 0.5); }
+        .is-estrela { border-right: 4px solid #f59e0b !important; }
+        .is-bloqueado { opacity: 0.3; filter: grayscale(1); background: #0f172a !important; }
+        .tab-active { background-color: #f59e0b !important; color: white !important; }
+        .bola-saque { display: none; }
+        .sacando .bola-saque { display: inline-block; animation: bounce 1s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+        .config-input { background: #0f172a; border: 1px solid #334155; padding: 10px; border-radius: 12px; width: 100%; color: white; font-weight: bold; font-size: 12px; }
+        .modal-bottom { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .leader-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #334155; height: auto; }
+        .leader-name-new { font-size: 11px; font-weight: 900; color: #ffffff; text-transform: uppercase; line-height: 1.2; word-break: break-word; }
+        .leader-val-new { font-size: 18px; font-weight: 900; color: #f97316; margin-top: 4px; line-height: 1; }
+        .leader-label-new { font-size: 8px; font-weight: 800; color: #475569; text-transform: uppercase; margin-bottom: 2px; }
+        .audit-line { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #334155; font-size: 11px; text-transform: uppercase; font-weight: bold; }
+        .modal-global { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000 !important; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="bg-slate-900 text-white font-sans overflow-x-hidden">
+
+    <header class="p-4 bg-slate-800 sticky top-0 shadow-2xl z-40 border-b border-slate-700">
+        <div class="flex justify-between items-center max-w-md mx-auto mb-3">
+            <h1 class="text-orange-500 font-black text-lg italic uppercase tracking-tighter">Vôlei Hub PRO</h1>
+            <div class="flex gap-2">
+                <button onclick="desfazer()" class="text-[10px] bg-slate-700 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase">↩ Desfazer</button>
+                <button onclick="abrirConfig()" class="text-[10px] bg-slate-700 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase">⚙️ Menu</button>
+            </div>
+        </div>
+        
+        <div id="placarDisplay" class="hidden flex justify-around items-center max-w-md mx-auto bg-slate-950 py-4 rounded-2xl border border-slate-800">
+            <div class="text-center w-2/5">
+                <p class="text-[9px] uppercase text-blue-400 font-black mb-1 italic">Time A</p>
+                <div id="scoreA" class="text-6xl font-black leading-none cursor-pointer" onclick="registrarPontoSimples('A', true, true)">0</div>
+                <div id="winsA" class="text-[9px] text-blue-300/40 font-bold mt-2 uppercase italic text-center">Sets: 0</div>
+            </div>
+            <div class="text-slate-800 font-black text-xl italic">VS</div>
+            <div class="text-center w-2/5">
+                <p class="text-[9px] uppercase text-orange-400 font-black mb-1 italic">Time B</p>
+                <div id="scoreB" class="text-6xl font-black leading-none cursor-pointer" onclick="registrarPontoSimples('B', true, true)">0</div>
+                <div id="winsB" class="text-[9px] text-orange-300/40 font-bold mt-2 uppercase italic text-center">Sets: 0</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="p-4 max-w-md mx-auto space-y-6 pb-32">
+        <div id="setupControls">
+             <button onclick="validarEIniciarPartida()" class="w-full bg-emerald-600 p-5 rounded-2xl font-black uppercase text-xl shadow-lg italic">Iniciar Partida 🏐</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div id="areaA" class="space-y-2 min-h-[160px] bg-slate-800/20 rounded-xl p-2 border border-dashed border-slate-700"></div>
+            <div id="areaB" class="space-y-2 min-h-[160px] bg-slate-800/20 rounded-xl p-2 border border-dashed border-slate-700"></div>
+        </div>
+
+        <section class="bg-slate-800/50 rounded-2xl border border-slate-700 overflow-hidden">
+            <div class="p-3 bg-slate-800/80 border-b border-slate-700 flex justify-between items-center">
+                <div class="flex gap-2">
+                    <button onclick="setFilaTab('geral')" id="tabGeral" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg">Geral</button>
+                    <button onclick="setFilaTab('estrela')" id="tabEstrela" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg">Estrelas ⭐</button>
+                </div>
+            </div>
+            <div id="esperaContainer" class="p-4 space-y-2 max-h-[250px] overflow-y-auto"></div>
+        </section>
+
+        <div class="flex gap-2">
+            <input id="novoNome" type="text" placeholder="NOME DO JOGADOR..." class="bg-slate-800 flex-1 p-4 rounded-2xl outline-none border border-slate-700 focus:border-orange-500 text-sm font-bold uppercase">
+            <button onclick="adicionarNovoJogador()" class="bg-blue-600 px-6 rounded-2xl font-black text-sm uppercase">Add</button>
+        </div>
+
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+            <div class="p-4 bg-slate-800/60 border-b border-slate-800 text-center">
+                <h2 class="text-xs font-black uppercase text-orange-500 italic mb-3 tracking-widest">🏆 Ranking Master</h2>
+                <div class="flex gap-2">
+                    <button onclick="setRankingTab('tudo')" id="rkTabTudo" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg bg-slate-700">Tudo</button>
+                    <button onclick="setRankingTab('geral')" id="rkTabGeral" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg bg-slate-700">Geral</button>
+                    <button onclick="setRankingTab('estrela')" id="rkTabEstrela" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg bg-slate-700">Estrelas ⭐</button>
+                </div>
+            </div>
+            <div id="rankingContainer" class="p-2"></div>
+        </section>
+
+        <section class="space-y-4">
+            <h2 class="text-xs font-black uppercase text-slate-500 text-center tracking-widest italic">⚡ Hall da Fama</h2>
+            <div id="leadersGrid" class="space-y-3"></div>
+        </section>
+    </main>
+
+    <div id="modalWeights" class="modal-global hidden">
+        <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border-2 border-blue-500 overflow-y-auto max-h-[90vh]">
+            <h2 class="text-xl font-black text-blue-400 uppercase mb-6 italic">Pesos do Score</h2>
+            <div class="space-y-6">
+                <div>
+                    <h4 class="text-[10px] font-black text-slate-500 uppercase mb-3 border-b border-slate-700 pb-1">Geral</h4>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div><label class="text-[8px] font-bold">Ataque</label><input type="number" step="0.25" id="wAtqG" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Bloqueio</label><input type="number" step="0.25" id="wBlqG" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Ace</label><input type="number" step="0.25" id="wAceG" class="config-input"></div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-[10px] font-black text-orange-500 uppercase mb-3 border-b border-slate-700 pb-1">Estrela ⭐</h4>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div><label class="text-[8px] font-bold">Ataque</label><input type="number" step="0.25" id="wAtqE" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Bloqueio</label><input type="number" step="0.25" id="wBlqE" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Ace</label><input type="number" step="0.25" id="wAceE" class="config-input"></div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-[10px] font-black text-emerald-500 uppercase mb-3 border-b border-slate-700 pb-1">Global</h4>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="text-[8px] font-bold">Erro Adv</label><input type="number" step="0.05" id="wErr" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Vitória</label><input type="number" step="0.5" id="wVit" class="config-input"></div>
+                    </div>
+                </div>
+            </div>
+            <button onclick="salvarWeightsEClose()" class="w-full bg-blue-600 p-4 rounded-xl font-black uppercase italic mt-6">Aplicar Novos Pesos</button>
+            <button onclick="fecharModais()" class="w-full py-4 text-slate-500 text-[10px] font-bold uppercase">Voltar</button>
+        </div>
+    </div>
+
+    <div id="modalConfigMenu" class="modal-global hidden">
+        <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-slate-700 overflow-y-auto max-h-[90vh]">
+            <h2 class="text-xl font-black text-orange-500 uppercase mb-6 italic">Configurações</h2>
+            <div class="space-y-4 mb-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-[9px] uppercase font-bold text-slate-500">Jogs/Time</label><input type="number" id="cSize" class="config-input"></div>
+                    <div><label class="text-[9px] uppercase font-bold text-slate-500">Estrelas/Time</label><input type="number" id="cStars" class="config-input"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-[9px] uppercase font-bold text-slate-500">Pts por Set</label><input type="number" id="cPoints" class="config-input"></div>
+                    <div><label class="text-[9px] uppercase font-bold text-slate-500">Vitórias Limite</label><input type="number" id="cMax" class="config-input"></div>
+                </div>
+                <div><label class="text-[9px] uppercase font-bold text-slate-500">Regra de Desempate</label>
+                    <select id="cDesempate" class="config-input">
+                        <option value="3direto">3 Pontos Direto</option>
+                        <option value="2vantagem">2 Pontos Vantagem</option>
+                        <option value="sem">Sem Desempate</option>
+                    </select>
+                </div>
+                <div><label class="text-[9px] uppercase font-bold text-slate-500">Consequência de Limite</label>
+                    <select id="cReaction" class="config-input">
+                        <option value="dividir">Dividir Vencedor (Snake)</option>
+                        <option value="sairDois">Sair Ambos</option>
+                    </select>
+                </div>
+                <button onclick="abrirWeights()" class="w-full bg-blue-900/40 text-blue-400 p-4 rounded-xl font-black uppercase text-xs border border-blue-900/50">📊 Definir Pesos do Score</button>
+                <button onclick="abrirBloqueioDuplas()" class="w-full bg-slate-700 p-4 rounded-xl font-black uppercase text-xs">⚠️ Bloqueio de Duplas</button>
+                <button onclick="limparSistema()" class="w-full text-red-500 text-[10px] font-black uppercase py-2">Reset Total</button>
+            </div>
+            <button onclick="salvarConfigEClose()" class="w-full bg-orange-600 p-4 rounded-xl font-black uppercase italic">Gravar Config</button>
+            <button onclick="fecharModais()" class="w-full py-4 text-slate-500 text-[10px] font-bold uppercase">Fechar</button>
+        </div>
+    </div>
+
+    <div id="modalAudit" class="modal-global hidden">
+        <div class="bg-slate-800 w-full max-w-xs rounded-3xl p-6 border border-orange-500">
+            <h3 id="auditNome" class="font-black text-orange-500 uppercase text-lg italic mb-6">---</h3>
+            <div id="auditContent" class="space-y-1 text-[10px]"></div>
+            <div class="mt-6 pt-4 border-t border-slate-700 flex justify-between items-center">
+                <span class="text-xs font-black uppercase text-slate-400">Total Score</span><span id="auditTotal" class="text-2xl font-black text-orange-500">0</span>
+            </div>
+            <button onclick="fecharModais()" class="w-full mt-6 bg-slate-700 py-3 rounded-xl uppercase text-xs font-black">Voltar</button>
+        </div>
+    </div>
+
+    <div id="modalPontoTec" class="fixed inset-0 bg-black/90 hidden z-[100] flex items-end justify-center">
+        <div class="bg-slate-800 w-full max-w-md rounded-t-3xl p-6 border-t-2 border-orange-500 modal-bottom">
+            <div class="flex justify-between items-center mb-6"><h3 id="modalNomeTec" class="font-black text-white uppercase text-xl leading-none italic">---</h3><button onclick="fecharModais()" class="text-slate-400 text-3xl">&times;</button></div>
+            <div class="grid grid-cols-1 gap-3">
+                <button onclick="registrarAcaoJogador('ataque')" class="bg-slate-700 p-4 rounded-2xl font-bold uppercase text-xs flex justify-between italic"><span>💥 Ponto de Ataque</span> <span id="labelAtq" class="text-orange-500"></span></button>
+                <button onclick="registrarAcaoJogador('bloqueio')" class="bg-slate-700 p-4 rounded-2xl font-bold uppercase text-xs flex justify-between italic"><span>🚫 Ponto de Bloqueio</span> <span id="labelBlq" class="text-orange-500"></span></button>
+                <button id="btnAceTec" onclick="registrarAcaoJogador('saque')" class="bg-orange-600 p-4 rounded-2xl font-black uppercase text-xs flex justify-between italic"><span>⚡ Ace de Saque</span> <span id="labelAce"></span></button>
+                <button onclick="definirSacadorManual()" class="w-full bg-slate-900 text-blue-400 p-4 rounded-2xl font-black uppercase text-[10px] border border-blue-900/30 text-center">Definir como Sacador</button>
+                <button onclick="removerParaFilaManual()" class="w-full bg-red-900/20 text-red-500 p-3 rounded-xl font-bold uppercase text-[10px] mt-4">Remover p/ Fila</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalFilaEscala" class="modal-global hidden">
+        <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-emerald-500/30">
+            <h3 id="modalNomeFila" class="font-black text-white uppercase text-xl italic mb-6">---</h3>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="space-y-2"><p class="text-[8px] font-black text-blue-400 uppercase text-center italic">Time A</p><button onclick="escalarParaTime('A')" class="w-full bg-blue-600 p-4 rounded-xl font-black uppercase text-[10px]">Escalar A</button><div id="subsA" class="space-y-1"></div></div>
+                <div class="space-y-2"><p class="text-[8px] font-black text-orange-400 uppercase text-center italic">Time B</p><button onclick="escalarParaTime('B')" class="w-full bg-orange-600 p-4 rounded-xl font-black uppercase text-[10px]">Escalar B</button><div id="subsB" class="space-y-1"></div></div>
+            </div>
+            <button id="btnStatusBloqueio" class="w-full bg-slate-700 p-4 rounded-xl font-black uppercase text-xs mb-2">---</button>
+            <button onclick="fecharModais()" class="w-full py-2 text-slate-500 uppercase text-[10px] font-bold">Voltar</button>
+        </div>
+    </div>
+
+    <div id="modalRestricao" class="modal-global hidden">
+        <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-red-500/30">
+            <h2 class="text-xl font-black text-red-500 uppercase mb-4 italic">Vincular Restrições</h2>
+            <div class="space-y-3 mb-6"><select id="selJ1" class="config-input text-xs"></select><select id="selJ2" class="config-input text-xs"></select><button onclick="adicionarRestricao()" class="w-full bg-red-600 py-4 rounded-xl font-black uppercase text-xs italic">Bloquear Dupla</button></div>
+            <div id="listaRestricoes" class="space-y-2 max-h-[150px] overflow-y-auto mb-4"></div>
+            <button onclick="document.getElementById('modalRestricao').classList.add('hidden')" class="w-full bg-slate-700 py-3 rounded-xl font-bold uppercase text-xs">Voltar</button>
+        </div>
+    </div>
+
+    <script>
+        const INITIAL_GERAL = ["MATHEUS MATOS", "MARCIANO", "RAFAEL", "JANIR", "YURI", "MAICON", "THALYSON", "ODAIR", "LUCAS GABRIEL", "JOÃO", "LUIZ EDUARDO", "MATHEUS JAPA", "ANDERSON"];
+        const INITIAL_ESTRELA = ["PATY", "RHUANA", "MATEUS BRAZ", "KEMILLY", "DANIELE", "SABRINA", "WELLINGTON"];
+
+        let game = {
+            partidaAtiva: false, scoreA: 0, scoreB: 0, winsConsecA: 0, winsConsecB: 0,
+            saqueLado: 'A', idxA: 0, idxB: 0, jaSacouA: true, jaSacouB: false,
+            timeA: [], timeB: [], esperaGeral: [], esperaEstrela: [],
+            ranking: {}, restricoes: [],
+            config: { size: 4, stars: 1, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' },
+            weights: { atqG: 1.0, blqG: 1.25, aceG: 1.5, atqE: 1.5, blqE: 2.0, aceE: 2.0, err: 0.25, vit: 3.0 }
+        };
+
+        let historico = [], filaTab = 'geral', rkTab = 'tudo', modalCtx = { lado: '', idx: 0 };
+
+        function init() {
+            const saved = localStorage.getItem('volei_hub_v61');
+            if(saved) game = JSON.parse(saved);
+            else {
+                INITIAL_GERAL.forEach(n => {
+                    const id = Math.random().toString(36).substr(2, 9);
+                    game.esperaGeral.push({ id, nome: n, estrela: false, bloqueado: true });
+                    game.ranking[n] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, estrela:false };
+                });
+                INITIAL_ESTRELA.forEach(n => {
+                    const id = Math.random().toString(36).substr(2, 9);
+                    game.esperaEstrela.push({ id, nome: n, estrela: true, bloqueado: true });
+                    game.ranking[n] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, estrela:true };
+                });
+                const t = [...game.esperaGeral, ...game.esperaEstrela];
+                const fId = (n) => t.find(j => j.nome === n)?.id;
+                game.restricoes.push([fId("MARCIANO"), fId("JANIR")], [fId("RAFAEL"), fId("YURI")], [fId("PATY"), fId("MATEUS BRAZ")]);
+            }
+            render();
+            initDragSystem();
+        }
+
+        function salvar(comHist = true) {
+            if(comHist) { historico.push(JSON.stringify(game)); if(historico.length > 20) historico.shift(); }
+            localStorage.setItem('volei_hub_v61', JSON.stringify(game));
+            render();
+        }
+
+        function desfazer() { if(historico.length > 0) { game = JSON.parse(historico.pop()); render(); } }
+
+        function getPlayerScore(n) {
+            const s = game.ranking[n]; if(!s) return 0;
+            const w = game.weights;
+            const atq = s.estrela ? w.atqE : w.atqG;
+            const blq = s.estrela ? w.blqE : w.blqG;
+            const ace = s.estrela ? w.aceE : w.aceG;
+            return parseFloat(((s.v * w.vit) + (s.ptsAtaque * atq) + (s.ptsAce * ace) + (s.ptsBloqueio * blq) + (s.ptsErroAdversario * w.err)).toFixed(2));
+        }
+
+        function render() {
+            document.getElementById('placarDisplay').classList.toggle('hidden', !game.partidaAtiva);
+            document.getElementById('setupControls').classList.toggle('hidden', game.partidaAtiva);
+            document.getElementById('scoreA').innerText = game.scoreA; document.getElementById('scoreB').innerText = game.scoreB;
+            document.getElementById('winsA').innerText = `Sets: ${game.winsConsecA}`; document.getElementById('winsB').innerText = `Sets: ${game.winsConsecB}`;
+
+            const drawTeam = (l) => (l === 'A' ? game.timeA : game.timeB).map((p, i) => `
+                <div class="jogador-card bg-slate-800 p-3 rounded-xl border-l-4 ${l==='A'?'border-l-blue-500':'border-l-orange-500'} ${game.partidaAtiva && game.saqueLado===l && (l==='A'?game.idxA:game.idxB)===i?'sacando':''} ${p.estrela?'is-estrela':''}" onclick="abrirPontoTecnico('${l}', ${i})" data-id="${p.id}">
+                    <div class="uppercase font-black text-[10px] truncate"><span class="bola-saque mr-1">🏐</span> ${p.estrela?'⭐ ':''}${p.nome}</div>
+                </div>`).join('');
+            document.getElementById('areaA').innerHTML = drawTeam('A'); document.getElementById('areaB').innerHTML = drawTeam('B');
+            
+            const f = filaTab === 'geral' ? game.esperaGeral : game.esperaEstrela;
+            document.getElementById('esperaContainer').innerHTML = f.map((p, i) => `
+                <div data-id="${p.id}" onclick="abrirEscalacao('${filaTab}', ${i})" class="bg-slate-800 p-3 rounded-xl flex justify-between items-center border border-slate-700 ${p.bloqueado ? 'is-bloqueado' : ''} cursor-move">
+                    <div class="text-[10px] font-black uppercase text-slate-300">${p.estrela ? '⭐ ' : ''}${p.nome}</div><span class="text-slate-600">⠿</span>
+                </div>`).join('');
+            
+            const rk = Object.entries(game.ranking).map(([n, s]) => ({ n, ...s, score: getPlayerScore(n) })).filter(x => x.score > 0 && (rkTab==='tudo'?true:rkTab==='estrela'?x.estrela:!x.estrela)).sort((a,b) => b.score - a.score);
+            document.getElementById('rankingContainer').innerHTML = rk.map((j, i) => `<div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 cursor-pointer mb-1" onclick="abrirAuditModal('${j.n}')"><div class="flex items-center gap-3"><span class="text-[10px] text-slate-600 w-4">${i+1}</span><div class="rank-name uppercase text-[11px] font-bold">${j.estrela?'⭐':''} ${j.n}</div></div><div class="text-orange-500 font-black">${j.score}</div></div>`).join('');
+            renderLeaders();
+        }
+
+        function renderLeaders() {
+            const pl = Object.entries(game.ranking).map(([n, s]) => ({ n, ...s, score: getPlayerScore(n) }));
+            const cats = [{ t: "Top Score", i: "🏆", f: (p) => getPlayerScore(p.n) }, { t: "Maior Pontuador", i: "🔥", f: (p) => p.ptsAce + p.ptsAtaque + p.ptsBloqueio }, { t: "Rei do Ace", i: "⚡", f: (p) => p.ptsAce }, { t: "Paredão", i: "🚫", f: (p) => p.ptsBloqueio }, { t: "Vitórias", i: "🥇", f: (p) => p.v }];
+            document.getElementById('leadersGrid').innerHTML = cats.map(c => {
+                const getL = (list) => { const sorted = [...list].sort((a,b) => c.f(b) - c.f(a)); if(!sorted[0] || c.f(sorted[0]) <= 0) return null; return { names: sorted.filter(p => c.f(p) === c.f(sorted[0])).map(p => p.n).join(", "), val: c.f(sorted[0]) }; };
+                const lg = getL(pl.filter(x=>!x.estrela)), le = getL(pl.filter(x=>x.estrela));
+                if(!lg && !le) return '';
+                return `<div class="leader-card p-4 rounded-2xl mb-1"><div class="flex items-center gap-2 mb-3"><span>${c.i}</span><span class="leader-label-new text-orange-500">${c.t}</span></div><div class="grid grid-cols-2 gap-4 border-t border-slate-700/50 pt-3"><div><div class="leader-name-new">${lg?lg.names:'-'}</div><div class="leader-val-new text-orange-500">${lg?lg.val:'0'}</div></div><div class="border-l border-slate-700/50 pl-4"><div class="leader-name-new">${le?le.names:'-'}</div><div class="leader-val-new text-orange-500">${le?le.val:'0'}</div></div></div></div>`;
+            }).join('');
+        }
+
+        function abrirWeights() {
+            fecharModais();
+            const w = game.weights;
+            document.getElementById('wAtqG').value = w.atqG; document.getElementById('wBlqG').value = w.blqG; document.getElementById('wAceG').value = w.aceG;
+            document.getElementById('wAtqE').value = w.atqE; document.getElementById('wBlqE').value = w.blqE; document.getElementById('wAceE').value = w.aceE;
+            document.getElementById('wErr').value = w.err; document.getElementById('wVit').value = w.vit;
+            document.getElementById('modalWeights').classList.remove('hidden');
+        }
+
+        function salvarWeightsEClose() {
+            game.weights = { atqG: parseFloat(document.getElementById('wAtqG').value), blqG: parseFloat(document.getElementById('wBlqG').value), aceG: parseFloat(document.getElementById('wAceG').value), atqE: parseFloat(document.getElementById('wAtqE').value), blqE: parseFloat(document.getElementById('wBlqE').value), aceE: parseFloat(document.getElementById('wAceE').value), err: parseFloat(document.getElementById('wErr').value), vit: parseFloat(document.getElementById('wVit').value) };
+            fecharModais(); salvar(false);
+        }
+
+        function abrirConfig() {
+            document.getElementById('cSize').value = game.config.size; document.getElementById('cStars').value = game.config.stars; document.getElementById('cPoints').value = game.config.points; document.getElementById('cMax').value = game.config.maxWins; document.getElementById('cDesempate').value = game.config.desempate; document.getElementById('cReaction').value = game.config.reaction;
+            document.getElementById('modalConfigMenu').classList.remove('hidden');
+        }
+
+        function salvarConfigEClose() {
+            game.config = { size: parseInt(document.getElementById('cSize').value), stars: parseInt(document.getElementById('cStars').value), points: parseInt(document.getElementById('cPoints').value), maxWins: parseInt(document.getElementById('cMax').value), desempate: document.getElementById('cDesempate').value, reaction: document.getElementById('cReaction').value };
+            fecharModais(); salvar(false);
+        }
+
+        function registrarAcaoJogador(tipo) {
+            salvar(true); const p = (modalCtx.lado === 'A' ? game.timeA : game.timeB)[modalCtx.idx];
+            if(tipo === 'ataque') game.ranking[p.nome].ptsAtaque++; else if(tipo === 'bloqueio') game.ranking[p.nome].ptsBloqueio++; else if(tipo === 'saque') game.ranking[p.nome].ptsAce++;
+            fecharModais(); registrarPontoSimples(modalCtx.lado, false, false);
+        }
+
+        function registrarPontoSimples(lado, hist = true, isErro = true) {
+            if(!game.partidaAtiva) return; if(hist) salvar(true);
+            if(isErro) (lado === 'A' ? game.timeA : game.timeB).forEach(p => game.ranking[p.nome].ptsErroAdversario++);
+            if(game.saqueLado !== lado) { game.saqueLado = lado; if(lado === 'A') { if(game.jaSacouA) game.idxA = (game.idxA+1)%game.timeA.length; else game.jaSacouA=true; } else { if(game.jaSacouB) game.idxB = (game.idxB+1)%game.timeB.length; else game.jaSacouB=true; } }
+            if(lado === 'A') game.scoreA++; else game.scoreB++;
+            verificarFimDeSet(); salvar(false);
+        }
+
+        function verificarFimDeSet() {
+            const limit = game.config.points; const modo = game.config.desempate; let venceu = null;
+            if(modo === 'sem' && (game.scoreA >= limit || game.scoreB >= limit)) venceu = game.scoreA >= limit ? 'A' : 'B';
+            else if(modo === '2vantagem' && ((game.scoreA >= limit && game.scoreA-game.scoreB >= 2) || (game.scoreB >= limit && game.scoreB-game.scoreA >= 2))) venceu = game.scoreA > game.scoreB ? 'A' : 'B';
+            else if(modo === '3direto' && (game.scoreA >= limit || game.scoreB >= limit)) { if(game.scoreA >= limit-1 && game.scoreB >= limit-1) { if(game.scoreA >= limit+2) venceu='A'; else if(game.scoreB >= limit+2) venceu='B'; } else { if(game.scoreA >= limit && game.scoreA-game.scoreB >= 2) venceu='A'; else if(game.scoreB >= limit && game.scoreB-game.scoreA >= 2) venceu='B'; } }
+            if(venceu) setTimeout(() => finalizarPartida(venceu), 300);
+        }
+
+        function finalizarPartida(venceu) {
+            const tV = venceu === 'A' ? game.timeA : game.timeB; const tD = venceu === 'A' ? game.timeB : game.timeA;
+            tV.forEach(j => game.ranking[j.nome].v++); tD.forEach(j => { game.ranking[j.nome].d++; (j.estrela?game.esperaEstrela:game.esperaGeral).push(j); });
+            tD.length = 0; if(venceu === 'A') { game.winsConsecA++; game.winsConsecB = 0; } else { game.winsConsecB++; game.winsConsecA = 0; }
+            if(game.config.maxWins > 0 && (game.winsConsecA >= game.config.maxWins || game.winsConsecB >= game.config.maxWins)) { if(game.config.reaction === 'dividir') { const pool = [...tV].sort((a,b) => getPlayerScore(b.nome) - getPlayerScore(a.nome)); game.timeA = [pool[0], pool[pool.length-1]]; game.timeB = pool.slice(1, pool.length-1); } else { tV.forEach(j => (j.estrela?game.esperaEstrela:game.esperaGeral).push(j)); tV.length = 0; } game.winsConsecA = 0; game.winsConsecB = 0; }
+            const preencher = (time) => { while(time.length < game.config.size) { let p = (time.filter(x=>x.estrela).length < game.config.stars) ? game.esperaEstrela.find(x => !x.bloqueado && !time.some(j => estaoBloqueados(x, j))) : null; if(!p) p = game.esperaGeral.find(x => !x.bloqueado && !time.some(j => estaoBloqueados(x, j))) || game.esperaEstrela.find(x => !x.bloqueado && !time.some(j => estaoBloqueados(x, j))); if(!p) p = game.esperaGeral.find(x => !x.bloqueado) || game.esperaEstrela.find(x => !x.bloqueado); if(!p) break; (p.estrela?game.esperaEstrela:game.esperaGeral).splice((p.estrela?game.esperaEstrela:game.esperaGeral).indexOf(p), 1); time.push(p); } };
+            preencher(game.timeA); preencher(game.timeB); game.scoreA = 0; game.scoreB = 0; game.idxA = 0; game.idxB = 0; game.partidaAtiva = false; salvar();
+        }
+
+        function abrirAuditModal(n) { const s = game.ranking[n]; const w = game.weights; const atqW = s.estrela ? w.atqE : w.atqG; const blqW = s.estrela ? w.blqE : w.blqG; const aceW = s.estrela ? w.aceE : w.aceG; document.getElementById('auditNome').innerText = (s.estrela?'⭐ ':'')+n; document.getElementById('auditContent').innerHTML = `<div class="audit-line"><span>Vitórias (x${w.vit})</span> <span>${s.v}</span></div><div class="audit-line"><span>Ataques (x${atqW})</span> <span>${s.ptsAtaque}</span></div><div class="audit-line"><span>Bloqueios (x${blqW})</span> <span>${s.ptsBloqueio}</span></div><div class="audit-line"><span>Aces (x${aceW})</span> <span>${s.ptsAce}</span></div><div class="audit-line"><span>Erro Adv (x${w.err})</span> <span>${s.ptsErroAdversario}</span></div><div class="audit-line text-slate-500 italic"><span>Derrotas</span> <span>${s.d}</span></div>`; document.getElementById('auditTotal').innerText = getPlayerScore(n); document.getElementById('modalAudit').classList.remove('hidden'); }
+        function fecharModais() { document.querySelectorAll('.modal-global, #modalPontoTec, #modalWeights, #modalAudit').forEach(m => m.classList.add('hidden')); }
+        function estaoBloqueados(p1, p2) { if(!p1 || !p2) return false; return game.restricoes.some(d => (d[0] == p1.id && d[1] == p2.id) || (d[1] == p1.id && d[0] == p2.id)); }
+        
+        // CORREÇÃO: FILTRO DE ACE PARA SACADOR
+        function abrirPontoTecnico(l, i) { 
+            modalCtx = { lado: l, idx: i }; 
+            const p = (l==='A' ? game.timeA : game.timeB)[i]; 
+            document.getElementById('modalNomeTec').innerText = (p.estrela ? '⭐ ' : '') + p.nome; 
+            const w = game.weights; 
+            document.getElementById('labelAtq').innerText = `+${p.estrela ? w.atqE : w.atqG}`; 
+            document.getElementById('labelBlq').innerText = `+${p.estrela ? w.blqE : w.blqG}`; 
+            document.getElementById('labelAce').innerText = `+${p.estrela ? w.aceE : w.aceG}`; 
+            
+            // Lógica de visibilidade do Ace
+            const isSacador = (game.saqueLado === l && (l === 'A' ? game.idxA : game.idxB) === i);
+            document.getElementById('btnAceTec').classList.toggle('hidden', !isSacador);
+            
+            document.getElementById('modalPontoTec').classList.remove('hidden'); 
+        }
+        
+        function definirSacadorManual() { game.saqueLado = modalCtx.lado; if(modalCtx.lado === 'A') { game.idxA = modalCtx.idx; game.jaSacouA = true; } else { game.idxB = modalCtx.idx; game.jaSacouB = true; } fecharModais(); salvar(); }
+        function initDragSystem() { Sortable.create(document.getElementById('areaA'), { group: 'q', animation: 150, onEnd: syncQuadra }); Sortable.create(document.getElementById('areaB'), { group: 'q', animation: 150, onEnd: syncQuadra }); Sortable.create(document.getElementById('esperaContainer'), { animation: 150, onEnd: syncFila }); }
+        function syncQuadra() { const p = [...game.timeA, ...game.timeB]; const get = (id) => [...document.getElementById(id).children].map(el => p.find(x => x.id == el.dataset.id)).filter(x=>x); game.timeA = get('areaA'); game.timeB = get('areaB'); salvar(); }
+        function syncFila() { const f = filaTab === 'geral' ? game.esperaGeral : game.esperaEstrela; const pool = [...f]; const newF = [...document.getElementById('esperaContainer').children].map(el => pool.find(p => p.id == el.dataset.id)).filter(p => p); if(filaTab === 'geral') game.esperaGeral = newF; else game.esperaEstrela = newF; salvar(); }
+        function abrirEscalacao(tab, idx) { const list = tab === 'geral' ? game.esperaGeral : game.esperaEstrela; modalCtx = { pFila: list[idx], idxFila: idx, tabFila: tab }; document.getElementById('modalNomeFila').innerText = modalCtx.pFila.nome; document.getElementById('btnStatusBloqueio').innerText = modalCtx.pFila.bloqueado ? "LIBERAR" : "BLOQUEAR"; document.getElementById('btnStatusBloqueio').onclick = () => { modalCtx.pFila.bloqueado = !modalCtx.pFila.bloqueado; fecharModais(); salvar(); }; const gen = (t, l) => t.map((j, i) => `<button onclick="substituirJogador('${l}', ${i})" class="w-full bg-slate-700 p-2 rounded text-[8px] font-black uppercase truncate border border-slate-600 ${estaoBloqueados(modalCtx.pFila, j)?'opacity-20':''}">Sub: ${j.nome}</button>`).join(''); document.getElementById('subsA').innerHTML = gen(game.timeA, 'A'); document.getElementById('subsB').innerHTML = gen(game.timeB, 'B'); document.getElementById('modalFilaEscala').classList.remove('hidden'); }
+        function substituirJogador(lado, idxQ) { const team = lado === 'A' ? game.timeA : game.timeB; if(estaoBloqueados(modalCtx.pFila, team[idxQ])) return alert("Dupla Bloqueada!"); salvar(true); const sai = team.splice(idxQ, 1)[0]; const list = modalCtx.tabFila === 'geral' ? game.esperaGeral : game.esperaEstrela; const entra = list.splice(modalCtx.idxFila, 1)[0]; entra.bloqueado = false; team.splice(idxQ, 0, entra); (sai.estrela?game.esperaEstrela:game.esperaGeral).push(sai); fecharModais(); salvar(false); }
+        function escalarParaTime(lado) { const t = lado==='A'?game.timeA:game.timeB; if(t.length < game.config.size) { const l = modalCtx.tabFila==='geral'?game.esperaGeral:game.esperaEstrela; const entra = l.splice(modalCtx.idxFila, 1)[0]; entra.bloqueado = false; t.push(entra); fecharModais(); salvar(); } }
+        function adicionarNovoJogador() { const input = document.getElementById('novoNome'), nome = input.value.toUpperCase().trim(); if(!nome) return; salvar(true); const isEstrela = filaTab === 'estrela'; const novoJ = { id: Math.random().toString(36).substr(2, 9), nome: nome, estrela: isEstrela, bloqueado: true }; if(!game.ranking[nome]) game.ranking[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, estrela:isEstrela }; if(isEstrela) game.esperaEstrela.unshift(novoJ); else game.esperaGeral.unshift(novoJ); input.value = ''; salvar(false); }
+        function abrirBloqueioDuplas() { const todos = [...game.esperaGeral, ...game.esperaEstrela, ...game.timeA, ...game.timeB]; const opt = todos.map(p => `<option value="${p.id}">${p.nome}</option>`).join(''); document.getElementById('selJ1').innerHTML = opt; document.getElementById('selJ2').innerHTML = opt; renderListaRestricoes(); document.getElementById('modalRestricao').classList.remove('hidden'); }
+        function adicionarRestricao() { const j1 = document.getElementById('selJ1').value, j2 = document.getElementById('selJ2').value; if(j1 !== j2) { game.restricoes.push([j1, j2]); renderListaRestricoes(); salvar(); } }
+        function renderListaRestricoes() { const t = [...game.esperaGeral, ...game.esperaEstrela, ...game.timeA, ...game.timeB]; document.getElementById('listaRestricoes').innerHTML = game.restricoes.map((d, i) => { const n1 = t.find(p => p.id == d[0])?.nome || "?", n2 = t.find(p => p.id == d[1])?.nome || "?"; return `<div class="bg-slate-900 p-2 rounded flex justify-between uppercase text-[10px] text-red-400"><span>${n1} 🚫 ${n2}</span><button onclick="game.restricoes.splice(${i},1);renderListaRestricoes();salvar();">X</button></div>`; }).join(''); }
+        function validarEIniciarPartida() { if(game.timeA.length === game.config.size && game.timeB.length === game.config.size) { game.partidaAtiva = true; salvar(); } else alert("Times incompletos!"); }
+        function setFilaTab(t) { filaTab = t; render(); }
+        function setRankingTab(t) { rkTab = t; render(); }
+        function limparSistema() { if(confirm("Apagar tudo?")) { localStorage.clear(); location.reload(); } }
+
+        init();
+    </script>
+</body>
+</html>
