@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V8.7</title>
+    <title>Vôlei Hub PRO - V8.8</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -39,7 +39,10 @@
         @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 
         /* Visibilidade */
-        .modal-global { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000 !important; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .modal-global { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        /* Modal Pesos com Z-index maior */
+        #modalWeights { z-index: 2100 !important; }
+        
         .hidden { display: none !important; }
         .admin-only-control { display: none !important; }
         body.is-admin .admin-only-control { display: block !important; }
@@ -71,7 +74,7 @@
 
     <header class="p-4 bg-slate-800 sticky top-0 shadow-2xl z-40 border-b border-slate-700">
         <div class="flex justify-between items-center max-w-md mx-auto mb-3">
-            <h1 class="text-orange-500 font-black text-lg italic uppercase tracking-tighter">Vôlei Hub <span class="text-xs text-blue-400">LIVE</span></h1>
+            <h1 onclick="window.tocarApitoManual()" class="text-orange-500 font-black text-lg italic uppercase tracking-tighter cursor-pointer hover:text-orange-400 active:scale-95 transition" title="Clique para tocar som/testar">Vôlei Hub <span class="text-xs text-blue-400">LIVE</span></h1>
             <div class="flex gap-2 admin-only-control">
                 <button id="admin-notif-bell" onclick="window.abrirSolicitacoes()" class="hidden text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 transition">🔔<div id="admin-notif-dot"></div></button>
                 <button onclick="window.undoLastAction()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase transition">↩ Desfazer</button>
@@ -164,7 +167,7 @@
                 <div><h4 class="text-[10px] font-black text-orange-500 uppercase mb-3">Estrela</h4><div class="grid grid-cols-3 gap-2"><div><label class="text-[8px] font-bold">Ataque</label><input type="number" step="0.25" id="wAtqE" class="config-input"></div><div><label class="text-[8px] font-bold">Bloqueio</label><input type="number" step="0.25" id="wBlqE" class="config-input"></div><div><label class="text-[8px] font-bold">Ace</label><input type="number" step="0.25" id="wAceE" class="config-input"></div></div></div>
                 <div><h4 class="text-[10px] font-black text-emerald-500 uppercase mb-3">Global</h4><div class="grid grid-cols-2 gap-2"><div><label class="text-[8px] font-bold">Erro Adv.</label><input type="number" step="0.05" id="wErr" class="config-input"></div><div><label class="text-[8px] font-bold">Vitória</label><input type="number" step="0.5" id="wVit" class="config-input"></div></div></div>
             </div>
-            <button onclick="window.salvarWeightsEClose()" class="w-full bg-blue-600 p-4 rounded-xl font-black uppercase italic mt-6">Aplicar</button>
+            <button onclick="window.salvarWeightsEClose()" class="w-full bg-blue-600 p-4 rounded-xl font-black uppercase italic mt-6">Aplicar (Salvar Config)</button>
             <button onclick="window.fecharModais()" class="w-full py-4 text-slate-500 text-[10px] font-bold uppercase">Cancelar</button>
         </div>
     </div>
@@ -305,7 +308,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const gameRef = ref(db, 'partida/v8_7'); 
+        const gameRef = ref(db, 'partida/v8_8'); 
 
         const INITIAL_GERAL = ["MATHEUS MATOS","MARCIANO", "DANIELE", "RAFAEL", "SABRINA", "JANIR", "YURI", "MAICON", "THALYSON", "ODAIR", "LUCAS GABRIEL", "JOÃO", "LUIZ EDUARDO", "MATHEUS JAPA", "ANDERSON"];
         const INITIAL_ESTRELA = ["PATY", "MATEUS BRAZ", "RHUANA", "KEMILLY", "WELLINGTON"];
@@ -315,15 +318,6 @@
         const params = new URLSearchParams(window.location.search);
         const isAdmin = params.get('admin') === 'true';
         if(isAdmin) document.body.classList.add('is-admin');
-
-        // AUDIO UNLOCK LISTENER (Global)
-        document.addEventListener('click', () => {
-            const a = document.getElementById('whistleSound');
-            if(a && a.paused) {
-                a.volume = 0; 
-                a.play().then(() => { a.pause(); a.volume = 1; }).catch(() => {});
-            }
-        }, { once: true });
 
         let game = {
             partidaAtiva: false, setupLocked: false, scoreA: 0, scoreB: 0, winsConsecA: 0, winsConsecB: 0,
@@ -335,10 +329,12 @@
             systemMsg: { text: "AGUARDANDO", sub: "...", streak: false, ts: 0 },
             matchLog: [], lastAnim: { type: '', ts: 0 }, endGameAnim: { active: false, ts: 0 },
             nextGameReason: 'default', publicRanking: false,
-            requests: [], deniedRequests: [], // New state for requests
+            requests: [], deniedRequests: [],
+            currentMatchStats: {}, // Nova estatistica da partida
             lastScorerId: null, currentStreak: 0
         };
 
+        let tempConfig = {}; // Configuração Temporária
         let historicoLocal = [];
         let filaTab = 'geral';
         let rkTab = 'tudo';
@@ -351,7 +347,7 @@
         onValue(gameRef, (snapshot) => {
             const data = snapshot.val();
             if(data) {
-                game = { ...data, timeA: data.timeA || [], timeB: data.timeB || [], esperaGeral: data.esperaGeral || [], esperaEstrela: data.esperaEstrela || [], ranking: data.ranking || {}, restricoes: data.restricoes || [], systemMsg: data.systemMsg || { text:"AGUARDANDO", sub:"...", ts: 0 }, matchLog: data.matchLog || [], lastAnim: data.lastAnim || { ts: 0 }, endGameAnim: data.endGameAnim || { active: false, ts: 0 }, nextGameReason: data.nextGameReason || 'default', publicRanking: data.publicRanking || false, requests: data.requests || [], deniedRequests: data.deniedRequests || [] };
+                game = { ...data, timeA: data.timeA || [], timeB: data.timeB || [], esperaGeral: data.esperaGeral || [], esperaEstrela: data.esperaEstrela || [], ranking: data.ranking || {}, restricoes: data.restricoes || [], systemMsg: data.systemMsg || { text:"AGUARDANDO", sub:"...", ts: 0 }, matchLog: data.matchLog || [], lastAnim: data.lastAnim || { ts: 0 }, endGameAnim: data.endGameAnim || { active: false, ts: 0 }, nextGameReason: data.nextGameReason || 'default', publicRanking: data.publicRanking || false, requests: data.requests || [], deniedRequests: data.deniedRequests || [], currentMatchStats: data.currentMatchStats || {} };
                 ensureRankingConsistency();
                 render();
             } else { initGameData(); }
@@ -392,18 +388,24 @@
         window.limparSistema = () => {
             if(confirm("⚠️ RESETAR PARA PADRÃO DE FÁBRICA?")) {
                 game.timeA = []; game.timeB = [];
-                game.partidaAtiva = false; game.setupLocked = false; // Reset lock
+                game.partidaAtiva = false; game.setupLocked = false; 
                 game.scoreA = 0; game.scoreB = 0;
                 game.winsConsecA = 0; game.winsConsecB = 0;
                 game.ranking = {}; game.matchLog = [];
                 game.nextGameReason = 'default';
                 game.publicRanking = false;
+                game.currentMatchStats = {};
                 game.requests = []; game.deniedRequests = [];
                 game.config = { size: 4, stars: 1, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' };
                 game.weights = { atqG: 1.0, blqG: 1.25, aceG: 1.5, atqE: 1.5, blqE: 2.0, aceE: 2.0, err: 0.25, vit: 3.0 };
                 initGameData();
                 setSystemMessage("SISTEMA REINICIADO", "Configurações Padrão Restauradas", false);
             }
+        };
+
+        window.tocarApitoManual = () => {
+            const a = document.getElementById('whistleSound');
+            if(a) { a.volume = 1; a.currentTime = 0; a.play().catch(e => console.log("User interaction needed")); }
         };
 
         function setSystemMessage(title, sub, streak) { game.systemMsg = { text: title, sub: sub, streak: streak, ts: Date.now() }; }
@@ -415,11 +417,8 @@
             if(game.endGameAnim && game.endGameAnim.ts > lastEndGameTs) {
                 lastEndGameTs = game.endGameAnim.ts;
                 const overlay = document.getElementById('endgame-overlay');
-                const audio = document.getElementById('whistleSound');
+                window.tocarApitoManual(); // Toca som
                 overlay.classList.remove('hidden');
-                audio.volume = 1.0;
-                audio.currentTime = 0;
-                audio.play().catch(e => console.log("Audio needs interaction", e));
                 setTimeout(() => { overlay.classList.add('hidden'); }, 3000);
             }
 
@@ -438,16 +437,14 @@
             const placarDiv = document.getElementById('placarDisplay');
             const setupDiv = document.getElementById('setupControls');
             
-            // Lógica do botão iniciar (setupLocked)
             if(game.partidaAtiva) {
                 placarDiv.classList.remove('hidden'); infoPanel.classList.remove('hidden'); setupDiv.classList.add('hidden');
             } else {
                 placarDiv.classList.add('hidden'); infoPanel.classList.add('hidden');
-                // Se setupLocked for true, o botão não aparece nunca mais
-                if(isAdmin && !game.setupLocked) setupDiv.classList.remove('hidden'); else setupDiv.classList.add('hidden');
+                // SE setupLocked = true, esconde o botão, senão mostra
+                if(isAdmin && !game.setupLocked) setupDiv.classList.remove('!hidden', 'hidden'); else setupDiv.classList.add('!hidden');
             }
 
-            // Notificação Admin
             const bell = document.getElementById('admin-notif-bell');
             if(isAdmin && game.requests.length > 0) bell.classList.remove('hidden'); else bell.classList.add('hidden');
 
@@ -533,12 +530,18 @@
             if(tipo==='ataque') game.ranking[p.nome].ptsAtaque++;
             if(tipo==='bloqueio') game.ranking[p.nome].ptsBloqueio++;
             if(tipo==='saque') game.ranking[p.nome].ptsAce++;
+            
+            // CONTAGEM POR PARTIDA
+            if(!game.currentMatchStats) game.currentMatchStats = {};
+            game.currentMatchStats[p.id] = (game.currentMatchStats[p.id] || 0) + 1;
+            
             addToLog(`${tipo.toUpperCase()} - ${p.nome}`, modalCtx.lado);
             triggerEmoji(tipo);
-            const s = game.ranking[p.nome];
-            const total = s.ptsAtaque + s.ptsBloqueio + s.ptsAce; 
-            const fraseIndex = Math.min(total, 10);
+            
+            const totalMatch = game.currentMatchStats[p.id]; 
+            const fraseIndex = Math.min(totalMatch, 10);
             const frase = PHRASES[fraseIndex] || "";
+            
             let isStreak = false;
             if(game.lastScorerId === p.id) { game.currentStreak++; if(game.currentStreak >= 2) isStreak = true; } else { game.lastScorerId = p.id; game.currentStreak = 1; }
             if(frase) setSystemMessage(p.nome, frase, isStreak);
@@ -564,7 +567,11 @@
             tV.forEach(j => game.ranking[j.nome].v++);
             tD.forEach(j => { game.ranking[j.nome].d++; (j.estrela ? game.esperaEstrela : game.esperaGeral).push(j); });
             if(venceu === 'A') { game.timeB = []; game.winsConsecA++; game.winsConsecB = 0; } else { game.timeA = []; game.winsConsecB++; game.winsConsecA = 0; }
+            
+            // RESETAR STATS DA PARTIDA
+            game.currentMatchStats = {};
             game.lastScorerId = null; game.currentStreak = 0; game.nextGameReason = 'default';
+            
             if(game.config.maxWins > 0 && (game.winsConsecA >= game.config.maxWins || game.winsConsecB >= game.config.maxWins)) {
                 if(game.config.reaction === 'dividir') { game.nextGameReason = 'mixed'; const pool = [...tV].sort((a,b) => getScore(b.nome) - getScore(a.nome)); const half = Math.ceil(pool.length / 2); game.timeA = pool.slice(0, half); game.timeB = pool.slice(half); }
                 else { game.nextGameReason = 'new'; tV.forEach(j => (j.estrela ? game.esperaEstrela : game.esperaGeral).push(j)); game.timeA = []; game.timeB = []; }
@@ -579,11 +586,58 @@
         window.validarEIniciarPartida = () => { 
             if(game.timeA.length===game.config.size && game.timeB.length===game.config.size) { 
                 game.partidaAtiva = true; 
-                game.setupLocked = true; // TRAVA O BOTÃO
+                game.setupLocked = true; 
+                game.currentMatchStats = {}; // Resetar stats ao iniciar
                 game.jaSacouA=false; game.jaSacouB=false; if(game.saqueLado==='A') game.jaSacouA=true; else game.jaSacouB=true; 
                 let title = "JOGO INICIADO"; let sub = "BOA SORTE"; if(game.nextGameReason === 'mixed') { title = "TIMES MISTURADOS!"; sub = "Limite de vitórias atingido"; } if(game.nextGameReason === 'new') { title = "TIMES NOVOS!"; sub = "Limite atingido - ambos saíram"; } setSystemMessage(title, sub, false); game.nextGameReason = 'default'; 
                 salvarState(); 
             } else alert("Times incompletos!"); 
+        };
+
+        // --- SISTEMA DE CONFIGURAÇÃO TEMPORÁRIA ---
+        window.abrirConfig = () => {
+            tempConfig = JSON.parse(JSON.stringify(game.config)); // Clone deep
+            tempConfig.publicRanking = game.publicRanking; // Add root property
+            
+            document.getElementById('cSize').value = tempConfig.size;
+            document.getElementById('cStars').value = tempConfig.stars;
+            document.getElementById('cPoints').value = tempConfig.points;
+            document.getElementById('cMax').value = tempConfig.maxWins;
+            document.getElementById('cReaction').value = tempConfig.reaction;
+            document.getElementById('cDesempate').value = tempConfig.desempate;
+            
+            updateToggleBtnUI();
+            document.getElementById('modalConfigMenu').classList.remove('hidden');
+        };
+
+        window.togglePublicRanking = () => {
+            tempConfig.publicRanking = !tempConfig.publicRanking;
+            updateToggleBtnUI();
+        };
+
+        function updateToggleBtnUI() {
+            const btn = document.getElementById('btnToggleRank');
+            if(tempConfig.publicRanking) {
+                btn.innerText = "ATIVADO (Salvar p/ Aplicar)";
+                btn.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-green-500 text-green-400";
+            } else {
+                btn.innerText = "DESATIVADO";
+                btn.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400";
+            }
+        }
+
+        window.salvarConfigEClose = () => {
+            // Commit changes
+            game.config.size = parseInt(document.getElementById('cSize').value);
+            game.config.stars = parseInt(document.getElementById('cStars').value);
+            game.config.points = parseInt(document.getElementById('cPoints').value);
+            game.config.maxWins = parseInt(document.getElementById('cMax').value);
+            game.config.reaction = document.getElementById('cReaction').value;
+            game.config.desempate = document.getElementById('cDesempate').value;
+            game.publicRanking = tempConfig.publicRanking;
+            
+            window.fecharModais();
+            salvarState();
         };
 
         // --- SISTEMA DE SOLICITAÇÃO ---
@@ -619,21 +673,19 @@
         window.responderSolicitacao = (idx, aprovado) => {
             const req = game.requests[idx];
             if(aprovado) {
-                // Troca Categoria
                 const list = game.esperaGeral.find(x=>x.id===req.id) ? game.esperaGeral : game.esperaEstrela;
                 const p = list.find(x=>x.id===req.id);
                 if(p) {
                     list.splice(list.indexOf(p), 1);
                     p.estrela = !p.estrela;
                     (p.estrela ? game.esperaEstrela : game.esperaGeral).push(p);
-                    // Atualiza Ranking tb
                     if(game.ranking[p.nome]) game.ranking[p.nome].estrela = p.estrela;
                 }
             } else {
                 game.deniedRequests.push(req.id);
             }
             game.requests.splice(idx, 1);
-            window.abrirSolicitacoes(); // Refresh modal
+            window.abrirSolicitacoes(); 
             salvarState();
         };
 
@@ -646,8 +698,6 @@
                 const listG = sort(pl.filter(x=>!x.estrela)); const listE = sort(pl.filter(x=>x.estrela));
                 const maxG = listG.length ? c.f(listG[0]) : 0; const maxE = listE.length ? c.f(listE[0]) : 0;
                 if(maxG === 0 && maxE === 0) return '';
-                
-                // Exibe todos os empatados com flex-wrap
                 const winnersG = listG.filter(p => c.f(p) === maxG).map(p => p.n).join(', ');
                 const winnersE = listE.filter(p => c.f(p) === maxE).map(p => p.n).join(', ');
 
@@ -684,17 +734,28 @@
             document.getElementById('modalAudit').classList.remove('hidden');
         };
 
-        window.abrirConfig = () => { document.getElementById('cSize').value = game.config.size; document.getElementById('cStars').value = game.config.stars; document.getElementById('cPoints').value = game.config.points; document.getElementById('cMax').value = game.config.maxWins; document.getElementById('cReaction').value = game.config.reaction; document.getElementById('cDesempate').value = game.config.desempate; const btn = document.getElementById('btnToggleRank'); if(game.publicRanking) { btn.innerText = "ATIVADO"; btn.classList.remove('text-slate-400','border-slate-500'); btn.classList.add('text-green-400','border-green-500'); } else { btn.innerText = "DESATIVADO"; btn.classList.add('text-slate-400','border-slate-500'); btn.classList.remove('text-green-400','border-green-500'); } document.getElementById('modalConfigMenu').classList.remove('hidden'); };
-        window.togglePublicRanking = () => { game.publicRanking = !game.publicRanking; window.abrirConfig(); salvarState(); };
-        window.abrirWeights = () => { document.getElementById('wAtqG').value = game.weights.atqG; document.getElementById('wBlqG').value = game.weights.blqG; document.getElementById('wAceG').value = game.weights.aceG; document.getElementById('wAtqE').value = game.weights.atqE; document.getElementById('wBlqE').value = game.weights.blqE; document.getElementById('wAceE').value = game.weights.aceE; document.getElementById('wErr').value = game.weights.err; document.getElementById('wVit').value = game.weights.vit; document.getElementById('modalWeights').classList.remove('hidden'); };
-        window.fecharModais = () => document.querySelectorAll('.modal-global, #modalPontoTec').forEach(m => m.classList.add('hidden'));
+        window.abrirWeights = () => { 
+            // Fecha Config se estiver aberto para evitar conflito visual, mas mantém estado
+            document.getElementById('modalConfigMenu').classList.add('hidden');
+            
+            document.getElementById('wAtqG').value = game.weights.atqG; document.getElementById('wBlqG').value = game.weights.blqG; document.getElementById('wAceG').value = game.weights.aceG; document.getElementById('wAtqE').value = game.weights.atqE; document.getElementById('wBlqE').value = game.weights.blqE; document.getElementById('wAceE').value = game.weights.aceE; document.getElementById('wErr').value = game.weights.err; document.getElementById('wVit').value = game.weights.vit; 
+            document.getElementById('modalWeights').classList.remove('hidden'); 
+        };
+        window.fecharModais = () => {
+            document.querySelectorAll('.modal-global, #modalPontoTec').forEach(m => m.classList.add('hidden'));
+            // Se fechou Weights e Config estava "aberto logicamente", reabre Config? 
+            // Simplificação: fecha tudo.
+        };
         window.setFilaTab = (t) => { filaTab = t; render(); };
         window.setRankingTab = (t) => { rkTab = t; render(); };
         window.abrirBloqueioDuplas = () => { const all = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela].sort((a,b)=>a.nome.localeCompare(b.nome)); const opt = `<option value="" disabled selected>- Selecione -</option>`+all.map(p=>`<option value="${p.id}">${p.nome}</option>`).join(''); document.getElementById('selJ1').innerHTML = opt; document.getElementById('selJ2').innerHTML = opt; window.renderListaRestricoes(); document.getElementById('modalRestricao').classList.remove('hidden'); };
         window.renderListaRestricoes = () => { const all = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela]; document.getElementById('listaRestricoes').innerHTML = game.restricoes.map((r,i) => { const n1 = all.find(x=>x.id==r[0])?.nome||'?'; const n2 = all.find(x=>x.id==r[1])?.nome||'?'; return `<div class="bg-slate-800 p-2 flex justify-between text-[10px] text-red-400 border border-red-900/30"><span>${n1} 🚫 ${n2}</span><button onclick="window.removeRestricao(${i})">X</button></div>`; }).join(''); };
         window.removeRestricao = (i) => { game.restricoes.splice(i,1); window.renderListaRestricoes(); salvarState(); };
-        window.salvarConfigEClose = () => { game.config.size = parseInt(document.getElementById('cSize').value); game.config.stars = parseInt(document.getElementById('cStars').value); game.config.points = parseInt(document.getElementById('cPoints').value); game.config.maxWins = parseInt(document.getElementById('cMax').value); game.config.desempate = document.getElementById('cDesempate').value; game.config.reaction = document.getElementById('cReaction').value; window.fecharModais(); salvarState(); };
-        window.salvarWeightsEClose = () => { game.weights.atqG = parseFloat(document.getElementById('wAtqG').value); game.weights.blqG = parseFloat(document.getElementById('wBlqG').value); game.weights.aceG = parseFloat(document.getElementById('wAceG').value); game.weights.atqE = parseFloat(document.getElementById('wAtqE').value); game.weights.blqE = parseFloat(document.getElementById('wBlqE').value); game.weights.aceE = parseFloat(document.getElementById('wAceE').value); game.weights.err = parseFloat(document.getElementById('wErr').value); game.weights.vit = parseFloat(document.getElementById('wVit').value); window.fecharModais(); salvarState(); };
+        window.salvarWeightsEClose = () => { 
+            game.weights.atqG = parseFloat(document.getElementById('wAtqG').value); game.weights.blqG = parseFloat(document.getElementById('wBlqG').value); game.weights.aceG = parseFloat(document.getElementById('wAceG').value); game.weights.atqE = parseFloat(document.getElementById('wAtqE').value); game.weights.blqE = parseFloat(document.getElementById('wBlqE').value); game.weights.aceE = parseFloat(document.getElementById('wAceE').value); game.weights.err = parseFloat(document.getElementById('wErr').value); game.weights.vit = parseFloat(document.getElementById('wVit').value); 
+            document.getElementById('modalWeights').classList.add('hidden');
+            window.abrirConfig(); // Reabre config menu
+        };
         window.adicionarNovoJogador = () => { const n = document.getElementById('novoNome').value.toUpperCase().trim(); if(!n) return; adicionarLocal(n, filaTab==='estrela'); document.getElementById('novoNome').value=''; salvarState(); };
         window.adicionarRestricao = () => { const j1 = document.getElementById('selJ1').value, j2 = document.getElementById('selJ2').value; if(j1&&j2&&j1!==j2) { game.restricoes.push([j1,j2]); window.renderListaRestricoes(); salvarState(); } };
         window.escalarParaTime = (lado) => { const t = lado==='A'?game.timeA:game.timeB; if(t.length<game.config.size) { const l = modalCtx.tabFila==='geral'?game.esperaGeral:game.esperaEstrela; const p = l.splice(modalCtx.idxFila, 1)[0]; p.bloqueado=false; t.push(p); window.fecharModais(); salvarState(); } else alert("Time Cheio!"); };
