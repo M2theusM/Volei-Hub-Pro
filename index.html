@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V9.2</title>
+    <title>Vôlei Hub PRO - V9.3</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -32,23 +32,22 @@
         /* Animações e Overlay */
         #emoji-layer { position: fixed; inset: 0; pointer-events: none; z-index: 5000; overflow: hidden; }
         .emoji-particle { position: absolute; font-size: 3rem; animation: floatUp ease-out forwards; opacity: 0; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        /* Animação mais lenta (3s a 4s) */
+        
+        /* Animação suave e lenta */
         @keyframes floatUp { 
             0% { transform: translateY(110vh) scale(0.5); opacity: 1; } 
             100% { transform: translateY(-10vh) scale(1.5); opacity: 0; } 
         }
 
+        /* Bola Gigante e Fim de Jogo */
         #endgame-overlay { transition: opacity 0.5s; z-index: 99999 !important; }
         .animate-pop { animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 
-        /* Visibilidade */
         .modal-global { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        /* Modal Pesos com Z-index maior */
         #modalWeights { z-index: 2100 !important; }
         
         .hidden { display: none !important; }
-        /* Classes de Controle Admin */
         .admin-only-control { display: none !important; }
         .admin-click-only { pointer-events: none; } 
         
@@ -76,13 +75,9 @@
         <h2 class="text-5xl font-black text-orange-500 uppercase italic mt-4 animate-pulse text-center">Fim de<br>Jogo!</h2>
     </div>
 
-    <audio id="whistleSound" preload="auto">
-        <source src="https://upload.wikimedia.org/wikipedia/commons/8/8d/Whistle.wav" type="audio/wav">
-    </audio>
-
     <header class="p-4 bg-slate-800 sticky top-0 shadow-2xl z-40 border-b border-slate-700">
         <div class="flex justify-between items-center max-w-md mx-auto mb-3">
-            <h1 onclick="window.adminTriggerWhistle()" class="text-orange-500 font-black text-lg italic uppercase tracking-tighter hover:text-orange-400 active:scale-95 transition admin-click-only cursor-default" title="Clique para tocar apito (Admin Only)">Vôlei Hub <span class="text-xs text-blue-400">PRO</span></h1>
+            <h1 onclick="window.adminTriggerWhistle()" class="text-orange-500 font-black text-lg italic uppercase tracking-tighter hover:text-orange-400 active:scale-95 transition admin-click-only cursor-default select-none" title="Clique para tocar apito (Admin Only)">Vôlei Hub <span class="text-xs text-blue-400">PRO</span></h1>
             <div class="flex gap-2 admin-only-control">
                 <button id="admin-notif-bell" onclick="window.abrirSolicitacoes()" class="hidden text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 transition">🔔<div id="admin-notif-dot"></div></button>
                 <button onclick="window.undoLastAction()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase transition">↩ Desfazer</button>
@@ -340,7 +335,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const gameRef = ref(db, 'partida/v9_2'); // Atualizado para v9.2 para limpar dados antigos com erro
+        const gameRef = ref(db, 'partida/v9_3'); // Atualizado para v9.3
 
         const INITIAL_GERAL = ["MATHEUS MATOS","MARCIANO", "DANIELE", "RAFAEL", "SABRINA", "JANIR", "YURI", "MAICON", "THALYSON", "ODAIR", "LUCAS GABRIEL", "JOÃO", "LUIZ EDUARDO", "MATHEUS JAPA", "ANDERSON"];
         const INITIAL_ESTRELA = ["PATY", "MATEUS BRAZ", "RHUANA", "KEMILLY", "WELLINGTON"];
@@ -351,15 +346,59 @@
         const isAdmin = params.get('admin') === 'true';
         if(isAdmin) document.body.classList.add('is-admin');
 
+        // --- MOTOR DE ÁUDIO SINTÉTICO ---
+        let audioCtx;
+        
+        // Inicializa o contexto no primeiro clique (Workaround para Autoplay Policy)
+        document.addEventListener('click', () => {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }, { once: true });
+
+        // Função que toca o apito automaticamente (duração fixa)
+        function tocarApitoAutomatico() {
+            if (!audioCtx) {
+                // Tenta criar se ainda nao existir, mas pode falhar sem clique previo
+                try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+            }
+            
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            if (!audioCtx) return;
+
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.type = 'sine'; 
+            oscillator.frequency.setValueAtTime(2500, audioCtx.currentTime); // 2500Hz agudo
+
+            // Envelope do som (Ataque e Decaimento)
+            const now = audioCtx.currentTime;
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(0.5, now + 0.05); // Fade in rápido
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.6); // Fade out
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.start(now);
+            oscillator.stop(now + 0.6); // Para após 0.6 segundos
+        }
+
         let game = {
-            partidaAtiva: true, // Já inicia ativa para não precisar de botão
+            partidaAtiva: true, 
             setupLocked: true, 
             scoreA: 0, scoreB: 0, winsConsecA: 0, winsConsecB: 0,
             saqueLado: 'A', idxA: 0, idxB: 0, jaSacouA: false, jaSacouB: false,
             timeA: [], timeB: [], esperaGeral: [], esperaEstrela: [],
             ranking: {}, restricoes: [],
             config: { size: 4, stars: 1, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' },
-            // ERRO ADVERSARIO AGORA É 0.10
             weights: { atqG: 1.0, blqG: 1.25, aceG: 1.5, atqE: 1.5, blqE: 2.0, aceE: 2.0, err: 0.10, vit: 3.0, wTeam: 0.25 },
             systemMsg: { text: "AGUARDANDO", sub: "...", streak: false, ts: 0 },
             matchLog: [], lastAnim: { type: '', ts: 0 }, endGameAnim: { active: false, ts: 0 },
@@ -426,7 +465,7 @@
             DEFAULT_RESTRICTIONS.forEach(pair => { const p1 = all.find(p => p.nome === pair[0]); const p2 = all.find(p => p.nome === pair[1]); if(p1 && p2) game.restricoes.push([p1.id, p2.id]); });
             game.esperaGeral.forEach(p => p.bloqueado = true);
             game.esperaEstrela.forEach(p => p.bloqueado = true);
-            game.partidaAtiva = true; // Sempre ativa no init
+            game.partidaAtiva = true; 
             salvarState();
         }
 
@@ -471,22 +510,16 @@
 
         function checkAndPlaySound() {
             if(isAdmin) return; // Admin não toca som
+            
+            // Verifica Trigger Manual
             if(game.soundTrigger > lastSoundTs) {
                 lastSoundTs = game.soundTrigger;
-                playAudioLocal();
+                tocarApitoAutomatico();
             }
+            // Verifica Trigger Fim de Jogo
             if(game.endGameAnim.active && game.endGameAnim.ts > lastEndGameTs) {
                 // lastEndGameTs atualiza no render, mas garantimos aqui que toca
-                playAudioLocal();
-            }
-        }
-
-        function playAudioLocal() {
-            const a = document.getElementById('whistleSound');
-            if(a) { 
-                a.volume = 1; 
-                a.currentTime = 0; 
-                a.play().catch(e => console.log("User interaction needed for audio")); 
+                tocarApitoAutomatico();
             }
         }
 
@@ -502,7 +535,7 @@
                 lastEndGameTs = game.endGameAnim.ts;
                 const overlay = document.getElementById('endgame-overlay');
                 overlay.classList.remove('hidden');
-                setTimeout(() => { overlay.classList.add('hidden'); }, 4000); // 4 Segundos
+                setTimeout(() => { overlay.classList.add('hidden'); }, 4000); 
             }
 
             if(game.lastAnim && game.lastAnim.ts > lastAnimTs) { lastAnimTs = game.lastAnim.ts; doEmojiExplosion(game.lastAnim.type); }
@@ -519,7 +552,6 @@
             const infoPanel = document.getElementById('info-panel');
             const placarDiv = document.getElementById('placarDisplay');
             
-            // Logica simplificada: Sempre mostra placar e painel
             placarDiv.classList.remove('hidden'); 
             infoPanel.classList.remove('hidden');
             
@@ -613,7 +645,6 @@
             if(lado === 'A') game.scoreA++; else game.scoreB++;
             
             const limit = game.config.points;
-            // Só muda mensagem se NÃO for erro (pois erro tem prioridade de mensagem solicitada)
             if(!isErro) {
                 if((lado==='A' && game.scoreA >= limit-1 && game.scoreA > game.scoreB) || (lado==='B' && game.scoreB >= limit-1 && game.scoreB > game.scoreA)) { setSystemMessage("MATCH POINT!", `Time ${lado} jogando pelo set`, false); }
                 else if(game.config.desempate === '3direto' && game.scoreA === limit-1 && game.scoreB === limit-1) setSystemMessage("VAI A 3!", "Desempate Direto", false);
@@ -688,7 +719,7 @@
             const fill = (time) => { while(time.length < game.config.size) { let p = null; const precisaStar = time.filter(x=>x.estrela).length < game.config.stars; if(precisaStar) p = game.esperaEstrela.find(x => !x.bloqueado && !time.some(j=>estaoBloqueados(x,j))); if(!p) p = game.esperaGeral.find(x => !x.bloqueado && !time.some(j=>estaoBloqueados(x,j))); if(!p && !precisaStar) p = game.esperaEstrela.find(x => !x.bloqueado && !time.some(j=>estaoBloqueados(x,j))); if(!p) p = game.esperaGeral.find(x => !x.bloqueado) || game.esperaEstrela.find(x => !x.bloqueado); if(!p) break; const f = p.estrela ? game.esperaEstrela : game.esperaGeral; f.splice(f.indexOf(p), 1); time.push(p); } };
             fill(game.timeA); fill(game.timeB);
             game.scoreA = 0; game.scoreB = 0; game.idxA = 0; game.idxB = 0; game.jaSacouA = false; game.jaSacouB = false; 
-            game.partidaAtiva = true; // Mantem ativa
+            game.partidaAtiva = true; 
             game.saqueLado = venceu;
             salvarState();
         }
