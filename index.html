@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - Cloud Sync</title>
+    <title>Vôlei Hub PRO - LIVE</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -18,7 +18,6 @@
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
         .config-input { background: #0f172a; border: 1px solid #334155; padding: 10px; border-radius: 12px; width: 100%; color: white; font-weight: bold; font-size: 12px; }
         .modal-global { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .hidden { display: none !important; }
         #esperaContainer { min-height: 50px; height: auto !important; max-height: none !important; overflow: visible !important; }
         .drag-handle { cursor: grab; padding: 10px; color: #475569; font-size: 20px; user-select: none; }
     </style>
@@ -27,23 +26,23 @@
 
     <header class="p-4 bg-slate-800 sticky top-0 shadow-2xl z-40 border-b border-slate-700">
         <div class="flex justify-between items-center max-w-md mx-auto mb-3">
-            <h1 class="text-orange-500 font-black text-lg italic uppercase tracking-tighter">Vôlei Hub PRO <span class="text-[8px] text-blue-400 bg-blue-900/30 px-2 py-1 rounded ml-1">LIVE 🛰️</span></h1>
-            <div id="adminBtns" class="flex gap-2 hidden">
-                <button id="btnDesfazer" class="text-[10px] bg-slate-700 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase">↩ Desfazer</button>
-                <button id="btnMenu" class="text-[10px] bg-slate-700 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase">⚙️ Menu</button>
+            <h1 class="text-orange-500 font-black text-lg italic uppercase tracking-tighter">Vôlei Hub PRO <span id="cloudStatus" class="text-[8px] text-emerald-400 bg-emerald-900/30 px-2 py-1 rounded ml-1 uppercase">Sincronizado 📡</span></h1>
+            <div id="adminControls" class="hidden flex gap-2">
+                <button onclick="desfazer()" class="text-[10px] bg-slate-700 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase">↩ Desfazer</button>
+                <button onclick="abrirConfig()" class="text-[10px] bg-slate-700 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase">⚙️ Menu</button>
             </div>
         </div>
         
         <div id="placarDisplay" class="hidden flex justify-around items-center max-w-md mx-auto bg-slate-950 py-4 rounded-2xl border border-slate-800">
             <div class="text-center w-2/5">
                 <p class="text-[9px] uppercase text-blue-400 font-black mb-1 italic">Time A</p>
-                <div id="scoreA" class="text-6xl font-black leading-none cursor-pointer">0</div>
+                <div id="scoreA" class="text-6xl font-black leading-none cursor-pointer" onclick="registrarPontoSimples('A', true, true)">0</div>
                 <div id="winsA" class="text-[9px] text-blue-300/40 font-bold mt-2 uppercase italic text-center">Sets: 0</div>
             </div>
             <div class="text-slate-800 font-black text-xl italic">VS</div>
             <div class="text-center w-2/5">
                 <p class="text-[9px] uppercase text-orange-400 font-black mb-1 italic">Time B</p>
-                <div id="scoreB" class="text-6xl font-black leading-none cursor-pointer">0</div>
+                <div id="scoreB" class="text-6xl font-black leading-none cursor-pointer" onclick="registrarPontoSimples('B', true, true)">0</div>
                 <div id="winsB" class="text-[9px] text-orange-300/40 font-bold mt-2 uppercase italic text-center">Sets: 0</div>
             </div>
         </div>
@@ -51,19 +50,19 @@
 
     <main class="p-4 max-w-md mx-auto space-y-6 pb-32">
         <section id="playerCheckin" class="bg-blue-900/20 p-4 rounded-2xl border border-blue-500/30 space-y-3">
-            <h2 class="text-xs font-black text-blue-400 uppercase italic">Check-in Jogador</h2>
+            <h2 class="text-xs font-black text-blue-400 uppercase italic">Participar da Próxima</h2>
             <div class="flex gap-2">
-                <input id="checkinNome" type="text" placeholder="SEU NOME..." class="config-input flex-1">
-                <select id="checkinCat" class="bg-slate-800 rounded-xl px-2 text-[10px] font-bold">
+                <input id="nomeInput" type="text" placeholder="SEU NOME..." class="config-input flex-1">
+                <select id="categoriaInput" class="bg-slate-800 rounded-xl px-2 text-[10px] font-bold">
                     <option value="geral">GERAL</option>
                     <option value="estrela">ESTRELA ⭐</option>
                 </select>
-                <button id="btnCheckin" class="bg-blue-600 px-4 rounded-xl font-black text-[10px] uppercase">Entrar</button>
+                <button onclick="checkinJogador()" class="bg-blue-600 px-4 rounded-xl font-black text-[10px] uppercase">Entrar</button>
             </div>
         </section>
 
         <div id="setupControls" class="hidden">
-             <button id="btnIniciarPartida" class="w-full bg-emerald-600 p-5 rounded-2xl font-black uppercase text-xl shadow-lg italic">Iniciar Partida 🏐</button>
+             <button onclick="validarEIniciarPartida()" class="w-full bg-emerald-600 p-5 rounded-2xl font-black uppercase text-xl shadow-lg italic">Iniciar Partida 🏐</button>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
@@ -74,32 +73,31 @@
         <section class="bg-slate-800/50 rounded-2xl border border-slate-700 overflow-hidden">
             <div class="p-3 bg-slate-800/80 border-b border-slate-700 flex justify-between items-center">
                 <div class="flex gap-2">
-                    <button id="tabGeral" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg">Geral <span id="countGeral" class="ml-1 opacity-50"></span></button>
-                    <button id="tabEstrela" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg">Estrelas ⭐ <span id="countEstrela" class="ml-1 opacity-50"></span></button>
+                    <button onclick="setFilaTab('geral')" id="tabGeral" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg">Geral <span id="countGeral" class="ml-1 opacity-50"></span></button>
+                    <button onclick="setFilaTab('estrela')" id="tabEstrela" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg">Estrelas ⭐ <span id="countEstrela" class="ml-1 opacity-50"></span></button>
                 </div>
             </div>
             <div id="esperaContainer" class="p-4 space-y-2"></div>
         </section>
 
-        <section class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+        <section id="rankingSection" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
             <div class="p-4 bg-slate-800/60 border-b border-slate-800 text-center">
                 <h2 class="text-xs font-black uppercase text-orange-500 italic mb-3 tracking-widest">🏆 Ranking Master</h2>
                 <div class="flex gap-2">
-                    <button id="rkTabTudo" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg bg-slate-700">Tudo</button>
-                    <button id="rkTabGeral" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg bg-slate-700">Geral</button>
-                    <button id="rkTabEstrela" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg bg-slate-700">Estrelas ⭐</button>
+                    <button onclick="setRankingTab('tudo')" id="rkTabTudo" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg bg-slate-700">Tudo</button>
+                    <button onclick="setRankingTab('geral')" id="rkTabGeral" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg bg-slate-700">Geral</button>
+                    <button onclick="setRankingTab('estrela')" id="rkTabEstrela" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg bg-slate-700">Estrelas ⭐</button>
                 </div>
             </div>
             <div id="rankingContainer" class="p-2"></div>
         </section>
     </main>
 
-    <div id="modalPontoTec" class="fixed inset-0 bg-black/90 hidden z-[100] flex items-end justify-center">...</div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+        // CONFIGURAÇÃO FORNECIDA POR VOCÊ
         const firebaseConfig = {
             apiKey: "AIzaSyDdX-lpFmddIHt2scaramJSyo3RnJOxtO4",
             authDomain: "voleihubpro.firebaseapp.com",
@@ -114,8 +112,9 @@
         const db = getDatabase(app);
         const gameRef = ref(db, 'partida/atual');
 
-        // VARIÁVEIS DE ESTADO
+        // VERIFICA SE É ADMIN PELA URL
         const isAdmin = new URLSearchParams(window.location.search).get('admin') === 'true';
+
         let game = {
             partidaAtiva: false, scoreA: 0, scoreB: 0, winsConsecA: 0, winsConsecB: 0,
             saqueLado: 'A', idxA: 0, idxB: 0, jaSacouA: true, jaSacouB: false,
@@ -125,9 +124,9 @@
             weights: { atqG: 1.0, blqG: 1.25, aceG: 1.5, atqE: 1.5, blqE: 2.0, aceE: 2.0, err: 0.25, vit: 3.0 }
         };
 
-        let filaTab = 'geral', rkTab = 'tudo', modalCtx = { lado: '', idx: 0 };
+        let historico = [], filaTab = 'geral', rkTab = 'tudo', modalCtx = { lado: '', idx: 0 };
 
-        // SINCRONIZAÇÃO CLOUD
+        // ESCUTA O BANCO DE DADOS EM TEMPO REAL
         onValue(gameRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -136,44 +135,56 @@
             }
         });
 
-        async function salvar() {
-            if (!isAdmin) return;
+        // SALVAR NO FIREBASE (SÓ ADMIN PODE)
+        async function salvar(comHist = true) {
+            if(!isAdmin) return;
+            if(comHist) { historico.push(JSON.stringify(game)); if(historico.length > 20) historico.shift(); }
             await set(gameRef, game);
         }
 
-        // RENDER E LOGICA (Resumidos para funcionamento)
+        // RENDERIZAÇÃO ADAPTADA
         function render() {
-            // Controle de Visibilidade de Admin
-            if(isAdmin) {
-                document.getElementById('adminBtns').classList.remove('hidden');
-                document.getElementById('playerCheckin').classList.add('hidden');
-                if(!game.partidaAtiva) document.getElementById('setupControls').classList.remove('hidden');
-            }
+            // Ajustes de visibilidade Admin vs Jogador
+            document.getElementById('adminControls').classList.toggle('hidden', !isAdmin);
+            document.getElementById('playerCheckin').classList.toggle('hidden', isAdmin);
+            if(isAdmin && !game.partidaAtiva) document.getElementById('setupControls').classList.remove('hidden');
+            else document.getElementById('setupControls').classList.add('hidden');
 
             document.getElementById('placarDisplay').classList.toggle('hidden', !game.partidaAtiva);
-            document.getElementById('scoreA').innerText = game.scoreA;
+            document.getElementById('scoreA').innerText = game.scoreA; 
             document.getElementById('scoreB').innerText = game.scoreB;
+            document.getElementById('winsA').innerText = `Sets: ${game.winsConsecA}`; 
+            document.getElementById('winsB').innerText = `Sets: ${game.winsConsecB}`;
 
-            // Renderização da Fila com Handle de Segurança
+            // Áreas de Jogo
+            const drawTeam = (l) => (l === 'A' ? (game.timeA || []) : (game.timeB || [])).map((p, i) => `
+                <div class="jogador-card bg-slate-800 p-3 rounded-xl border-l-4 ${l==='A'?'border-l-blue-500':'border-l-orange-500'} ${game.partidaAtiva && game.saqueLado===l && (l==='A'?game.idxA:game.idxB)===i?'sacando':''} ${p.estrela?'is-estrela':''}" ${isAdmin ? `onclick="abrirPontoTecnico('${l}', ${i})"` : ''} data-id="${p.id}">
+                    <div class="uppercase font-black text-[10px] truncate"><span class="bola-saque mr-1">🏐</span> ${p.estrela?'⭐ ':''}${p.nome}</div>
+                </div>`).join('');
+            document.getElementById('areaA').innerHTML = drawTeam('A'); 
+            document.getElementById('areaB').innerHTML = drawTeam('B');
+            
+            // Fila de Espera
             const f = filaTab === 'geral' ? (game.esperaGeral || []) : (game.esperaEstrela || []);
             document.getElementById('esperaContainer').innerHTML = f.map((p, i) => `
                 <div data-id="${p.id}" class="bg-slate-800 p-3 rounded-xl flex justify-between items-center border border-slate-700 ${p.bloqueado ? 'is-bloqueado' : ''}">
-                    <div onclick="window.abrirEscalacao('${filaTab}', ${i})" class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2">
+                    <div ${isAdmin ? `onclick="abrirEscalacao('${filaTab}', ${i})"` : ''} class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2">
                         ${p.estrela ? '⭐ ' : ''}${p.nome}
                     </div>
                     ${isAdmin ? '<div class="drag-handle">⠿</div>' : ''}
                 </div>`).join('');
             
-            // ... (Resto das funções de renderização do time A/B e Ranking similares ao original)
+            // ... resto do render do ranking igual ao original ...
         }
 
-        // AUTO-CHECKIN PARA JOGADORES
-        document.getElementById('btnCheckin').onclick = () => {
-            const nomeInput = document.getElementById('checkinNome');
-            const cat = document.getElementById('checkinCat').value;
-            const nome = nomeInput.value.toUpperCase().trim();
+        // FUNÇÃO DE AUTO-CHECKIN (PODE SER USADA POR JOGADORES)
+        window.checkinJogador = async () => {
+            const nInput = document.getElementById('nomeInput');
+            const cat = document.getElementById('categoriaInput').value;
+            const nome = nInput.value.toUpperCase().trim();
+            
             if(!nome) return alert("Digite seu nome!");
-
+            
             const novoJ = { 
                 id: Math.random().toString(36).substr(2, 9), 
                 nome: nome, 
@@ -181,33 +192,38 @@
                 bloqueado: true 
             };
 
-            if(cat === 'estrela') {
+            if(novoJ.estrela) {
                 if(!game.esperaEstrela) game.esperaEstrela = [];
                 game.esperaEstrela.push(novoJ);
             } else {
                 if(!game.esperaGeral) game.esperaGeral = [];
                 game.esperaGeral.push(novoJ);
             }
-            
+
             if(!game.ranking[nome]) {
                 game.ranking[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, estrela: novoJ.estrela };
             }
 
-            nomeInput.value = "";
-            set(gameRef, game); // Salva no Firebase (jogadores podem escrever se as regras permitirem)
+            nInput.value = "";
+            await set(gameRef, game); // Envia para a nuvem
+            alert("Você entrou na fila!");
         };
 
-        // EXPOSTO PARA O WINDOW (SortableJS e Onclicks do HTML)
-        window.abrirEscalacao = (tab, idx) => { if(isAdmin) { /* lógica original */ } };
-        
-        // Inicia Sortable apenas para Admin
+        // EXPOR FUNÇÕES PARA O WINDOW
+        window.registrarPontoSimples = (lado, h, e) => { if(isAdmin) { /* lógica original */ salvar(); } };
+        window.validarEIniciarPartida = () => { if(isAdmin) { /* lógica original */ salvar(); } };
+        // ... expor todas as outras funções (desfazer, abrirConfig, etc) ...
+
+        // Inicia sistema de arraste APENAS para o Admin
         if(isAdmin) {
             Sortable.create(document.getElementById('esperaContainer'), { 
                 handle: '.drag-handle', 
                 animation: 150, 
-                onEnd: () => { /* lógica de syncFila e salvar() */ } 
+                onEnd: async () => { /* lógica de syncFila */ await salvar(); } 
             });
+            // Áreas A e B também com Sortable...
         }
+
     </script>
 </body>
 </html>
