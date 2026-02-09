@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V9.0</title>
+    <title>Vôlei Hub PRO - V9.1</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -33,11 +33,10 @@
         #emoji-layer { position: fixed; inset: 0; pointer-events: none; z-index: 5000; overflow: hidden; }
         .emoji-particle { position: absolute; font-size: 3rem; animation: floatUp ease-out forwards; opacity: 0; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         @keyframes floatUp { 
-  0% { transform: translateY(120vh) scale(0.3) rotate(0deg); opacity: 1; } 
-  100% { transform: translateY(-20vh) scale(2.5) rotate(360deg); opacity: 0; } 
-}
+            0% { transform: translateY(120vh) scale(0.3) rotate(0deg); opacity: 1; } 
+            100% { transform: translateY(-20vh) scale(2.5) rotate(360deg); opacity: 0; } 
+        }
 
-        
         #endgame-overlay { transition: opacity 0.5s; }
         .animate-pop { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
@@ -48,8 +47,13 @@
         #modalWeights { z-index: 2100 !important; }
         
         .hidden { display: none !important; }
+        /* Classes de Controle Admin */
         .admin-only-control { display: none !important; }
+        .admin-click-only { pointer-events: none; } /* Desativa clique p/ publico */
+        
         body.is-admin .admin-only-control { display: block !important; }
+        body.is-admin .admin-click-only { pointer-events: auto; cursor: pointer; }
+
         .admin-section { display: none; } 
         body.is-admin .admin-section { display: block; }
         body.show-public .admin-section { display: block; }
@@ -73,13 +77,12 @@
     </div>
 
     <audio id="whistleSound" preload="auto">
-  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_8c6f5b1c7f.mp3?filename=referee-whistle-20559.mp3" type="audio/mpeg">
-</audio>
-
+        <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_8c6f5b1c7f.mp3?filename=referee-whistle-20559.mp3" type="audio/mpeg">
+    </audio>
 
     <header class="p-4 bg-slate-800 sticky top-0 shadow-2xl z-40 border-b border-slate-700">
         <div class="flex justify-between items-center max-w-md mx-auto mb-3">
-            <h1 onclick="window.tocarApitoManual()" class="text-orange-500 font-black text-lg italic uppercase tracking-tighter cursor-pointer hover:text-orange-400 active:scale-95 transition" title="Clique para tocar som/testar">Vôlei Hub <span class="text-xs text-blue-400">LIVE</span></h1>
+            <h1 onclick="window.adminTriggerWhistle()" class="text-orange-500 font-black text-lg italic uppercase tracking-tighter hover:text-orange-400 active:scale-95 transition admin-click-only" title="Clique para tocar apito (Admin Only)">Vôlei Hub <span class="text-xs text-blue-400">PRO</span></h1>
             <div class="flex gap-2 admin-only-control">
                 <button id="admin-notif-bell" onclick="window.abrirSolicitacoes()" class="hidden text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 transition">🔔<div id="admin-notif-dot"></div></button>
                 <button onclick="window.undoLastAction()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase transition">↩ Desfazer</button>
@@ -168,9 +171,31 @@
         <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border-2 border-blue-500 overflow-y-auto max-h-[90vh]">
             <h2 class="text-xl font-black text-blue-400 uppercase mb-6 italic">Pesos do Score</h2>
             <div class="space-y-6">
-                <div><h4 class="text-[10px] font-black text-slate-500 uppercase mb-3">Geral</h4><div class="grid grid-cols-3 gap-2"><div><label class="text-[8px] font-bold">Ataque</label><input type="number" step="0.25" id="wAtqG" class="config-input"></div><div><label class="text-[8px] font-bold">Bloqueio</label><input type="number" step="0.25" id="wBlqG" class="config-input"></div><div><label class="text-[8px] font-bold">Ace</label><input type="number" step="0.25" id="wAceG" class="config-input"></div></div></div>
-                <div><h4 class="text-[10px] font-black text-orange-500 uppercase mb-3">Estrela</h4><div class="grid grid-cols-3 gap-2"><div><label class="text-[8px] font-bold">Ataque</label><input type="number" step="0.25" id="wAtqE" class="config-input"></div><div><label class="text-[8px] font-bold">Bloqueio</label><input type="number" step="0.25" id="wBlqE" class="config-input"></div><div><label class="text-[8px] font-bold">Ace</label><input type="number" step="0.25" id="wAceE" class="config-input"></div></div></div>
-                <div><h4 class="text-[10px] font-black text-emerald-500 uppercase mb-3">Global</h4><div class="grid grid-cols-2 gap-2"><div><label class="text-[8px] font-bold">Erro Adv.</label><input type="number" step="0.05" id="wErr" class="config-input"></div><div><label class="text-[8px] font-bold">Vitória</label><input type="number" step="0.5" id="wVit" class="config-input"></div></div></div>
+                <div>
+                    <h4 class="text-[10px] font-black text-slate-500 uppercase mb-3">Geral</h4>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div><label class="text-[8px] font-bold">Ataque</label><input type="number" step="0.25" id="wAtqG" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Bloqueio</label><input type="number" step="0.25" id="wBlqG" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Ace</label><input type="number" step="0.25" id="wAceG" class="config-input"></div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-[10px] font-black text-orange-500 uppercase mb-3">Estrela</h4>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div><label class="text-[8px] font-bold">Ataque</label><input type="number" step="0.25" id="wAtqE" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Bloqueio</label><input type="number" step="0.25" id="wBlqE" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Ace</label><input type="number" step="0.25" id="wAceE" class="config-input"></div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-[10px] font-black text-emerald-500 uppercase mb-3">Global</h4>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div><label class="text-[8px] font-bold">Erro Adv.</label><input type="number" step="0.05" id="wErr" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Vitória</label><input type="number" step="0.5" id="wVit" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold text-yellow-400">Acerto Time</label><input type="number" step="0.05" id="wTeam" class="config-input border-yellow-500/50"></div>
+                    </div>
+                    <p class="text-[8px] text-slate-500 mt-2 italic">* Acerto Time: Pontos dados aos companheiros quando alguém faz um ponto de ataque.</p>
+                </div>
             </div>
             <button onclick="window.salvarWeightsEClose()" class="w-full bg-blue-600 p-4 rounded-xl font-black uppercase italic mt-6">Aplicar (Salvar Config)</button>
             <button onclick="window.fecharModais()" class="w-full py-4 text-slate-500 text-[10px] font-bold uppercase">Cancelar</button>
@@ -250,7 +275,13 @@
             </div>
             <div class="grid grid-cols-1 gap-3">
                 <div class="admin-only-control space-y-3">
-                    <button onclick="window.registrarAcaoJogador('ataque')" class="w-full bg-slate-700 p-4 rounded-2xl font-bold uppercase text-xs flex justify-between italic hover:bg-slate-600"><span>💥 Ponto de Ataque</span> <span id="labelAtq" class="text-orange-500"></span></button>
+                    <button onclick="window.registrarAcaoJogador('ataque')" class="w-full bg-slate-700 p-4 rounded-2xl font-bold uppercase text-xs flex justify-between italic hover:bg-slate-600">
+                        <div class="flex flex-col text-left">
+                            <span>💥 Ponto de Ataque</span>
+                            <span class="text-[8px] text-slate-400 font-normal normal-case">+0.25 p/ companheiros</span>
+                        </div>
+                        <span id="labelAtq" class="text-orange-500"></span>
+                    </button>
                     <button onclick="window.registrarAcaoJogador('bloqueio')" class="w-full bg-slate-700 p-4 rounded-2xl font-bold uppercase text-xs flex justify-between italic hover:bg-slate-600"><span>🚫 Ponto de Bloqueio</span> <span id="labelBlq" class="text-orange-500"></span></button>
                     <button id="btnAceTec" onclick="window.registrarAcaoJogador('saque')" class="w-full bg-orange-600 p-4 rounded-2xl font-black uppercase text-xs flex justify-between italic hover:bg-orange-500 shadow-lg shadow-orange-900/50"><span>⚡ Ace de Saque</span> <span id="labelAce"></span></button>
                     <div class="grid grid-cols-2 gap-3 mt-2">
@@ -313,7 +344,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const gameRef = ref(db, 'partida/v8_8'); 
+        const gameRef = ref(db, 'partida/v9_0'); // Atualizado para v9.0
 
         const INITIAL_GERAL = ["MATHEUS MATOS","MARCIANO", "DANIELE", "RAFAEL", "SABRINA", "JANIR", "YURI", "MAICON", "THALYSON", "ODAIR", "LUCAS GABRIEL", "JOÃO", "LUIZ EDUARDO", "MATHEUS JAPA", "ANDERSON"];
         const INITIAL_ESTRELA = ["PATY", "MATEUS BRAZ", "RHUANA", "KEMILLY", "WELLINGTON"];
@@ -330,16 +361,18 @@
             timeA: [], timeB: [], esperaGeral: [], esperaEstrela: [],
             ranking: {}, restricoes: [],
             config: { size: 4, stars: 1, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' },
-            weights: { atqG: 1.0, blqG: 1.25, aceG: 1.5, atqE: 1.5, blqE: 2.0, aceE: 2.0, err: 0.25, vit: 3.0 },
+            // Adicionado wTeam default 0.25
+            weights: { atqG: 1.0, blqG: 1.25, aceG: 1.5, atqE: 1.5, blqE: 2.0, aceE: 2.0, err: 0.25, vit: 3.0, wTeam: 0.25 },
             systemMsg: { text: "AGUARDANDO", sub: "...", streak: false, ts: 0 },
             matchLog: [], lastAnim: { type: '', ts: 0 }, endGameAnim: { active: false, ts: 0 },
             nextGameReason: 'default', publicRanking: false,
             requests: [], deniedRequests: [],
-            currentMatchStats: {}, // Nova estatistica da partida
-            lastScorerId: null, currentStreak: 0
+            currentMatchStats: {},
+            lastScorerId: null, currentStreak: 0,
+            soundTrigger: 0 // Novo trigger para som
         };
 
-        let tempConfig = {}; // Configuração Temporária
+        let tempConfig = {};
         let historicoLocal = [];
         let filaTab = 'geral';
         let rkTab = 'tudo';
@@ -348,11 +381,27 @@
         let lastMsgTs = 0;
         let lastAnimTs = 0;
         let lastEndGameTs = 0;
+        let lastSoundTs = 0; // Controle local de som
 
         onValue(gameRef, (snapshot) => {
             const data = snapshot.val();
             if(data) {
-                game = { ...data, timeA: data.timeA || [], timeB: data.timeB || [], esperaGeral: data.esperaGeral || [], esperaEstrela: data.esperaEstrela || [], ranking: data.ranking || {}, restricoes: data.restricoes || [], systemMsg: data.systemMsg || { text:"AGUARDANDO", sub:"...", ts: 0 }, matchLog: data.matchLog || [], lastAnim: data.lastAnim || { ts: 0 }, endGameAnim: data.endGameAnim || { active: false, ts: 0 }, nextGameReason: data.nextGameReason || 'default', publicRanking: data.publicRanking || false, requests: data.requests || [], deniedRequests: data.deniedRequests || [], currentMatchStats: data.currentMatchStats || {} };
+                game = { 
+                    ...data, 
+                    timeA: data.timeA || [], timeB: data.timeB || [], 
+                    esperaGeral: data.esperaGeral || [], esperaEstrela: data.esperaEstrela || [], 
+                    ranking: data.ranking || {}, restricoes: data.restricoes || [], 
+                    systemMsg: data.systemMsg || { text:"AGUARDANDO", sub:"...", ts: 0 }, 
+                    matchLog: data.matchLog || [], 
+                    lastAnim: data.lastAnim || { ts: 0 }, 
+                    endGameAnim: data.endGameAnim || { active: false, ts: 0 }, 
+                    nextGameReason: data.nextGameReason || 'default', 
+                    publicRanking: data.publicRanking || false, 
+                    requests: data.requests || [], deniedRequests: data.deniedRequests || [], 
+                    currentMatchStats: data.currentMatchStats || {},
+                    soundTrigger: data.soundTrigger || 0,
+                    weights: { ...game.weights, ...(data.weights || {}) } // Merge weights to ensure defaults
+                };
                 ensureRankingConsistency();
                 render();
             } else { initGameData(); }
@@ -360,7 +409,15 @@
 
         function ensureRankingConsistency() {
             const allPlayers = [...game.esperaGeral, ...game.esperaEstrela, ...game.timeA, ...game.timeB];
-            allPlayers.forEach(p => { if(!game.ranking[p.nome]) game.ranking[p.nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, estrela: p.estrela }; });
+            allPlayers.forEach(p => { 
+                if(!game.ranking[p.nome]) {
+                    game.ranking[p.nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: p.estrela };
+                }
+                // Garante que ptsAcertoTime exista para jogadores antigos
+                if(typeof game.ranking[p.nome].ptsAcertoTime === 'undefined') {
+                    game.ranking[p.nome].ptsAcertoTime = 0;
+                }
+            });
         }
 
         function initGameData() {
@@ -378,7 +435,7 @@
         function adicionarLocal(nome, isEstrela) {
             const id = Math.random().toString(36).substr(2, 9);
             const obj = { id, nome, estrela: isEstrela, bloqueado: false };
-            if(!game.ranking[nome]) game.ranking[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, estrela: isEstrela };
+            if(!game.ranking[nome]) game.ranking[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: isEstrela };
             const lista = isEstrela ? game.esperaEstrela : game.esperaGeral;
             let idx = 0;
             for(let i=0; i<lista.length; i++) { const s = game.ranking[lista[i].nome]; if(s && (s.v + s.d) === 0) idx = i + 1; }
@@ -402,16 +459,45 @@
                 game.currentMatchStats = {};
                 game.requests = []; game.deniedRequests = [];
                 game.config = { size: 4, stars: 1, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' };
-                game.weights = { atqG: 1.0, blqG: 1.25, aceG: 1.5, atqE: 1.5, blqE: 2.0, aceE: 2.0, err: 0.25, vit: 3.0 };
+                game.weights = { atqG: 1.0, blqG: 1.25, aceG: 1.5, atqE: 1.5, blqE: 2.0, aceE: 2.0, err: 0.25, vit: 3.0, wTeam: 0.25 };
                 initGameData();
                 setSystemMessage("SISTEMA REINICIADO", "Configurações Padrão Restauradas", false);
             }
         };
 
-        window.tocarApitoManual = () => {
-            const a = document.getElementById('whistleSound');
-            if(a) { a.volume = 1; a.currentTime = 0; a.play().catch(e => console.log("User interaction needed")); }
+        // --- SISTEMA DE SOM ---
+        // Admin: Apenas atualiza o banco, não toca
+        window.adminTriggerWhistle = () => {
+            if(!isAdmin) return;
+            game.soundTrigger = Date.now();
+            salvarState();
         };
+
+        // Cliente Público: Toca o som localmente
+        function checkAndPlaySound() {
+            // Se for admin, não toca (para não ter som duplicado ou na mesa de controle)
+            if(isAdmin) return;
+
+            // Trigger manual
+            if(game.soundTrigger > lastSoundTs) {
+                lastSoundTs = game.soundTrigger;
+                playAudioLocal();
+            }
+
+            // Trigger Fim de Jogo (usa o timestamp da animação de fim de jogo)
+            if(game.endGameAnim.active && game.endGameAnim.ts > lastEndGameTs) {
+                playAudioLocal();
+            }
+        }
+
+        function playAudioLocal() {
+            const a = document.getElementById('whistleSound');
+            if(a) { 
+                a.volume = 1; 
+                a.currentTime = 0; 
+                a.play().catch(e => console.log("User interaction needed for audio")); 
+            }
+        }
 
         function setSystemMessage(title, sub, streak) { game.systemMsg = { text: title, sub: sub, streak: streak, ts: Date.now() }; }
         function addToLog(text, type) { const entry = { text, type, ts: Date.now() }; game.matchLog.unshift(entry); if(game.matchLog.length > 40) game.matchLog.pop(); }
@@ -419,10 +505,11 @@
         function showEndGameOverlay() { game.endGameAnim = { active: true, ts: Date.now() }; }
 
         function render() {
+            checkAndPlaySound(); // Verifica se precisa tocar som
+
             if(game.endGameAnim && game.endGameAnim.ts > lastEndGameTs) {
                 lastEndGameTs = game.endGameAnim.ts;
                 const overlay = document.getElementById('endgame-overlay');
-                window.tocarApitoManual(); // Toca som
                 overlay.classList.remove('hidden');
                 setTimeout(() => { overlay.classList.add('hidden'); }, 3000);
             }
@@ -446,7 +533,7 @@
                 placarDiv.classList.remove('hidden'); infoPanel.classList.remove('hidden'); setupDiv.classList.add('hidden');
             } else {
                 placarDiv.classList.add('hidden'); infoPanel.classList.add('hidden');
-                // SE setupLocked = true, esconde o botão, senão mostra
+                // Alteração: Se setupLocked é true, esconde setupControls PRA SEMPRE (mesmo se admin)
                 if(isAdmin && !game.setupLocked) setupDiv.classList.remove('!hidden', 'hidden'); else setupDiv.classList.add('!hidden');
             }
 
@@ -498,26 +585,26 @@
         }
 
         function doEmojiExplosion(type) {
-    let icon = '';
-    if(type === 'ataque') icon = '💥';
-    else if(type === 'bloqueio') icon = '🚫';
-    else if(type === 'saque') icon = '⚡';
-    else return;
+            let icon = '';
+            if(type === 'ataque') icon = '💥';
+            else if(type === 'bloqueio') icon = '🚫';
+            else if(type === 'saque') icon = '⚡';
+            else return;
 
-    const layer = document.getElementById('emoji-layer');
+            const layer = document.getElementById('emoji-layer');
 
-    for(let i = 0; i < 60; i++) {  // MUITO MAIS EMOJIS
-        const el = document.createElement('div');
-        el.innerText = icon;
-        el.className = 'emoji-particle';
-        el.style.left = Math.random() * 100 + 'vw';
-        el.style.bottom = '-20vh';
-        el.style.animationDuration = (Math.random() * 1.2 + 1.2) + 's'; // mais lento
-        el.style.fontSize = (Math.random() * 6 + 6) + 'rem'; // GIGANTE
-        layer.appendChild(el);
-        setTimeout(() => el.remove(), 2500);
-    }
-}
+            for(let i = 0; i < 60; i++) { 
+                const el = document.createElement('div');
+                el.innerText = icon;
+                el.className = 'emoji-particle';
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.bottom = '-20vh';
+                el.style.animationDuration = (Math.random() * 1.2 + 1.2) + 's';
+                el.style.fontSize = (Math.random() * 6 + 6) + 'rem';
+                layer.appendChild(el);
+                setTimeout(() => el.remove(), 2500);
+            }
+        }
 
         window.registrarPontoSimples = (lado, hist, isErro) => {
             if(!isAdmin || !game.partidaAtiva) return;
@@ -545,9 +632,20 @@
             if(!isAdmin) return;
             salvarState(true);
             const p = (modalCtx.lado==='A'?game.timeA:game.timeB)[modalCtx.idx];
-            if(tipo==='ataque') game.ranking[p.nome].ptsAtaque++;
-            if(tipo==='bloqueio') game.ranking[p.nome].ptsBloqueio++;
-            if(tipo==='saque') game.ranking[p.nome].ptsAce++;
+            
+            // Lógica de Score
+            if(tipo==='ataque') {
+                game.ranking[p.nome].ptsAtaque++;
+                // Distribui 0.25 para os companheiros APENAS no ataque
+                const timeAtual = modalCtx.lado === 'A' ? game.timeA : game.timeB;
+                timeAtual.forEach(companheiro => {
+                    if(companheiro.id !== p.id) {
+                        game.ranking[companheiro.nome].ptsAcertoTime++;
+                    }
+                });
+            }
+            if(tipo==='bloqueio') game.ranking[p.nome].ptsBloqueio++; // Bloqueio é individual
+            if(tipo==='saque') game.ranking[p.nome].ptsAce++; // Ace é individual
             
             // CONTAGEM POR PARTIDA
             if(!game.currentMatchStats) game.currentMatchStats = {};
@@ -579,6 +677,7 @@
 
         function finalizarPartida(venceu) {
             setSystemMessage(`VITÓRIA TIME ${venceu}!`, "Set Finalizado", false);
+            showEndGameOverlay(); // Isso vai triggerar o som no cliente público
             const tV = venceu === 'A' ? game.timeA : game.timeB;
             const tD = venceu === 'A' ? game.timeB : game.timeA;
             tV.forEach(j => game.ranking[j.nome].v++);
@@ -601,29 +700,24 @@
         }
 
         window.validarEIniciarPartida = () => {
-    if (game.timeA.length === 0 || game.timeB.length === 0) {
-        alert("Por favor, adicione jogadores a ambos os times antes de iniciar.");
-        return;
-    }
-
-    game.scoreA = 0;
-    game.scoreB = 0;
-
-    game.partidaAtiva = true;
-
-    // 🔒 trava o setup na primeira partida
-    if (!game.setupLocked) {
-        game.setupLocked = true;
-    }
-
-    salvarState();
-    window.tocarApitoManual();
-};
+            if (game.timeA.length === 0 || game.timeB.length === 0) {
+                alert("Por favor, adicione jogadores a ambos os times antes de iniciar.");
+                return;
+            }
+            game.scoreA = 0;
+            game.scoreB = 0;
+            game.partidaAtiva = true;
+            // Trava o setup permanentemente
+            game.setupLocked = true;
+            
+            salvarState();
+            window.adminTriggerWhistle();
+        };
 
         // --- SISTEMA DE CONFIGURAÇÃO TEMPORÁRIA ---
         window.abrirConfig = () => {
-            tempConfig = JSON.parse(JSON.stringify(game.config)); // Clone deep
-            tempConfig.publicRanking = game.publicRanking; // Add root property
+            tempConfig = JSON.parse(JSON.stringify(game.config)); 
+            tempConfig.publicRanking = game.publicRanking; 
             
             document.getElementById('cSize').value = tempConfig.size;
             document.getElementById('cStars').value = tempConfig.stars;
@@ -653,7 +747,6 @@
         }
 
         window.salvarConfigEClose = () => {
-            // Commit changes
             game.config.size = parseInt(document.getElementById('cSize').value);
             game.config.stars = parseInt(document.getElementById('cStars').value);
             game.config.points = parseInt(document.getElementById('cPoints').value);
@@ -676,7 +769,7 @@
                 alert("Solicitação enviada ao Admin!");
                 salvarState();
             } else { alert("Já solicitado."); }
-            window.abrirEscalacao(modalCtx.tabFila, modalCtx.idxFila); // Refresh UI
+            window.abrirEscalacao(modalCtx.tabFila, modalCtx.idxFila); 
         };
 
         window.abrirSolicitacoes = () => {
@@ -755,32 +848,37 @@
                 <div class="flex justify-between"><span>Bloqueios (x${blqW}):</span> <b class="text-white">${s.ptsBloqueio}</b></div>
                 <div class="flex justify-between"><span>Aces (x${aceW}):</span> <b class="text-white">${s.ptsAce}</b></div>
                 <div class="flex justify-between"><span>Erro Adv. (x${w.err}):</span> <b class="text-white">${s.ptsErroAdversario}</b></div>
+                <div class="flex justify-between text-yellow-500"><span>Acerto Time (x${w.wTeam}):</span> <b>${s.ptsAcertoTime}</b></div>
             `;
             document.getElementById('auditTotal').innerText = getScore(n);
             document.getElementById('modalAudit').classList.remove('hidden');
         };
 
         window.abrirWeights = () => { 
-            // Fecha Config se estiver aberto para evitar conflito visual, mas mantém estado
             document.getElementById('modalConfigMenu').classList.add('hidden');
             
             document.getElementById('wAtqG').value = game.weights.atqG; document.getElementById('wBlqG').value = game.weights.blqG; document.getElementById('wAceG').value = game.weights.aceG; document.getElementById('wAtqE').value = game.weights.atqE; document.getElementById('wBlqE').value = game.weights.blqE; document.getElementById('wAceE').value = game.weights.aceE; document.getElementById('wErr').value = game.weights.err; document.getElementById('wVit').value = game.weights.vit; 
+            // Novo Campo
+            document.getElementById('wTeam').value = game.weights.wTeam;
+
             document.getElementById('modalWeights').classList.remove('hidden'); 
         };
         window.fecharModais = () => {
             document.querySelectorAll('.modal-global, #modalPontoTec').forEach(m => m.classList.add('hidden'));
-            // Se fechou Weights e Config estava "aberto logicamente", reabre Config? 
-            // Simplificação: fecha tudo.
         };
         window.setFilaTab = (t) => { filaTab = t; render(); };
         window.setRankingTab = (t) => { rkTab = t; render(); };
         window.abrirBloqueioDuplas = () => { const all = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela].sort((a,b)=>a.nome.localeCompare(b.nome)); const opt = `<option value="" disabled selected>- Selecione -</option>`+all.map(p=>`<option value="${p.id}">${p.nome}</option>`).join(''); document.getElementById('selJ1').innerHTML = opt; document.getElementById('selJ2').innerHTML = opt; window.renderListaRestricoes(); document.getElementById('modalRestricao').classList.remove('hidden'); };
         window.renderListaRestricoes = () => { const all = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela]; document.getElementById('listaRestricoes').innerHTML = game.restricoes.map((r,i) => { const n1 = all.find(x=>x.id==r[0])?.nome||'?'; const n2 = all.find(x=>x.id==r[1])?.nome||'?'; return `<div class="bg-slate-800 p-2 flex justify-between text-[10px] text-red-400 border border-red-900/30"><span>${n1} 🚫 ${n2}</span><button onclick="window.removeRestricao(${i})">X</button></div>`; }).join(''); };
         window.removeRestricao = (i) => { game.restricoes.splice(i,1); window.renderListaRestricoes(); salvarState(); };
+        
         window.salvarWeightsEClose = () => { 
             game.weights.atqG = parseFloat(document.getElementById('wAtqG').value); game.weights.blqG = parseFloat(document.getElementById('wBlqG').value); game.weights.aceG = parseFloat(document.getElementById('wAceG').value); game.weights.atqE = parseFloat(document.getElementById('wAtqE').value); game.weights.blqE = parseFloat(document.getElementById('wBlqE').value); game.weights.aceE = parseFloat(document.getElementById('wAceE').value); game.weights.err = parseFloat(document.getElementById('wErr').value); game.weights.vit = parseFloat(document.getElementById('wVit').value); 
+            // Salvar novo peso
+            game.weights.wTeam = parseFloat(document.getElementById('wTeam').value);
+
             document.getElementById('modalWeights').classList.add('hidden');
-            window.abrirConfig(); // Reabre config menu
+            window.abrirConfig(); 
         };
         window.adicionarNovoJogador = () => { const n = document.getElementById('novoNome').value.toUpperCase().trim(); if(!n) return; adicionarLocal(n, filaTab==='estrela'); document.getElementById('novoNome').value=''; salvarState(); };
         window.adicionarRestricao = () => { const j1 = document.getElementById('selJ1').value, j2 = document.getElementById('selJ2').value; if(j1&&j2&&j1!==j2) { game.restricoes.push([j1,j2]); window.renderListaRestricoes(); salvarState(); } };
@@ -793,10 +891,23 @@
         window.definirSacadorManual = () => { game.saqueLado = modalCtx.lado; if(modalCtx.lado === 'A') { game.idxA = modalCtx.idx; game.jaSacouA = true; } else { game.idxB = modalCtx.idx; game.jaSacouB = true; } window.fecharModais(); salvarState(); };
         window.removerParaFilaManual = () => { salvarState(true); const t = modalCtx.lado==='A'?game.timeA:game.timeB; const p = t.splice(modalCtx.idx, 1)[0]; (p.estrela?game.esperaEstrela:game.esperaGeral).push(p); window.fecharModais(); salvarState(false); };
         window.abrirPontoTecnico = (l, i) => { modalCtx = { lado: l, idx: i }; const p = (l==='A'?game.timeA:game.timeB)[i]; document.getElementById('modalNomeTec').innerText = p.nome; if(isAdmin) { const w = game.weights; document.getElementById('labelAtq').innerText = `+${p.estrela?w.atqE:w.atqG}`; document.getElementById('labelBlq').innerText = `+${p.estrela?w.blqE:w.blqG}`; document.getElementById('labelAce').innerText = `+${p.estrela?w.aceE:w.aceG}`; const isSacador = (game.saqueLado === l && (l==='A'?game.idxA:game.idxB)===i); const btn = document.getElementById('btnAceTec'); if(!isSacador) btn.classList.add('opacity-50','pointer-events-none'); else btn.classList.remove('opacity-50','pointer-events-none'); document.getElementById('playerViewMsg').classList.add('hidden'); } else { document.getElementById('playerViewMsg').classList.remove('hidden'); } document.getElementById('modalPontoTec').classList.remove('hidden'); };
-        function getScore(n) { const s = game.ranking[n]; if(!s) return 0; const w = game.weights; return ((s.v*w.vit)+(s.ptsAtaque*(s.estrela?w.atqE:w.atqG))+(s.ptsAce*(s.estrela?w.aceE:w.aceG))+(s.ptsBloqueio*(s.estrela?w.blqE:w.blqG))+(s.ptsErroAdversario*w.err)).toFixed(2); }
+        
+        function getScore(n) { 
+            const s = game.ranking[n]; 
+            if(!s) return 0; 
+            const w = game.weights; 
+            const ptsAtq = s.ptsAtaque * (s.estrela ? w.atqE : w.atqG);
+            const ptsBlq = s.ptsBloqueio * (s.estrela ? w.blqE : w.blqG);
+            const ptsAce = s.ptsAce * (s.estrela ? w.aceE : w.aceG);
+            const ptsErr = s.ptsErroAdversario * w.err;
+            const ptsVit = s.v * w.vit;
+            // Cálculo do Acerto Time
+            const ptsTeam = (s.ptsAcertoTime || 0) * w.wTeam;
+
+            return (ptsVit + ptsAtq + ptsBlq + ptsAce + ptsErr + ptsTeam).toFixed(2); 
+        }
+
         function estaoBloqueados(p1, p2) { return game.restricoes.some(d => (d[0]==p1.id && d[1]==p2.id) || (d[1]==p1.id && d[0]==p2.id)); }
     </script>
 </body>
 </html>
-
-
