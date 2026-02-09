@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V8.8</title>
+    <title>Vôlei Hub PRO - V9.0</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -579,7 +579,6 @@
 
         function finalizarPartida(venceu) {
             setSystemMessage(`VITÓRIA TIME ${venceu}!`, "Set Finalizado", false);
-            showEndGameOverlay();
             const tV = venceu === 'A' ? game.timeA : game.timeB;
             const tD = venceu === 'A' ? game.timeB : game.timeA;
             tV.forEach(j => game.ranking[j.nome].v++);
@@ -602,44 +601,22 @@
         }
 
         window.validarEIniciarPartida = () => {
-    // 1. Validação básica para garantir que há jogadores
     if (game.timeA.length === 0 || game.timeB.length === 0) {
         alert("Por favor, adicione jogadores a ambos os times antes de iniciar.");
         return;
     }
 
-    // 2. CORREÇÃO: Ocultar o painel de configuração (setupControls)
-    const setupDiv = document.getElementById('setupControls');
-    if (setupDiv) {
-        setupDiv.classList.add('hidden'); // Adiciona a classe que esconde o elemento
-    }
-
-    // 3. Garantir que o placar esteja visível
-    const placarDiv = document.getElementById('placarDisplay');
-    if (placarDiv) {
-        placarDiv.classList.remove('hidden');
-    }
-
-    // 4. Resetar ou preparar o estado do jogo
     game.scoreA = 0;
     game.scoreB = 0;
-    // Se desejar resetar sets também:
-    // game.setsA = 0; 
-    // game.setsB = 0;
 
-    // 5. Salvar e Renderizar
     game.partidaAtiva = true;
 
-// 🔒 TRAVA DEFINITIVA DO SETUP APÓS PRIMEIRA PARTIDA
-if (!game.setupLocked) {
-    game.setupLocked = true;
-}
-            showEndGameOverlay(); // 🔊 dispara overlay + apito
+    // 🔒 trava o setup na primeira partida
+    if (!game.setupLocked) {
+        game.setupLocked = true;
+    }
 
     salvarState();
-    render();
-    
-    // Opcional: Tocar o apito ao iniciar
     window.tocarApitoManual();
 };
 
