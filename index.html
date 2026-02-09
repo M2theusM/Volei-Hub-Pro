@@ -69,8 +69,8 @@
     </div>
 
     <audio id="whistleSound" preload="auto">
-        <source src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//uQZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWgAAAA0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQZAAPNYMpf9l4AAQ4Yiu/2HgAAA0gABAAAAIAAAACU=" type="audio/mpeg">
-    </audio>
+    <source src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0U..." type="audio/mpeg">
+</audio>
 
     <header class="p-4 bg-slate-800 sticky top-0 shadow-2xl z-40 border-b border-slate-700">
         <div class="flex justify-between items-center max-w-md mx-auto mb-3">
@@ -583,16 +583,39 @@
             salvarState();
         }
 
-        window.validarEIniciarPartida = () => { 
-            if(game.timeA.length===game.config.size && game.timeB.length===game.config.size) { 
-                game.partidaAtiva = true; 
-                game.setupLocked = true; 
-                game.currentMatchStats = {}; // Resetar stats ao iniciar
-                game.jaSacouA=false; game.jaSacouB=false; if(game.saqueLado==='A') game.jaSacouA=true; else game.jaSacouB=true; 
-                let title = "JOGO INICIADO"; let sub = "BOA SORTE"; if(game.nextGameReason === 'mixed') { title = "TIMES MISTURADOS!"; sub = "Limite de vitórias atingido"; } if(game.nextGameReason === 'new') { title = "TIMES NOVOS!"; sub = "Limite atingido - ambos saíram"; } setSystemMessage(title, sub, false); game.nextGameReason = 'default'; 
-                salvarState(); 
-            } else alert("Times incompletos!"); 
-        };
+        window.validarEIniciarPartida = () => {
+    // 1. Validação básica para garantir que há jogadores
+    if (game.timeA.length === 0 || game.timeB.length === 0) {
+        alert("Por favor, adicione jogadores a ambos os times antes de iniciar.");
+        return;
+    }
+
+    // 2. CORREÇÃO: Ocultar o painel de configuração (setupControls)
+    const setupDiv = document.getElementById('setupControls');
+    if (setupDiv) {
+        setupDiv.classList.add('hidden'); // Adiciona a classe que esconde o elemento
+    }
+
+    // 3. Garantir que o placar esteja visível
+    const placarDiv = document.getElementById('placarDisplay');
+    if (placarDiv) {
+        placarDiv.classList.remove('hidden');
+    }
+
+    // 4. Resetar ou preparar o estado do jogo
+    game.scoreA = 0;
+    game.scoreB = 0;
+    // Se desejar resetar sets também:
+    // game.setsA = 0; 
+    // game.setsB = 0;
+
+    // 5. Salvar e Renderizar
+    salvarState();
+    render();
+    
+    // Opcional: Tocar o apito ao iniciar
+    window.tocarApitoManual();
+};
 
         // --- SISTEMA DE CONFIGURAÇÃO TEMPORÁRIA ---
         window.abrirConfig = () => {
@@ -772,3 +795,4 @@
     </script>
 </body>
 </html>
+
