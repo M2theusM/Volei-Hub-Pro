@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V8.4 Final</title>
+    <title>Vôlei Hub PRO - V8.5</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -38,11 +38,19 @@
         .animate-pop { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 
-        /* Admin/Player Views */
+        /* Admin vs Player */
         .modal-global { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000 !important; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .hidden { display: none !important; }
-        .admin-only { display: none !important; }
-        body.is-admin .admin-only { display: block !important; }
+        
+        /* Controle de visibilidade Admin */
+        .admin-only-control { display: none !important; }
+        body.is-admin .admin-only-control { display: block !important; }
+        
+        /* Controle de visibilidade Seções (Ranking) */
+        .admin-section { display: none; } /* Default hidden for players */
+        body.is-admin .admin-section { display: block; }
+        body.show-public .admin-section { display: block; }
+
         .player-readonly { pointer-events: none; }
         body.is-admin .player-readonly { pointer-events: auto; }
         #esperaContainer { min-height: 80px; }
@@ -58,12 +66,14 @@
         <h2 class="text-4xl font-black text-orange-500 uppercase italic mt-4 animate-pulse">Fim de Jogo!</h2>
     </div>
 
-    <audio id="whistleSound" src="https://www.soundjay.com/human/sounds/finger-whistle-01.mp3" preload="auto"></audio>
+    <audio id="whistleSound" preload="auto">
+        <source src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//uQZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWgAAAA0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQZAAPNYMpf9l4AAQ4Yiu/2HgAAA0gABAAAAIAAAACU=" type="audio/mpeg">
+    </audio>
 
     <header class="p-4 bg-slate-800 sticky top-0 shadow-2xl z-40 border-b border-slate-700">
         <div class="flex justify-between items-center max-w-md mx-auto mb-3">
             <h1 class="text-orange-500 font-black text-lg italic uppercase tracking-tighter">Vôlei Hub <span class="text-xs text-blue-400">LIVE</span></h1>
-            <div class="flex gap-2 admin-only">
+            <div class="flex gap-2 admin-only-control">
                 <button onclick="window.undoLastAction()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase transition">↩ Desfazer</button>
                 <button onclick="window.abrirConfig()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase transition">⚙️ Menu</button>
             </div>
@@ -97,7 +107,7 @@
             </div>
         </div>
 
-        <div id="setupControls" class="admin-only hidden">
+        <div id="setupControls" class="admin-only-control hidden">
              <button onclick="window.validarEIniciarPartida()" class="w-full bg-emerald-600 hover:bg-emerald-500 p-5 rounded-2xl font-black uppercase text-xl shadow-lg italic transition transform active:scale-95">Iniciar Partida 🏐</button>
         </div>
 
@@ -128,7 +138,7 @@
             <button onclick="window.adicionarNovoJogador()" class="bg-blue-600 hover:bg-blue-500 px-6 rounded-2xl font-black text-sm uppercase transition shadow-lg">Add</button>
         </div>
 
-        <section id="rankingSection" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl admin-only">
+        <section id="rankingSection" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl admin-section">
             <div class="p-4 bg-slate-800/60 border-b border-slate-800 text-center">
                 <h2 class="text-xs font-black uppercase text-orange-500 italic mb-3 tracking-widest">🏆 Ranking Master</h2>
                 <div class="flex gap-2">
@@ -140,7 +150,7 @@
             <div id="rankingContainer" class="p-2 space-y-1"></div>
         </section>
 
-        <section id="hallFamaSection" class="space-y-4 admin-only">
+        <section id="hallFamaSection" class="space-y-4 admin-section">
             <h2 class="text-xs font-black uppercase text-slate-500 text-center tracking-widest italic">⚡ Hall da Fama</h2>
             <div id="leadersGrid" class="space-y-3"></div>
         </section>
@@ -163,6 +173,13 @@
         <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-slate-700 overflow-y-auto max-h-[90vh]">
             <h2 class="text-xl font-black text-orange-500 uppercase mb-6 italic">Configurações</h2>
             <div class="space-y-4 mb-6">
+                <div class="bg-slate-700/50 p-4 rounded-xl border border-slate-600">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-black uppercase text-blue-400">Exibir Ranking p/ Todos</span>
+                        <button id="btnToggleRank" onclick="window.togglePublicRanking()" class="text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400">Desativado</button>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="text-[9px] uppercase font-bold text-slate-500">Jogadores/Time</label><input type="number" id="cSize" class="config-input"></div>
                     <div><label class="text-[9px] uppercase font-bold text-slate-500">Max Estrelas</label><input type="number" id="cStars" class="config-input"></div>
@@ -196,7 +213,7 @@
     <div id="modalAudit" class="modal-global hidden">
         <div class="bg-slate-800 w-full max-w-xs rounded-3xl p-6 border border-orange-500">
             <h3 id="auditNome" class="font-black text-orange-500 uppercase text-lg italic mb-6">---</h3>
-            <div id="auditContent" class="space-y-2 text-[11px]"></div>
+            <div id="auditContent" class="space-y-3 text-[11px]"></div>
             <div class="mt-6 pt-4 border-t border-slate-700 flex justify-between items-center">
                 <span class="text-xs font-black uppercase text-slate-400">Total Score</span>
                 <span id="auditTotal" class="text-3xl font-black text-orange-500">0</span>
@@ -212,7 +229,7 @@
                 <button onclick="window.fecharModais()" class="text-slate-400 text-3xl font-light">&times;</button>
             </div>
             <div class="grid grid-cols-1 gap-3">
-                <div class="admin-only space-y-3">
+                <div class="admin-only-control space-y-3">
                     <button onclick="window.registrarAcaoJogador('ataque')" class="w-full bg-slate-700 p-4 rounded-2xl font-bold uppercase text-xs flex justify-between italic hover:bg-slate-600"><span>💥 Ponto de Ataque</span> <span id="labelAtq" class="text-orange-500"></span></button>
                     <button onclick="window.registrarAcaoJogador('bloqueio')" class="w-full bg-slate-700 p-4 rounded-2xl font-bold uppercase text-xs flex justify-between italic hover:bg-slate-600"><span>🚫 Ponto de Bloqueio</span> <span id="labelBlq" class="text-orange-500"></span></button>
                     <button id="btnAceTec" onclick="window.registrarAcaoJogador('saque')" class="w-full bg-orange-600 p-4 rounded-2xl font-black uppercase text-xs flex justify-between italic hover:bg-orange-500 shadow-lg shadow-orange-900/50"><span>⚡ Ace de Saque</span> <span id="labelAce"></span></button>
@@ -229,7 +246,7 @@
     <div id="modalFilaEscala" class="modal-global hidden">
         <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-emerald-500/30">
             <h3 id="modalNomeFila" class="font-black text-white uppercase text-xl italic mb-6">---</h3>
-            <div class="grid grid-cols-2 gap-4 mb-4 admin-only">
+            <div class="grid grid-cols-2 gap-4 mb-4 admin-only-control">
                 <div class="space-y-2">
                     <p class="text-[8px] font-black text-blue-400 uppercase text-center italic">Time A</p>
                     <button onclick="window.escalarParaTime('A')" class="w-full bg-blue-600 hover:bg-blue-500 p-3 rounded-xl font-black uppercase text-[10px] transition">Entrar A</button>
@@ -277,7 +294,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const gameRef = ref(db, 'partida/v8_4'); 
+        const gameRef = ref(db, 'partida/v8_5'); // Versão Final
 
         // CONSTANTES
         const INITIAL_GERAL = ["MATHEUS MATOS","MARCIANO", "DANIELE", "RAFAEL", "SABRINA", "JANIR", "YURI", "MAICON", "THALYSON", "ODAIR", "LUCAS GABRIEL", "JOÃO", "LUIZ EDUARDO", "MATHEUS JAPA", "ANDERSON"];
@@ -286,6 +303,9 @@
         const DEFAULT_RESTRICTIONS = [
             ["PATY", "MATEUS BRAZ"], ["MARCIANO", "JANIR"], ["RAFAEL", "YURI"], ["MATEUS BRAZ", "YURI"], ["MATHEUS MATOS", "KEMILLY"], ["RHUANA", "YURI"]
         ];
+
+        // AUDIO WHISTLE (Simples e curto em base64 acima)
+        // Substituido na tag <audio>
 
         const params = new URLSearchParams(window.location.search);
         const isAdmin = params.get('admin') === 'true';
@@ -304,6 +324,7 @@
             lastAnim: { type: '', ts: 0 },
             endGameAnim: { active: false, ts: 0 },
             nextGameReason: 'default', // default, mixed, new
+            publicRanking: false, // Nova flag
             lastScorerId: null, currentStreak: 0
         };
 
@@ -332,7 +353,8 @@
                     matchLog: data.matchLog || [],
                     lastAnim: data.lastAnim || { ts: 0 },
                     endGameAnim: data.endGameAnim || { active: false, ts: 0 },
-                    nextGameReason: data.nextGameReason || 'default'
+                    nextGameReason: data.nextGameReason || 'default',
+                    publicRanking: data.publicRanking || false
                 };
                 ensureRankingConsistency();
                 render();
@@ -342,7 +364,6 @@
         });
 
         function ensureRankingConsistency() {
-            // Garante que todo jogador tenha entrada no ranking
             const allPlayers = [...game.esperaGeral, ...game.esperaEstrela, ...game.timeA, ...game.timeB];
             allPlayers.forEach(p => {
                 if(!game.ranking[p.nome]) {
@@ -353,12 +374,9 @@
 
         function initGameData() {
             game.esperaGeral = []; game.esperaEstrela = [];
-            
-            // Cria jogadores
             INITIAL_GERAL.forEach(n => adicionarLocal(n, false));
             INITIAL_ESTRELA.forEach(n => adicionarLocal(n, true));
             
-            // Cria restrições padrão usando IDs gerados
             const all = [...game.esperaGeral, ...game.esperaEstrela];
             game.restricoes = [];
             DEFAULT_RESTRICTIONS.forEach(pair => {
@@ -367,7 +385,6 @@
                 if(p1 && p2) game.restricoes.push([p1.id, p2.id]);
             });
 
-            // Reseta Status
             game.esperaGeral.forEach(p => p.bloqueado = true);
             game.esperaEstrela.forEach(p => p.bloqueado = true);
             
@@ -378,7 +395,6 @@
             const id = Math.random().toString(36).substr(2, 9);
             const obj = { id, nome, estrela: isEstrela, bloqueado: false };
             if(!game.ranking[nome]) game.ranking[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, estrela: isEstrela };
-            
             const lista = isEstrela ? game.esperaEstrela : game.esperaGeral;
             let idx = 0;
             for(let i=0; i<lista.length; i++) {
@@ -396,24 +412,20 @@
             set(gameRef, game);
         }
 
-        // RESET REAL (CORRIGIDO)
+        // RESET
         window.limparSistema = () => {
             if(confirm("⚠️ RESETAR PARA PADRÃO DE FÁBRICA?")) {
-                // Limpa arrays locais ANTES de salvar
-                game.timeA = []; 
-                game.timeB = [];
+                game.timeA = []; game.timeB = [];
                 game.partidaAtiva = false;
                 game.scoreA = 0; game.scoreB = 0;
                 game.winsConsecA = 0; game.winsConsecB = 0;
-                game.ranking = {}; 
-                game.matchLog = [];
+                game.ranking = {}; game.matchLog = [];
                 game.nextGameReason = 'default';
+                game.publicRanking = false;
                 
-                // Restaura Configs Padrão
                 game.config = { size: 4, stars: 1, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' };
                 game.weights = { atqG: 1.0, blqG: 1.25, aceG: 1.5, atqE: 1.5, blqE: 2.0, aceE: 2.0, err: 0.25, vit: 3.0 };
                 
-                // Regera jogadores e restrições
                 game.esperaGeral = []; game.esperaEstrela = [];
                 INITIAL_GERAL.forEach(n => adicionarLocal(n, false));
                 INITIAL_ESTRELA.forEach(n => adicionarLocal(n, true));
@@ -437,45 +449,49 @@
         function setSystemMessage(title, sub, streak) {
             game.systemMsg = { text: title, sub: sub, streak: streak, ts: Date.now() };
         }
-        
         function addToLog(text, type) {
             const entry = { text, type, ts: Date.now() };
             game.matchLog.unshift(entry);
             if(game.matchLog.length > 40) game.matchLog.pop();
         }
-
         function triggerEmoji(type) {
             game.lastAnim = { type: type, ts: Date.now() };
         }
-        
         function showEndGameOverlay() {
             game.endGameAnim = { active: true, ts: Date.now() };
         }
 
-        // RENDER
+        // --- RENDER FUNCTION ---
         function render() {
-            // Animação Fim de Jogo (Audio + Visual)
+            // Audio Play (Warmup)
+            if(isAdmin && game.partidaAtiva) {
+                // Tenta desbloquear o audio context num click qualquer se ainda nao tiver feito
+                // (Implementação simplificada: confia no clique de iniciar partida)
+            }
+
+            // Fim de Jogo
             if(game.endGameAnim && game.endGameAnim.ts > lastEndGameTs) {
                 lastEndGameTs = game.endGameAnim.ts;
                 const overlay = document.getElementById('endgame-overlay');
                 const audio = document.getElementById('whistleSound');
-                
                 overlay.classList.remove('hidden');
+                audio.volume = 1.0;
                 audio.currentTime = 0;
-                audio.play().catch(e=>console.log("Audio play blocked", e));
-                
-                setTimeout(() => {
-                    overlay.classList.add('hidden');
-                }, 3000);
+                audio.play().catch(e => console.log("Audio needs interaction", e));
+                setTimeout(() => { overlay.classList.add('hidden'); }, 3000);
             }
 
-            // Animacoes Emoji Partida
+            // Emojis
             if(game.lastAnim && game.lastAnim.ts > lastAnimTs) {
                 lastAnimTs = game.lastAnim.ts;
                 doEmojiExplosion(game.lastAnim.type);
             }
 
-            // Mensagens Fixas
+            // Visibilidade Ranking Publico
+            if(game.publicRanking) document.body.classList.add('show-public');
+            else document.body.classList.remove('show-public');
+
+            // Mensagens
             document.getElementById('msg-title').innerText = game.systemMsg.text;
             document.getElementById('msg-sub').innerText = game.systemMsg.sub;
             const streakEl = document.getElementById('msg-streak');
@@ -483,11 +499,9 @@
 
             // Log
             const logBox = document.getElementById('match-log-box');
-            logBox.innerHTML = game.matchLog.length ? game.matchLog.map(l => 
-                `<div class="log-item log-${l.type}">${l.text}</div>`
-            ).join('') : '<div class="text-center text-slate-500 italic py-2">Histórico vazio...</div>';
+            logBox.innerHTML = game.matchLog.length ? game.matchLog.map(l => `<div class="log-item log-${l.type}">${l.text}</div>`).join('') : '<div class="text-center text-slate-500 italic py-2">Histórico vazio...</div>';
 
-            // Paineis e Botão Iniciar
+            // Paineis Principais
             const infoPanel = document.getElementById('info-panel');
             const placarDiv = document.getElementById('placarDisplay');
             const setupDiv = document.getElementById('setupControls');
@@ -499,14 +513,16 @@
             } else {
                 placarDiv.classList.add('hidden');
                 infoPanel.classList.add('hidden');
-                if(isAdmin) setupDiv.classList.remove('hidden');
+                if(isAdmin) setupDiv.classList.remove('hidden'); else setupDiv.classList.add('hidden');
             }
 
+            // Placar
             document.getElementById('scoreA').innerText = game.scoreA;
             document.getElementById('scoreB').innerText = game.scoreB;
             document.getElementById('winsA').innerText = `Sets: ${game.winsConsecA}`;
             document.getElementById('winsB').innerText = `Sets: ${game.winsConsecB}`;
 
+            // Quadra
             const drawTeam = (l) => (l === 'A' ? game.timeA : game.timeB).map((p, i) => `
                 <div class="jogador-card bg-slate-800 p-3 rounded-xl border-l-4 ${l==='A'?'border-l-blue-500':'border-l-orange-500'} ${game.partidaAtiva && game.saqueLado===l && (l==='A'?game.idxA:game.idxB)===i?'sacando':''} ${p.estrela?'is-estrela':''}" onclick="window.abrirPontoTecnico('${l}', ${i})" data-id="${p.id}">
                     <div class="uppercase font-black text-[10px] truncate"><span class="bola-saque mr-1">🏐</span> ${p.estrela?'⭐ ':''}${p.nome}</div>
@@ -535,12 +551,13 @@
             document.getElementById('tabGeral').className = `text-[10px] font-black uppercase px-4 py-2 rounded-lg transition ${filaTab === 'geral' ? 'tab-active shadow-lg' : 'bg-slate-700 hover:bg-slate-600'}`;
             document.getElementById('tabEstrela').className = `text-[10px] font-black uppercase px-4 py-2 rounded-lg transition ${filaTab === 'estrela' ? 'tab-active shadow-lg' : 'bg-slate-700 hover:bg-slate-600'}`;
 
+            // Ranking & Hall da Fama
+            // Sempre renderiza, mas CSS oculta se não for admin/publico
+            const rk = Object.entries(game.ranking).map(([n, s]) => ({ n, ...s, score: parseFloat(getScore(n)) })).filter(x => x.score > 0 && (rkTab==='tudo'?true:rkTab==='estrela'?x.estrela:!x.estrela)).sort((a,b) => b.score - a.score);
+            document.getElementById('rankingContainer').innerHTML = rk.map((j, i) => `<div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 cursor-pointer mb-1 hover:bg-slate-800 transition" onclick="window.abrirAuditModal('${j.n}')"><div class="flex items-center gap-3"><span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span><div class="rank-name uppercase text-[10px] font-bold text-slate-300">${j.estrela?'⭐':''} ${j.n}</div></div><div class="text-orange-500 font-black text-xs">${j.score}</div></div>`).join('');
+            renderLeaders();
+            
             if(isAdmin) {
-                // Ranking
-                const rk = Object.entries(game.ranking).map(([n, s]) => ({ n, ...s, score: parseFloat(getScore(n)) })).filter(x => x.score > 0 && (rkTab==='tudo'?true:rkTab==='estrela'?x.estrela:!x.estrela)).sort((a,b) => b.score - a.score);
-                document.getElementById('rankingContainer').innerHTML = rk.map((j, i) => `<div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 cursor-pointer mb-1 hover:bg-slate-800 transition" onclick="window.abrirAuditModal('${j.n}')"><div class="flex items-center gap-3"><span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span><div class="rank-name uppercase text-[10px] font-bold text-slate-300">${j.estrela?'⭐':''} ${j.n}</div></div><div class="text-orange-500 font-black text-xs">${j.score}</div></div>`).join('');
-                renderLeaders();
-                
                 sortables.forEach(s => s.destroy());
                 sortables = [];
                 sortables.push(Sortable.create(document.getElementById('areaA'), { group: 'quadra', animation: 150, onEnd: () => syncQuadra() }));
@@ -549,14 +566,10 @@
             }
         }
 
-        // ANIMAÇÃO DOM
+        // --- DOM ANIMATION ---
         function doEmojiExplosion(type) {
             let icon = '';
-            if(type === 'ataque') icon = '💥';
-            else if(type === 'bloqueio') icon = '🚫';
-            else if(type === 'saque') icon = '⚡';
-            else return;
-
+            if(type === 'ataque') icon = '💥'; else if(type === 'bloqueio') icon = '🚫'; else if(type === 'saque') icon = '⚡'; else return;
             const layer = document.getElementById('emoji-layer');
             for(let i=0; i<15; i++) {
                 const el = document.createElement('div');
@@ -571,23 +584,20 @@
             }
         }
 
-        // LÓGICA
+        // --- GAME LOGIC ---
         window.registrarPontoSimples = (lado, hist, isErro) => {
             if(!isAdmin || !game.partidaAtiva) return;
             if(hist) salvarState(true);
-
             if(isErro) {
                 const adv = lado === 'A' ? game.timeB : game.timeA;
                 adv.forEach(p => game.ranking[p.nome].ptsErroAdversario++);
                 addToLog(`PONTO TIME ${lado} - ERRO ADVERSÁRIO`, lado);
             }
-
             if(game.saqueLado !== lado) {
                 game.saqueLado = lado;
                 if(lado === 'A') { if(!game.jaSacouA) game.jaSacouA = true; else game.idxA = (game.idxA + 1) % game.timeA.length; }
                 else { if(!game.jaSacouB) game.jaSacouB = true; else game.idxB = (game.idxB + 1) % game.timeB.length; }
             }
-
             if(lado === 'A') game.scoreA++; else game.scoreB++;
             
             const limit = game.config.points;
@@ -596,7 +606,6 @@
             }
             else if(game.config.desempate === '3direto' && game.scoreA === limit-1 && game.scoreB === limit-1) setSystemMessage("VAI A 3!", "Desempate Direto", false);
             else if(game.config.desempate === '2vantagem' && game.scoreA >= limit-1 && game.scoreB >= limit-1 && Math.abs(game.scoreA-game.scoreB) < 2) setSystemMessage("VAI A 2!", "Vantagem Necessária", false);
-
             verificarFimDeSet();
             salvarState(false);
         };
@@ -605,7 +614,6 @@
             if(!isAdmin) return;
             salvarState(true);
             const p = (modalCtx.lado==='A'?game.timeA:game.timeB)[modalCtx.idx];
-            
             if(tipo==='ataque') game.ranking[p.nome].ptsAtaque++;
             if(tipo==='bloqueio') game.ranking[p.nome].ptsBloqueio++;
             if(tipo==='saque') game.ranking[p.nome].ptsAce++;
@@ -617,17 +625,11 @@
             const total = s.ptsAtaque + s.ptsBloqueio + s.ptsAce; 
             const fraseIndex = Math.min(total, 10);
             const frase = PHRASES[fraseIndex] || "";
-
             let isStreak = false;
-            if(game.lastScorerId === p.id) {
-                game.currentStreak++;
-                if(game.currentStreak >= 2) isStreak = true;
-            } else {
-                game.lastScorerId = p.id;
-                game.currentStreak = 1;
-            }
+            if(game.lastScorerId === p.id) { game.currentStreak++; if(game.currentStreak >= 2) isStreak = true; } 
+            else { game.lastScorerId = p.id; game.currentStreak = 1; }
+            
             if(frase) setSystemMessage(p.nome, frase, isStreak);
-
             window.fecharModais();
             window.registrarPontoSimples(modalCtx.lado, false, false);
         };
@@ -636,7 +638,6 @@
             const limit = game.config.points;
             const modo = game.config.desempate;
             let venceu = null;
-
             if(modo === 'sem' && (game.scoreA >= limit || game.scoreB >= limit)) venceu = game.scoreA >= limit ? 'A' : 'B';
             else if(modo === '2vantagem') { 
                 if(game.scoreA >= limit && game.scoreA >= game.scoreB + 2) venceu = 'A';
@@ -647,7 +648,6 @@
                 else if(game.scoreB >= limit && game.scoreB >= game.scoreA + 2) venceu = 'B';
                 if(!venceu && (game.scoreA > limit + 2 || game.scoreB > limit + 2)) venceu = game.scoreA > game.scoreB ? 'A' : 'B';
             }
-
             if(venceu) setTimeout(() => finalizarPartida(venceu), 200);
         }
 
@@ -657,18 +657,14 @@
             
             const tV = venceu === 'A' ? game.timeA : game.timeB;
             const tD = venceu === 'A' ? game.timeB : game.timeA;
-
             tV.forEach(j => game.ranking[j.nome].v++);
             tD.forEach(j => {
                 game.ranking[j.nome].d++;
                 (j.estrela ? game.esperaEstrela : game.esperaGeral).push(j);
             });
-
             if(venceu === 'A') { game.timeB = []; game.winsConsecA++; game.winsConsecB = 0; } 
             else { game.timeA = []; game.winsConsecB++; game.winsConsecA = 0; }
-
-            game.lastScorerId = null; game.currentStreak = 0;
-            game.nextGameReason = 'default';
+            game.lastScorerId = null; game.currentStreak = 0; game.nextGameReason = 'default';
 
             if(game.config.maxWins > 0 && (game.winsConsecA >= game.config.maxWins || game.winsConsecB >= game.config.maxWins)) {
                 if(game.config.reaction === 'dividir') {
@@ -684,7 +680,6 @@
                 }
                 game.winsConsecA = 0; game.winsConsecB = 0;
             }
-
             const fill = (time) => {
                 while(time.length < game.config.size) {
                     let p = null;
@@ -700,13 +695,11 @@
                 }
             };
             fill(game.timeA); fill(game.timeB);
-
             game.scoreA = 0; game.scoreB = 0;
             game.idxA = 0; game.idxB = 0;
             game.jaSacouA = false; game.jaSacouB = false;
             game.partidaAtiva = false;
             game.saqueLado = venceu;
-
             salvarState();
         }
 
@@ -716,19 +709,20 @@
                 game.jaSacouA=false; game.jaSacouB=false; 
                 if(game.saqueLado==='A') game.jaSacouA=true; else game.jaSacouB=true; 
                 
-                let title = "JOGO INICIADO";
-                let sub = "BOA SORTE";
+                let title = "JOGO INICIADO"; let sub = "BOA SORTE";
                 if(game.nextGameReason === 'mixed') { title = "TIMES MISTURADOS!"; sub = "Limite de vitórias atingido"; }
                 if(game.nextGameReason === 'new') { title = "TIMES NOVOS!"; sub = "Limite atingido - ambos saíram"; }
-                
                 setSystemMessage(title, sub, false); 
                 game.nextGameReason = 'default';
+                
+                // Força desbloqueio do audio no mobile
+                document.getElementById('whistleSound').play().catch(()=>{});
                 
                 salvarState(); 
             } else alert("Times incompletos!"); 
         };
 
-        // UI HELPERS (IGUAL V8.3)
+        // --- HELPER FUNCTIONS ---
         window.adicionarNovoJogador = () => { const n = document.getElementById('novoNome').value.toUpperCase().trim(); if(!n) return; adicionarLocal(n, filaTab==='estrela'); document.getElementById('novoNome').value=''; salvarState(); };
         window.adicionarRestricao = () => { const j1 = document.getElementById('selJ1').value, j2 = document.getElementById('selJ2').value; if(j1&&j2&&j1!==j2) { game.restricoes.push([j1,j2]); window.renderListaRestricoes(); salvarState(); } };
         window.escalarParaTime = (lado) => { const t = lado==='A'?game.timeA:game.timeB; if(t.length<game.config.size) { const l = modalCtx.tabFila==='geral'?game.esperaGeral:game.esperaEstrela; const p = l.splice(modalCtx.idxFila, 1)[0]; p.bloqueado=false; t.push(p); window.fecharModais(); salvarState(); } else alert("Time Cheio!"); };
@@ -742,38 +736,92 @@
         window.abrirPontoTecnico = (l, i) => { modalCtx = { lado: l, idx: i }; const p = (l==='A'?game.timeA:game.timeB)[i]; document.getElementById('modalNomeTec').innerText = p.nome; if(isAdmin) { const w = game.weights; document.getElementById('labelAtq').innerText = `+${p.estrela?w.atqE:w.atqG}`; document.getElementById('labelBlq').innerText = `+${p.estrela?w.blqE:w.blqG}`; document.getElementById('labelAce').innerText = `+${p.estrela?w.aceE:w.aceG}`; const isSacador = (game.saqueLado === l && (l==='A'?game.idxA:game.idxB)===i); const btn = document.getElementById('btnAceTec'); if(!isSacador) btn.classList.add('opacity-50','pointer-events-none'); else btn.classList.remove('opacity-50','pointer-events-none'); document.getElementById('playerViewMsg').classList.add('hidden'); } else { document.getElementById('playerViewMsg').classList.remove('hidden'); } document.getElementById('modalPontoTec').classList.remove('hidden'); };
         function getScore(n) { const s = game.ranking[n]; if(!s) return 0; const w = game.weights; return ((s.v*w.vit)+(s.ptsAtaque*(s.estrela?w.atqE:w.atqG))+(s.ptsAce*(s.estrela?w.aceE:w.aceG))+(s.ptsBloqueio*(s.estrela?w.blqE:w.blqG))+(s.ptsErroAdversario*w.err)).toFixed(2); }
         function estaoBloqueados(p1, p2) { return game.restricoes.some(d => (d[0]==p1.id && d[1]==p2.id) || (d[1]==p1.id && d[0]==p2.id)); }
-        
+
+        // --- VISUALIZACAO AUDIT E HALL ---
         function renderLeaders() {
             const pl = Object.entries(game.ranking).map(([n, s]) => ({ n, ...s, score: parseFloat(getScore(n)) }));
             const cats = [{t:"Top Score",i:"🏆",f:p=>p.score},{t:"Matador",i:"🔥",f:p=>p.ptsAtaque},{t:"Paredão",i:"🚫",f:p=>p.ptsBloqueio},{t:"Ace",i:"⚡",f:p=>p.ptsAce},{t:"Vitórias",i:"🥇",f:p=>p.v}];
             document.getElementById('leadersGrid').innerHTML = cats.map(c => {
                 const sort = (l) => [...l].sort((a,b)=>c.f(b)-c.f(a));
-                const lg = sort(pl.filter(x=>!x.estrela))[0]; 
-                const le = sort(pl.filter(x=>x.estrela))[0];
-                const valG = lg ? c.f(lg) : 0; 
-                const valE = le ? c.f(le) : 0;
+                const lg = sort(pl.filter(x=>!x.estrela))[0]; const le = sort(pl.filter(x=>x.estrela))[0];
+                const valG = lg ? c.f(lg) : 0; const valE = le ? c.f(le) : 0;
                 if(valG === 0 && valE === 0) return ''; 
                 return `<div class="bg-slate-800 p-3 rounded border border-slate-700 mb-2">
                     <div class="text-xs text-slate-400 mb-1 font-bold tracking-widest uppercase">${c.i} ${c.t}</div>
-                    <div class="flex justify-between text-[10px]">
-                        <div>G: ${valG > 0 ? lg.n : '-'} <b class="text-blue-400">${valG > 0 ? valG : ''}</b></div>
-                        <div>E: ${valE > 0 ? le.n : '-'} <b class="text-orange-400">${valE > 0 ? valE : ''}</b></div>
+                    <div class="flex justify-between items-center text-[10px]">
+                        <div class="text-lg font-black text-orange-500">${valG > 0 ? lg.n : '-'}</div>
+                        <div class="text-lg font-black text-orange-500 text-right">${valE > 0 ? le.n : '-'}</div>
                     </div>
                 </div>`;
             }).join('');
         }
 
+        window.abrirAuditModal = (n) => {
+            const s = game.ranking[n]; 
+            const w = game.weights;
+            // Define o multiplicador correto (Geral ou Estrela)
+            const atqW = s.estrela ? w.atqE : w.atqG;
+            const blqW = s.estrela ? w.blqE : w.blqG;
+            const aceW = s.estrela ? w.aceE : w.aceG;
+
+            document.getElementById('auditNome').innerText = n;
+            document.getElementById('auditContent').innerHTML = `
+                <div class="flex justify-between"><span>Vitórias (x${w.vit}):</span> <b class="text-white">${s.v}</b></div>
+                <div class="flex justify-between"><span>Ataques (x${atqW}):</span> <b class="text-white">${s.ptsAtaque}</b></div>
+                <div class="flex justify-between"><span>Bloqueios (x${blqW}):</span> <b class="text-white">${s.ptsBloqueio}</b></div>
+                <div class="flex justify-between"><span>Aces (x${aceW}):</span> <b class="text-white">${s.ptsAce}</b></div>
+                <div class="flex justify-between"><span>Erro Adv. (x${w.err}):</span> <b class="text-white">${s.ptsErroAdversario}</b></div>
+            `;
+            document.getElementById('auditTotal').innerText = getScore(n);
+            document.getElementById('modalAudit').classList.remove('hidden');
+        };
+
+        // --- CONFIG POPULATION (Correção: Preenche valores ao abrir) ---
+        window.abrirConfig = () => {
+            document.getElementById('cSize').value = game.config.size;
+            document.getElementById('cStars').value = game.config.stars;
+            document.getElementById('cPoints').value = game.config.points;
+            document.getElementById('cMax').value = game.config.maxWins;
+            document.getElementById('cReaction').value = game.config.reaction;
+            document.getElementById('cDesempate').value = game.config.desempate;
+            
+            const btn = document.getElementById('btnToggleRank');
+            if(game.publicRanking) {
+                btn.innerText = "ATIVADO"; btn.classList.remove('text-slate-400','border-slate-500'); btn.classList.add('text-green-400','border-green-500');
+            } else {
+                btn.innerText = "DESATIVADO"; btn.classList.add('text-slate-400','border-slate-500'); btn.classList.remove('text-green-400','border-green-500');
+            }
+            
+            document.getElementById('modalConfigMenu').classList.remove('hidden');
+        };
+
+        window.togglePublicRanking = () => {
+            game.publicRanking = !game.publicRanking;
+            window.abrirConfig(); // Re-renderiza botão
+            salvarState();
+        };
+
+        window.abrirWeights = () => {
+            document.getElementById('wAtqG').value = game.weights.atqG;
+            document.getElementById('wBlqG').value = game.weights.blqG;
+            document.getElementById('wAceG').value = game.weights.aceG;
+            document.getElementById('wAtqE').value = game.weights.atqE;
+            document.getElementById('wBlqE').value = game.weights.blqE;
+            document.getElementById('wAceE').value = game.weights.aceE;
+            document.getElementById('wErr').value = game.weights.err;
+            document.getElementById('wVit').value = game.weights.vit;
+            document.getElementById('modalWeights').classList.remove('hidden');
+        };
+
+        // Outros Helpers
         window.fecharModais = () => document.querySelectorAll('.modal-global, #modalPontoTec').forEach(m => m.classList.add('hidden'));
         window.setFilaTab = (t) => { filaTab = t; render(); };
         window.setRankingTab = (t) => { rkTab = t; render(); };
-        window.abrirConfig = () => document.getElementById('modalConfigMenu').classList.remove('hidden');
-        window.abrirWeights = () => document.getElementById('modalWeights').classList.remove('hidden');
         window.abrirBloqueioDuplas = () => { const all = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela].sort((a,b)=>a.nome.localeCompare(b.nome)); const opt = `<option value="" disabled selected>- Selecione -</option>`+all.map(p=>`<option value="${p.id}">${p.nome}</option>`).join(''); document.getElementById('selJ1').innerHTML = opt; document.getElementById('selJ2').innerHTML = opt; window.renderListaRestricoes(); document.getElementById('modalRestricao').classList.remove('hidden'); };
         window.renderListaRestricoes = () => { const all = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela]; document.getElementById('listaRestricoes').innerHTML = game.restricoes.map((r,i) => { const n1 = all.find(x=>x.id==r[0])?.nome||'?'; const n2 = all.find(x=>x.id==r[1])?.nome||'?'; return `<div class="bg-slate-800 p-2 flex justify-between text-[10px] text-red-400 border border-red-900/30"><span>${n1} 🚫 ${n2}</span><button onclick="window.removeRestricao(${i})">X</button></div>`; }).join(''); };
         window.removeRestricao = (i) => { game.restricoes.splice(i,1); window.renderListaRestricoes(); salvarState(); };
         window.salvarConfigEClose = () => { game.config.size = parseInt(document.getElementById('cSize').value); game.config.stars = parseInt(document.getElementById('cStars').value); game.config.points = parseInt(document.getElementById('cPoints').value); game.config.maxWins = parseInt(document.getElementById('cMax').value); game.config.desempate = document.getElementById('cDesempate').value; game.config.reaction = document.getElementById('cReaction').value; window.fecharModais(); salvarState(); };
         window.salvarWeightsEClose = () => { game.weights.atqG = parseFloat(document.getElementById('wAtqG').value); game.weights.blqG = parseFloat(document.getElementById('wBlqG').value); game.weights.aceG = parseFloat(document.getElementById('wAceG').value); game.weights.atqE = parseFloat(document.getElementById('wAtqE').value); game.weights.blqE = parseFloat(document.getElementById('wBlqE').value); game.weights.aceE = parseFloat(document.getElementById('wAceE').value); game.weights.err = parseFloat(document.getElementById('wErr').value); game.weights.vit = parseFloat(document.getElementById('wVit').value); window.fecharModais(); salvarState(); };
-        window.abrirAuditModal = (n) => { const s = game.ranking[n]; const w = game.weights; document.getElementById('auditNome').innerText = n; document.getElementById('auditContent').innerHTML = `<div>Vit (${w.vit}): ${s.v}</div><div>Atq: ${s.ptsAtaque}</div><div>Blq: ${s.ptsBloqueio}</div><div>Ace: ${s.ptsAce}</div><div>ErrAdv: ${s.ptsErroAdversario}</div>`; document.getElementById('auditTotal').innerText = getScore(n); document.getElementById('modalAudit').classList.remove('hidden'); };
     </script>
 </body>
 </html>
