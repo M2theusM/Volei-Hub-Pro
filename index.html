@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V6.6</title>
+    <title>Vôlei Hub PRO - V6.7</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -26,6 +26,11 @@
         .audit-line { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #334155; font-size: 11px; text-transform: uppercase; font-weight: bold; }
         .modal-global { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000 !important; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .hidden { display: none !important; }
+        
+        /* Correção para visualização completa da fila */
+        #esperaContainer { min-height: 50px; height: auto !important; max-height: none !important; overflow: visible !important; }
+        .drag-handle { cursor: grab; padding: 10px; color: #475569; font-size: 20px; user-select: none; }
+        .drag-handle:active { cursor: grabbing; }
     </style>
 </head>
 <body class="bg-slate-900 text-white font-sans overflow-x-hidden">
@@ -71,7 +76,7 @@
                     <button onclick="setFilaTab('estrela')" id="tabEstrela" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg">Estrelas ⭐ <span id="countEstrela" class="ml-1 opacity-50"></span></button>
                 </div>
             </div>
-            <div id="esperaContainer" class="p-4 space-y-2 max-h-[250px] overflow-y-auto"></div>
+            <div id="esperaContainer" class="p-4 space-y-2"></div>
         </section>
 
         <div class="flex gap-2">
@@ -135,14 +140,14 @@
             <h2 class="text-xl font-black text-orange-500 uppercase mb-6 italic">Configurações</h2>
             <div class="space-y-4 mb-6">
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="text-[9px] uppercase font-bold text-slate-500">Qtd. jogadores (total) por equipe</label><input type="number" id="cSize" class="config-input"></div>
+                    <div><label class="text-[9px] uppercase font-bold text-slate-500">Qtd. jogadores por equipe</label><input type="number" id="cSize" class="config-input"></div>
                     <div><label class="text-[9px] uppercase font-bold text-slate-500">Qtd. ESTRELAS por equipe</label><input type="number" id="cStars" class="config-input"></div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="text-[9px] uppercase font-bold text-slate-500">Pontos por SET</label><input type="number" id="cPoints" class="config-input"></div>
-                    <div><label class="text-[9px] uppercase font-bold text-slate-500">Qtd. limite vitórias (consecutivas)</label><input type="number" id="cMax" class="config-input"></div>
+                    <div><label class="text-[9px] uppercase font-bold text-slate-500">Limite vitórias</label><input type="number" id="cMax" class="config-input"></div>
                 </div>
-                <div><label class="text-[9px] uppercase font-bold text-slate-500">Ao atingir limite de vitórias:</label>
+                <div><label class="text-[9px] uppercase font-bold text-slate-500">Ao atingir limite:</label>
                     <select id="cReaction" class="config-input">
                         <option value="dividir">Dividir time vencedor (2/2)</option>
                         <option value="sairDois">Sair ambos os times</option>
@@ -211,6 +216,7 @@
     </div>
 
     <script>
+        // CONFIGURAÇÕES E ESTADO
         const INITIAL_GERAL = ["MATHEUS MATOS","MARCIANO", "DANIELE", "RAFAEL", "SABRINA", "JANIR", "YURI", "MAICON", "THALYSON", "ODAIR", "LUCAS GABRIEL", "JOÃO", "LUIZ EDUARDO", "MATHEUS JAPA", "ANDERSON"];
         const INITIAL_ESTRELA = ["PATY", "MATEUS BRAZ", "RHUANA", "KEMILLY", "WELLINGTON"];
 
@@ -225,8 +231,9 @@
 
         let historico = [], filaTab = 'geral', rkTab = 'tudo', modalCtx = { lado: '', idx: 0 };
 
+        // INICIALIZAÇÃO
         function init() {
-            const saved = localStorage.getItem('volei_hub_v61');
+            const saved = localStorage.getItem('volei_hub_v67');
             if(saved) game = JSON.parse(saved);
             else {
                 INITIAL_GERAL.forEach(n => {
@@ -239,17 +246,14 @@
                     game.esperaEstrela.push({ id, nome: n, estrela: true, bloqueado: true });
                     game.ranking[n] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, estrela:true };
                 });
-                const t = [...game.esperaGeral, ...game.esperaEstrela];
-                const fId = (n) => t.find(j => j.nome === n)?.id;
-                game.restricoes.push([fId("MARCIANO"), fId("JANIR")], [fId("RAFAEL"), fId("YURI")], [fId("PATY"), fId("MATEUS BRAZ")]);
             }
-            render();
             initDragSystem();
+            render();
         }
 
         function salvar(comHist = true) {
             if(comHist) { historico.push(JSON.stringify(game)); if(historico.length > 20) historico.shift(); }
-            localStorage.setItem('volei_hub_v61', JSON.stringify(game));
+            localStorage.setItem('volei_hub_v67', JSON.stringify(game));
             render();
         }
 
@@ -264,79 +268,48 @@
             return parseFloat(((s.v * w.vit) + (s.ptsAtaque * atq) + (s.ptsAce * ace) + (s.ptsBloqueio * blq) + (s.ptsErroAdversario * w.err)).toFixed(2));
         }
 
+        // RENDERIZAÇÃO
         function render() {
             document.getElementById('placarDisplay').classList.toggle('hidden', !game.partidaAtiva);
             document.getElementById('setupControls').classList.toggle('hidden', game.partidaAtiva);
-            document.getElementById('scoreA').innerText = game.scoreA; document.getElementById('scoreB').innerText = game.scoreB;
-            document.getElementById('winsA').innerText = `Sets: ${game.winsConsecA}`; document.getElementById('winsB').innerText = `Sets: ${game.winsConsecB}`;
+            document.getElementById('scoreA').innerText = game.scoreA; 
+            document.getElementById('scoreB').innerText = game.scoreB;
+            document.getElementById('winsA').innerText = `Sets: ${game.winsConsecA}`; 
+            document.getElementById('winsB').innerText = `Sets: ${game.winsConsecB}`;
 
             const drawTeam = (l) => (l === 'A' ? game.timeA : game.timeB).map((p, i) => `
                 <div class="jogador-card bg-slate-800 p-3 rounded-xl border-l-4 ${l==='A'?'border-l-blue-500':'border-l-orange-500'} ${game.partidaAtiva && game.saqueLado===l && (l==='A'?game.idxA:game.idxB)===i?'sacando':''} ${p.estrela?'is-estrela':''}" onclick="abrirPontoTecnico('${l}', ${i})" data-id="${p.id}">
                     <div class="uppercase font-black text-[10px] truncate"><span class="bola-saque mr-1">🏐</span> ${p.estrela?'⭐ ':''}${p.nome}</div>
                 </div>`).join('');
-            document.getElementById('areaA').innerHTML = drawTeam('A'); document.getElementById('areaB').innerHTML = drawTeam('B');
+            
+            document.getElementById('areaA').innerHTML = drawTeam('A'); 
+            document.getElementById('areaB').innerHTML = drawTeam('B');
             
             const f = filaTab === 'geral' ? game.esperaGeral : game.esperaEstrela;
             document.getElementById('esperaContainer').innerHTML = f.map((p, i) => `
-                <div data-id="${p.id}" onclick="abrirEscalacao('${filaTab}', ${i})" class="bg-slate-800 p-3 rounded-xl flex justify-between items-center border border-slate-700 ${p.bloqueado ? 'is-bloqueado' : ''} cursor-move">
-                    <div class="text-[10px] font-black uppercase text-slate-300">${p.estrela ? '⭐ ' : ''}${p.nome}</div><span class="text-slate-600">⠿</span>
+                <div data-id="${p.id}" class="bg-slate-800 p-3 rounded-xl flex justify-between items-center border border-slate-700 ${p.bloqueado ? 'is-bloqueado' : ''}">
+                    <div onclick="abrirEscalacao('${filaTab}', ${i})" class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2">
+                        ${p.estrela ? '⭐ ' : ''}${p.nome}
+                    </div>
+                    <div class="drag-handle">⠿</div>
                 </div>`).join('');
             
             const rk = Object.entries(game.ranking).map(([n, s]) => ({ n, ...s, score: getPlayerScore(n) })).filter(x => x.score > 0 && (rkTab==='tudo'?true:rkTab==='estrela'?x.estrela:!x.estrela)).sort((a,b) => b.score - a.score);
             document.getElementById('rankingContainer').innerHTML = rk.map((j, i) => `<div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 cursor-pointer mb-1" onclick="abrirAuditModal('${j.n}')"><div class="flex items-center gap-3"><span class="text-[10px] text-slate-600 w-4">${i+1}</span><div class="rank-name uppercase text-[11px] font-bold">${j.estrela?'⭐':''} ${j.n}</div></div><div class="text-orange-500 font-black">${j.score}</div></div>`).join('');
             
-            // Atualizar contagem de jogadores desbloqueados
             const todosNoJogo = [...game.timeA, ...game.timeB];
             const contGeral = game.esperaGeral.filter(j => !j.bloqueado).length + todosNoJogo.filter(j => !j.estrela).length;
             const contEstrela = game.esperaEstrela.filter(j => !j.bloqueado).length + todosNoJogo.filter(j => j.estrela).length;
-            
             document.getElementById('countGeral').innerText = contGeral;
             document.getElementById('countEstrela').innerText = contEstrela;
+
+            document.getElementById('tabGeral').className = `text-[10px] font-black uppercase px-4 py-2 rounded-lg ${filaTab === 'geral' ? 'tab-active' : 'bg-slate-700'}`;
+            document.getElementById('tabEstrela').className = `text-[10px] font-black uppercase px-4 py-2 rounded-lg ${filaTab === 'estrela' ? 'tab-active' : 'bg-slate-700'}`;
 
             renderLeaders();
         }
 
-        function renderLeaders() {
-            const pl = Object.entries(game.ranking).map(([n, s]) => ({ n, ...s, score: getPlayerScore(n) }));
-            const cats = [{ t: "Top Score", i: "🏆", f: (p) => getPlayerScore(p.n) }, { t: "Maior Pontuador", i: "🔥", f: (p) => p.ptsAce + p.ptsAtaque + p.ptsBloqueio }, { t: "Rei do Ace", i: "⚡", f: (p) => p.ptsAce }, { t: "Paredão", i: "🚫", f: (p) => p.ptsBloqueio }, { t: "Vitórias", i: "🥇", f: (p) => p.v }];
-            document.getElementById('leadersGrid').innerHTML = cats.map(c => {
-                const getL = (list) => { const sorted = [...list].sort((a,b) => c.f(b) - c.f(a)); if(!sorted[0] || c.f(sorted[0]) <= 0) return null; return { names: sorted.filter(p => c.f(p) === c.f(sorted[0])).map(p => p.n).join(", "), val: c.f(sorted[0]) }; };
-                const lg = getL(pl.filter(x=>!x.estrela)), le = getL(pl.filter(x=>x.estrela));
-                if(!lg && !le) return '';
-                return `<div class="leader-card p-4 rounded-2xl mb-1"><div class="flex items-center gap-2 mb-3"><span>${c.i}</span><span class="leader-label-new text-orange-500">${c.t}</span></div><div class="grid grid-cols-2 gap-4 border-t border-slate-700/50 pt-3"><div><div class="leader-name-new">${lg?lg.names:'-'}</div><div class="leader-val-new text-orange-500">${lg?lg.val:'0'}</div></div><div class="border-l border-slate-700/50 pl-4"><div class="leader-name-new">${le?le.names:'-'}</div><div class="leader-val-new text-orange-500">${le?le.val:'0'}</div></div></div></div>`;
-            }).join('');
-        }
-
-        function abrirWeights() {
-            fecharModais();
-            const w = game.weights;
-            document.getElementById('wAtqG').value = w.atqG; document.getElementById('wBlqG').value = w.blqG; document.getElementById('wAceG').value = w.aceG;
-            document.getElementById('wAtqE').value = w.atqE; document.getElementById('wBlqE').value = w.blqE; document.getElementById('wAceE').value = w.aceE;
-            document.getElementById('wErr').value = w.err; document.getElementById('wVit').value = w.vit;
-            document.getElementById('modalWeights').classList.remove('hidden');
-        }
-
-        function salvarWeightsEClose() {
-            game.weights = { atqG: parseFloat(document.getElementById('wAtqG').value), blqG: parseFloat(document.getElementById('wBlqG').value), aceG: parseFloat(document.getElementById('wAceG').value), atqE: parseFloat(document.getElementById('wAtqE').value), blqE: parseFloat(document.getElementById('wBlqE').value), aceE: parseFloat(document.getElementById('wAceE').value), err: parseFloat(document.getElementById('wErr').value), vit: parseFloat(document.getElementById('wVit').value) };
-            fecharModais(); salvar(false);
-        }
-
-        function abrirConfig() {
-            document.getElementById('cSize').value = game.config.size; document.getElementById('cStars').value = game.config.stars; document.getElementById('cPoints').value = game.config.points; document.getElementById('cMax').value = game.config.maxWins; document.getElementById('cDesempate').value = game.config.desempate; document.getElementById('cReaction').value = game.config.reaction;
-            document.getElementById('modalConfigMenu').classList.remove('hidden');
-        }
-
-        function salvarConfigEClose() {
-            game.config = { size: parseInt(document.getElementById('cSize').value), stars: parseInt(document.getElementById('cStars').value), points: parseInt(document.getElementById('cPoints').value), maxWins: parseInt(document.getElementById('cMax').value), desempate: document.getElementById('cDesempate').value, reaction: document.getElementById('cReaction').value };
-            fecharModais(); salvar(false);
-        }
-
-        function registrarAcaoJogador(tipo) {
-            salvar(true); const p = (modalCtx.lado === 'A' ? game.timeA : game.timeB)[modalCtx.idx];
-            if(tipo === 'ataque') game.ranking[p.nome].ptsAtaque++; else if(tipo === 'bloqueio') game.ranking[p.nome].ptsBloqueio++; else if(tipo === 'saque') game.ranking[p.nome].ptsAce++;
-            fecharModais(); registrarPontoSimples(modalCtx.lado, false, false);
-        }
-
+        // LÓGICA DE JOGO
         function registrarPontoSimples(lado, hist = true, isErro = true) {
             if(!game.partidaAtiva) return; if(hist) salvar(true);
             if(isErro) (lado === 'A' ? game.timeA : game.timeB).forEach(p => game.ranking[p.nome].ptsErroAdversario++);
@@ -362,10 +335,35 @@
             preencher(game.timeA); preencher(game.timeB); game.scoreA = 0; game.scoreB = 0; game.idxA = 0; game.idxB = 0; game.partidaAtiva = false; salvar();
         }
 
-        function abrirAuditModal(n) { const s = game.ranking[n]; const w = game.weights; const atqW = s.estrela ? w.atqE : w.atqG; const blqW = s.estrela ? w.blqE : w.blqG; const aceW = s.estrela ? w.aceE : w.aceG; document.getElementById('auditNome').innerText = (s.estrela?'⭐ ':'')+n; document.getElementById('auditContent').innerHTML = `<div class="audit-line"><span>Vitórias (x${w.vit})</span> <span>${s.v}</span></div><div class="audit-line"><span>Ataques (x${atqW})</span> <span>${s.ptsAtaque}</span></div><div class="audit-line"><span>Bloqueios (x${blqW})</span> <span>${s.ptsBloqueio}</span></div><div class="audit-line"><span>Aces (x${aceW})</span> <span>${s.ptsAce}</span></div><div class="audit-line"><span>Erro Adv (x${w.err})</span> <span>${s.ptsErroAdversario}</span></div><div class="audit-line text-slate-500 italic"><span>Derrotas</span> <span>${s.d}</span></div>`; document.getElementById('auditTotal').innerText = getPlayerScore(n); document.getElementById('modalAudit').classList.remove('hidden'); }
+        // FUNÇÕES DE UI E MODAIS
+        function abrirConfig() {
+            document.getElementById('cSize').value = game.config.size; document.getElementById('cStars').value = game.config.stars; 
+            document.getElementById('cPoints').value = game.config.points; document.getElementById('cMax').value = game.config.maxWins; 
+            document.getElementById('cDesempate').value = game.config.desempate; document.getElementById('cReaction').value = game.config.reaction;
+            document.getElementById('modalConfigMenu').classList.remove('hidden');
+        }
+
+        function salvarConfigEClose() {
+            game.config = { size: parseInt(document.getElementById('cSize').value), stars: parseInt(document.getElementById('cStars').value), points: parseInt(document.getElementById('cPoints').value), maxWins: parseInt(document.getElementById('cMax').value), desempate: document.getElementById('cDesempate').value, reaction: document.getElementById('cReaction').value };
+            fecharModais(); salvar(false);
+        }
+
+        function abrirWeights() {
+            fecharModais();
+            const w = game.weights;
+            document.getElementById('wAtqG').value = w.atqG; document.getElementById('wBlqG').value = w.blqG; document.getElementById('wAceG').value = w.aceG;
+            document.getElementById('wAtqE').value = w.atqE; document.getElementById('wBlqE').value = w.blqE; document.getElementById('wAceE').value = w.aceE;
+            document.getElementById('wErr').value = w.err; document.getElementById('wVit').value = w.vit;
+            document.getElementById('modalWeights').classList.remove('hidden');
+        }
+
+        function salvarWeightsEClose() {
+            game.weights = { atqG: parseFloat(document.getElementById('wAtqG').value), blqG: parseFloat(document.getElementById('wBlqG').value), aceG: parseFloat(document.getElementById('wAceG').value), atqE: parseFloat(document.getElementById('wAtqE').value), blqE: parseFloat(document.getElementById('wBlqE').value), aceE: parseFloat(document.getElementById('wAceE').value), err: parseFloat(document.getElementById('wErr').value), vit: parseFloat(document.getElementById('wVit').value) };
+            fecharModais(); salvar(false);
+        }
+
         function fecharModais() { document.querySelectorAll('.modal-global, #modalPontoTec, #modalWeights, #modalAudit, #modalFilaEscala').forEach(m => m.classList.add('hidden')); }
-        function estaoBloqueados(p1, p2) { if(!p1 || !p2) return false; return game.restricoes.some(d => (d[0] == p1.id && d[1] == p2.id) || (d[1] == p1.id && d[0] == p2.id)); }
-        
+
         function abrirPontoTecnico(l, i) { 
             modalCtx = { lado: l, idx: i }; 
             const p = (l==='A' ? game.timeA : game.timeB)[i]; 
@@ -374,27 +372,34 @@
             document.getElementById('labelAtq').innerText = `+${p.estrela ? w.atqE : w.atqG}`; 
             document.getElementById('labelBlq').innerText = `+${p.estrela ? w.blqE : w.blqG}`; 
             document.getElementById('labelAce').innerText = `+${p.estrela ? w.aceE : w.aceG}`; 
-            
             const isSacador = (game.saqueLado === l && (l === 'A' ? game.idxA : game.idxB) === i);
             document.getElementById('btnAceTec').classList.toggle('hidden', !isSacador);
-            
             document.getElementById('modalPontoTec').classList.remove('hidden'); 
         }
-        
+
+        function registrarAcaoJogador(tipo) {
+            salvar(true); const p = (modalCtx.lado === 'A' ? game.timeA : game.timeB)[modalCtx.idx];
+            if(tipo === 'ataque') game.ranking[p.nome].ptsAtaque++; else if(tipo === 'bloqueio') game.ranking[p.nome].ptsBloqueio++; else if(tipo === 'saque') game.ranking[p.nome].ptsAce++;
+            fecharModais(); registrarPontoSimples(modalCtx.lado, false, false);
+        }
+
         function definirSacadorManual() { game.saqueLado = modalCtx.lado; if(modalCtx.lado === 'A') { game.idxA = modalCtx.idx; game.jaSacouA = true; } else { game.idxB = modalCtx.idx; game.jaSacouB = true; } fecharModais(); salvar(); }
-        function initDragSystem() { Sortable.create(document.getElementById('areaA'), { group: 'q', animation: 150, onEnd: syncQuadra }); Sortable.create(document.getElementById('areaB'), { group: 'q', animation: 150, onEnd: syncQuadra }); Sortable.create(document.getElementById('esperaContainer'), { animation: 150, onEnd: syncFila }); }
-        function syncQuadra() { const p = [...game.timeA, ...game.timeB]; const get = (id) => [...document.getElementById(id).children].map(el => p.find(x => x.id == el.dataset.id)).filter(x=>x); game.timeA = get('areaA'); game.timeB = get('areaB'); salvar(); }
-        function syncFila() { const f = filaTab === 'geral' ? game.esperaGeral : game.esperaEstrela; const pool = [...f]; const newF = [...document.getElementById('esperaContainer').children].map(el => pool.find(p => p.id == el.dataset.id)).filter(p => p); if(filaTab === 'geral') game.esperaGeral = newF; else game.esperaEstrela = newF; salvar(); }
-        
+
+        function removerParaFilaManual() { 
+            salvar(true); 
+            const time = modalCtx.lado === 'A' ? game.timeA : game.timeB;
+            const p = time.splice(modalCtx.idx, 1)[0];
+            (p.estrela ? game.esperaEstrela : game.esperaGeral).push(p);
+            fecharModais(); salvar(false);
+        }
+
         function abrirEscalacao(tab, idx) { 
             const list = tab === 'geral' ? game.esperaGeral : game.esperaEstrela; 
             modalCtx = { pFila: list[idx], idxFila: idx, tabFila: tab }; 
             document.getElementById('modalNomeFila').innerText = modalCtx.pFila.nome; 
             document.getElementById('btnStatusBloqueio').innerText = modalCtx.pFila.bloqueado ? "LIBERAR" : "BLOQUEAR"; 
             document.getElementById('btnStatusBloqueio').onclick = () => { modalCtx.pFila.bloqueado = !modalCtx.pFila.bloqueado; fecharModais(); salvar(); }; 
-            
             document.getElementById('btnTrocarCategoria').onclick = () => { trocarCategoria(modalCtx.pFila, tab, idx); };
-            
             const gen = (t, l) => t.map((j, i) => `<button onclick="substituirJogador('${l}', ${i})" class="w-full bg-slate-700 p-2 rounded text-[8px] font-black uppercase truncate border border-slate-600 ${estaoBloqueados(modalCtx.pFila, j)?'opacity-20':''}">Sub: ${j.nome}</button>`).join(''); 
             document.getElementById('subsA').innerHTML = gen(game.timeA, 'A'); 
             document.getElementById('subsB').innerHTML = gen(game.timeB, 'B'); 
@@ -405,27 +410,67 @@
             salvar(true);
             const listaOriginal = tabOriginal === 'geral' ? game.esperaGeral : game.esperaEstrela;
             const listaDestino = tabOriginal === 'geral' ? game.esperaEstrela : game.esperaGeral;
-            
-            // Alterar flag do objeto
             jogador.estrela = !jogador.estrela;
-            if (game.ranking[jogador.nome]) {
-                game.ranking[jogador.nome].estrela = jogador.estrela;
-            }
-            
-            // Mover de lista
+            if (game.ranking[jogador.nome]) game.ranking[jogador.nome].estrela = jogador.estrela;
             const removido = listaOriginal.splice(indexOriginal, 1)[0];
             listaDestino.push(removido);
-            
-            fecharModais();
-            salvar(false);
+            fecharModais(); salvar(false);
         }
 
         function substituirJogador(lado, idxQ) { const team = lado === 'A' ? game.timeA : game.timeB; if(estaoBloqueados(modalCtx.pFila, team[idxQ])) return alert("Dupla Bloqueada!"); salvar(true); const sai = team.splice(idxQ, 1)[0]; const list = modalCtx.tabFila === 'geral' ? game.esperaGeral : game.esperaEstrela; const entra = list.splice(modalCtx.idxFila, 1)[0]; entra.bloqueado = false; team.splice(idxQ, 0, entra); (sai.estrela?game.esperaEstrela:game.esperaGeral).push(sai); fecharModais(); salvar(false); }
+        
         function escalarParaTime(lado) { const t = lado==='A'?game.timeA:game.timeB; if(t.length < game.config.size) { const l = modalCtx.tabFila==='geral'?game.esperaGeral:game.esperaEstrela; const entra = l.splice(modalCtx.idxFila, 1)[0]; entra.bloqueado = false; t.push(entra); fecharModais(); salvar(); } }
-        function adicionarNovoJogador() { const input = document.getElementById('novoNome'), nome = input.value.toUpperCase().trim(); if(!nome) return; salvar(true); const isEstrela = filaTab === 'estrela'; const novoJ = { id: Math.random().toString(36).substr(2, 9), nome: nome, estrela: isEstrela, bloqueado: true }; if(!game.ranking[nome]) game.ranking[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, estrela:isEstrela }; if(isEstrela) game.esperaEstrela.unshift(novoJ); else game.esperaGeral.unshift(novoJ); input.value = ''; salvar(false); }
+
+        function adicionarNovoJogador() { 
+            const input = document.getElementById('novoNome'), nome = input.value.toUpperCase().trim(); 
+            if(!nome) return; salvar(true); 
+            const isEstrela = filaTab === 'estrela'; 
+            const novoJ = { id: Math.random().toString(36).substr(2, 9), nome: nome, estrela: isEstrela, bloqueado: true }; 
+            if(!game.ranking[nome]) game.ranking[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, estrela:isEstrela }; 
+            if(isEstrela) game.esperaEstrela.unshift(novoJ); else game.esperaGeral.unshift(novoJ); 
+            input.value = ''; salvar(false); 
+        }
+
+        // ARRASTE E SINCRONIZAÇÃO
+        function initDragSystem() { 
+            Sortable.create(document.getElementById('areaA'), { group: 'q', animation: 150, onEnd: syncQuadra }); 
+            Sortable.create(document.getElementById('areaB'), { group: 'q', animation: 150, onEnd: syncQuadra }); 
+            Sortable.create(document.getElementById('esperaContainer'), { handle: '.drag-handle', animation: 150, onEnd: syncFila }); 
+        }
+        function syncQuadra() { 
+            const p = [...game.timeA, ...game.timeB]; 
+            const get = (id) => [...document.getElementById(id).children].map(el => p.find(x => x.id == el.dataset.id)).filter(x=>x); 
+            game.timeA = get('areaA'); game.timeB = get('areaB'); salvar(); 
+        }
+        function syncFila() { 
+            const f = filaTab === 'geral' ? game.esperaGeral : game.esperaEstrela; 
+            const pool = [...f]; 
+            const newF = [...document.getElementById('esperaContainer').children].map(el => pool.find(p => p.id == el.dataset.id)).filter(p => p); 
+            if(filaTab === 'geral') game.esperaGeral = newF; else game.esperaEstrela = newF; 
+            salvar(); 
+        }
+
+        // RANKING E HALL DA FAMA
+        function renderLeaders() {
+            const pl = Object.entries(game.ranking).map(([n, s]) => ({ n, ...s, score: getPlayerScore(n) }));
+            const cats = [{ t: "Top Score", i: "🏆", f: (p) => getPlayerScore(p.n) }, { t: "Maior Pontuador", i: "🔥", f: (p) => p.ptsAce + p.ptsAtaque + p.ptsBloqueio }, { t: "Rei do Ace", i: "⚡", f: (p) => p.ptsAce }, { t: "Paredão", i: "🚫", f: (p) => p.ptsBloqueio }, { t: "Vitórias", i: "🥇", f: (p) => p.v }];
+            document.getElementById('leadersGrid').innerHTML = cats.map(c => {
+                const getL = (list) => { const sorted = [...list].sort((a,b) => c.f(b) - c.f(a)); if(!sorted[0] || c.f(sorted[0]) <= 0) return null; return { names: sorted.filter(p => c.f(p) === c.f(sorted[0])).map(p => p.n).join(", "), val: c.f(sorted[0]) }; };
+                const lg = getL(pl.filter(x=>!x.estrela)), le = getL(pl.filter(x=>x.estrela));
+                if(!lg && !le) return '';
+                return `<div class="leader-card p-4 rounded-2xl mb-1"><div class="flex items-center gap-2 mb-3"><span>${c.i}</span><span class="leader-label-new text-orange-500">${c.t}</span></div><div class="grid grid-cols-2 gap-4 border-t border-slate-700/50 pt-3"><div><div class="leader-name-new">${lg?lg.names:'-'}</div><div class="leader-val-new text-orange-500">${lg?lg.val:'0'}</div></div><div class="border-l border-slate-700/50 pl-4"><div class="leader-name-new">${le?le.names:'-'}</div><div class="leader-val-new text-orange-500">${le?le.val:'0'}</div></div></div></div>`;
+            }).join('');
+        }
+
+        function abrirAuditModal(n) { const s = game.ranking[n]; const w = game.weights; const atqW = s.estrela ? w.atqE : w.atqG; const blqW = s.estrela ? w.blqE : w.blqG; const aceW = s.estrela ? w.aceE : w.aceG; document.getElementById('auditNome').innerText = (s.estrela?'⭐ ':'')+n; document.getElementById('auditContent').innerHTML = `<div class="audit-line"><span>Vitórias (x${w.vit})</span> <span>${s.v}</span></div><div class="audit-line"><span>Ataques (x${atqW})</span> <span>${s.ptsAtaque}</span></div><div class="audit-line"><span>Bloqueios (x${blqW})</span> <span>${s.ptsBloqueio}</span></div><div class="audit-line"><span>Aces (x${aceW})</span> <span>${s.ptsAce}</span></div><div class="audit-line"><span>Erro Adv (x${w.err})</span> <span>${s.ptsErroAdversario}</span></div><div class="audit-line text-slate-500 italic"><span>Derrotas</span> <span>${s.d}</span></div>`; document.getElementById('auditTotal').innerText = getPlayerScore(n); document.getElementById('modalAudit').classList.remove('hidden'); }
+        
+        // SISTEMA DE RESTRIÇÃO
         function abrirBloqueioDuplas() { const todos = [...game.esperaGeral, ...game.esperaEstrela, ...game.timeA, ...game.timeB]; const opt = todos.map(p => `<option value="${p.id}">${p.nome}</option>`).join(''); document.getElementById('selJ1').innerHTML = opt; document.getElementById('selJ2').innerHTML = opt; renderListaRestricoes(); document.getElementById('modalRestricao').classList.remove('hidden'); }
         function adicionarRestricao() { const j1 = document.getElementById('selJ1').value, j2 = document.getElementById('selJ2').value; if(j1 !== j2) { game.restricoes.push([j1, j2]); renderListaRestricoes(); salvar(); } }
         function renderListaRestricoes() { const t = [...game.esperaGeral, ...game.esperaEstrela, ...game.timeA, ...game.timeB]; document.getElementById('listaRestricoes').innerHTML = game.restricoes.map((d, i) => { const n1 = t.find(p => p.id == d[0])?.nome || "?", n2 = t.find(p => p.id == d[1])?.nome || "?"; return `<div class="bg-slate-900 p-2 rounded flex justify-between uppercase text-[10px] text-red-400"><span>${n1} 🚫 ${n2}</span><button onclick="game.restricoes.splice(${i},1);renderListaRestricoes();salvar();">X</button></div>`; }).join(''); }
+        function estaoBloqueados(p1, p2) { if(!p1 || !p2) return false; return game.restricoes.some(d => (d[0] == p1.id && d[1] == p2.id) || (d[1] == p1.id && d[0] == p2.id)); }
+
+        // OUTROS
         function validarEIniciarPartida() { if(game.timeA.length === game.config.size && game.timeB.length === game.config.size) { game.partidaAtiva = true; salvar(); } else alert("Times incompletos!"); }
         function setFilaTab(t) { filaTab = t; render(); }
         function setRankingTab(t) { rkTab = t; render(); }
@@ -435,7 +480,3 @@
     </script>
 </body>
 </html>
-
-
-
-
