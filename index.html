@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V9.1</title>
+    <title>Vôlei Hub PRO - V9.2</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -32,13 +32,14 @@
         /* Animações e Overlay */
         #emoji-layer { position: fixed; inset: 0; pointer-events: none; z-index: 5000; overflow: hidden; }
         .emoji-particle { position: absolute; font-size: 3rem; animation: floatUp ease-out forwards; opacity: 0; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        /* Animação mais lenta (3s a 4s) */
         @keyframes floatUp { 
-            0% { transform: translateY(120vh) scale(0.3) rotate(0deg); opacity: 1; } 
-            100% { transform: translateY(-20vh) scale(2.5) rotate(360deg); opacity: 0; } 
+            0% { transform: translateY(110vh) scale(0.5); opacity: 1; } 
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; } 
         }
 
-        #endgame-overlay { transition: opacity 0.5s; }
-        .animate-pop { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        #endgame-overlay { transition: opacity 0.5s; z-index: 99999 !important; }
+        .animate-pop { animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 
         /* Visibilidade */
@@ -49,7 +50,7 @@
         .hidden { display: none !important; }
         /* Classes de Controle Admin */
         .admin-only-control { display: none !important; }
-        .admin-click-only { pointer-events: none; } /* Desativa clique p/ publico */
+        .admin-click-only { pointer-events: none; } 
         
         body.is-admin .admin-only-control { display: block !important; }
         body.is-admin .admin-click-only { pointer-events: auto; cursor: pointer; }
@@ -62,7 +63,6 @@
         #esperaContainer { min-height: 80px; }
         .drag-handle { cursor: grab; padding: 10px; color: #64748b; font-size: 20px; touch-action: none; }
         
-        /* Notificação Admin */
         #admin-notif-bell { position: relative; }
         #admin-notif-dot { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: red; border-radius: 50%; border: 1px solid #1e293b; }
     </style>
@@ -71,18 +71,18 @@
 
     <div id="emoji-layer"></div>
 
-    <div id="endgame-overlay" class="fixed inset-0 bg-black/95 z-[9999] hidden flex items-center justify-center flex-col">
-        <div class="text-[120px] animate-pop">🏐</div>
-        <h2 class="text-4xl font-black text-orange-500 uppercase italic mt-4 animate-pulse">Fim de Jogo!</h2>
+    <div id="endgame-overlay" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center flex-col">
+        <div class="text-[150px] animate-pop leading-none">🏐</div>
+        <h2 class="text-5xl font-black text-orange-500 uppercase italic mt-4 animate-pulse text-center">Fim de<br>Jogo!</h2>
     </div>
 
     <audio id="whistleSound" preload="auto">
-        <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_8c6f5b1c7f.mp3?filename=referee-whistle-20559.mp3" type="audio/mpeg">
+        <source src="https://upload.wikimedia.org/wikipedia/commons/8/8d/Whistle.wav" type="audio/wav">
     </audio>
 
     <header class="p-4 bg-slate-800 sticky top-0 shadow-2xl z-40 border-b border-slate-700">
         <div class="flex justify-between items-center max-w-md mx-auto mb-3">
-            <h1 onclick="window.adminTriggerWhistle()" class="text-orange-500 font-black text-lg italic uppercase tracking-tighter hover:text-orange-400 active:scale-95 transition admin-click-only" title="Clique para tocar apito (Admin Only)">Vôlei Hub <span class="text-xs text-blue-400">PRO</span></h1>
+            <h1 onclick="window.adminTriggerWhistle()" class="text-orange-500 font-black text-lg italic uppercase tracking-tighter hover:text-orange-400 active:scale-95 transition admin-click-only cursor-default" title="Clique para tocar apito (Admin Only)">Vôlei Hub <span class="text-xs text-blue-400">PRO</span></h1>
             <div class="flex gap-2 admin-only-control">
                 <button id="admin-notif-bell" onclick="window.abrirSolicitacoes()" class="hidden text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 transition">🔔<div id="admin-notif-dot"></div></button>
                 <button onclick="window.undoLastAction()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase transition">↩ Desfazer</button>
@@ -90,7 +90,7 @@
             </div>
         </div>
         
-        <div id="placarDisplay" class="hidden flex justify-around items-center max-w-md mx-auto bg-slate-950 py-4 rounded-2xl border border-slate-800 shadow-lg">
+        <div id="placarDisplay" class="flex justify-around items-center max-w-md mx-auto bg-slate-950 py-4 rounded-2xl border border-slate-800 shadow-lg">
             <div class="text-center w-2/5">
                 <p class="text-[9px] uppercase text-blue-400 font-black mb-1 italic">Time A</p>
                 <div id="scoreA" class="text-6xl font-black leading-none select-none transition active:scale-95 player-readonly" onclick="window.registrarPontoSimples('A', true, true)">0</div>
@@ -107,7 +107,7 @@
 
     <main class="p-4 max-w-md mx-auto space-y-4">
         
-        <div id="info-panel" class="hidden">
+        <div id="info-panel">
             <div id="live-message-box">
                 <h2 id="msg-title" class="text-lg font-black uppercase italic text-white leading-none mb-1">---</h2>
                 <p id="msg-sub" class="text-orange-400 font-bold uppercase text-[10px] tracking-widest">---</p>
@@ -116,10 +116,6 @@
             <div id="match-log-box">
                 <div class="text-center text-slate-500 italic py-2">Histórico vazio...</div>
             </div>
-        </div>
-
-        <div id="setupControls" class="admin-only-control hidden">
-             <button onclick="window.validarEIniciarPartida()" class="w-full bg-emerald-600 hover:bg-emerald-500 p-5 rounded-2xl font-black uppercase text-xl shadow-lg italic transition transform active:scale-95">Iniciar Partida 🏐</button>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
@@ -344,7 +340,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const gameRef = ref(db, 'partida/v9_0'); // Atualizado para v9.0
+        const gameRef = ref(db, 'partida/v9_2'); // Atualizado para v9.2 para limpar dados antigos com erro
 
         const INITIAL_GERAL = ["MATHEUS MATOS","MARCIANO", "DANIELE", "RAFAEL", "SABRINA", "JANIR", "YURI", "MAICON", "THALYSON", "ODAIR", "LUCAS GABRIEL", "JOÃO", "LUIZ EDUARDO", "MATHEUS JAPA", "ANDERSON"];
         const INITIAL_ESTRELA = ["PATY", "MATEUS BRAZ", "RHUANA", "KEMILLY", "WELLINGTON"];
@@ -356,20 +352,22 @@
         if(isAdmin) document.body.classList.add('is-admin');
 
         let game = {
-            partidaAtiva: false, setupLocked: false, scoreA: 0, scoreB: 0, winsConsecA: 0, winsConsecB: 0,
+            partidaAtiva: true, // Já inicia ativa para não precisar de botão
+            setupLocked: true, 
+            scoreA: 0, scoreB: 0, winsConsecA: 0, winsConsecB: 0,
             saqueLado: 'A', idxA: 0, idxB: 0, jaSacouA: false, jaSacouB: false,
             timeA: [], timeB: [], esperaGeral: [], esperaEstrela: [],
             ranking: {}, restricoes: [],
             config: { size: 4, stars: 1, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' },
-            // Adicionado wTeam default 0.25
-            weights: { atqG: 1.0, blqG: 1.25, aceG: 1.5, atqE: 1.5, blqE: 2.0, aceE: 2.0, err: 0.25, vit: 3.0, wTeam: 0.25 },
+            // ERRO ADVERSARIO AGORA É 0.10
+            weights: { atqG: 1.0, blqG: 1.25, aceG: 1.5, atqE: 1.5, blqE: 2.0, aceE: 2.0, err: 0.10, vit: 3.0, wTeam: 0.25 },
             systemMsg: { text: "AGUARDANDO", sub: "...", streak: false, ts: 0 },
             matchLog: [], lastAnim: { type: '', ts: 0 }, endGameAnim: { active: false, ts: 0 },
             nextGameReason: 'default', publicRanking: false,
             requests: [], deniedRequests: [],
             currentMatchStats: {},
             lastScorerId: null, currentStreak: 0,
-            soundTrigger: 0 // Novo trigger para som
+            soundTrigger: 0 
         };
 
         let tempConfig = {};
@@ -381,7 +379,7 @@
         let lastMsgTs = 0;
         let lastAnimTs = 0;
         let lastEndGameTs = 0;
-        let lastSoundTs = 0; // Controle local de som
+        let lastSoundTs = 0; 
 
         onValue(gameRef, (snapshot) => {
             const data = snapshot.val();
@@ -400,7 +398,7 @@
                     requests: data.requests || [], deniedRequests: data.deniedRequests || [], 
                     currentMatchStats: data.currentMatchStats || {},
                     soundTrigger: data.soundTrigger || 0,
-                    weights: { ...game.weights, ...(data.weights || {}) } // Merge weights to ensure defaults
+                    weights: { ...game.weights, ...(data.weights || {}) } 
                 };
                 ensureRankingConsistency();
                 render();
@@ -413,7 +411,6 @@
                 if(!game.ranking[p.nome]) {
                     game.ranking[p.nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: p.estrela };
                 }
-                // Garante que ptsAcertoTime exista para jogadores antigos
                 if(typeof game.ranking[p.nome].ptsAcertoTime === 'undefined') {
                     game.ranking[p.nome].ptsAcertoTime = 0;
                 }
@@ -429,6 +426,7 @@
             DEFAULT_RESTRICTIONS.forEach(pair => { const p1 = all.find(p => p.nome === pair[0]); const p2 = all.find(p => p.nome === pair[1]); if(p1 && p2) game.restricoes.push([p1.id, p2.id]); });
             game.esperaGeral.forEach(p => p.bloqueado = true);
             game.esperaEstrela.forEach(p => p.bloqueado = true);
+            game.partidaAtiva = true; // Sempre ativa no init
             salvarState();
         }
 
@@ -450,7 +448,7 @@
         window.limparSistema = () => {
             if(confirm("⚠️ RESETAR PARA PADRÃO DE FÁBRICA?")) {
                 game.timeA = []; game.timeB = [];
-                game.partidaAtiva = false; game.setupLocked = false; 
+                game.partidaAtiva = true; game.setupLocked = true; 
                 game.scoreA = 0; game.scoreB = 0;
                 game.winsConsecA = 0; game.winsConsecB = 0;
                 game.ranking = {}; game.matchLog = [];
@@ -459,33 +457,26 @@
                 game.currentMatchStats = {};
                 game.requests = []; game.deniedRequests = [];
                 game.config = { size: 4, stars: 1, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' };
-                game.weights = { atqG: 1.0, blqG: 1.25, aceG: 1.5, atqE: 1.5, blqE: 2.0, aceE: 2.0, err: 0.25, vit: 3.0, wTeam: 0.25 };
+                game.weights = { atqG: 1.0, blqG: 1.25, aceG: 1.5, atqE: 1.5, blqE: 2.0, aceE: 2.0, err: 0.10, vit: 3.0, wTeam: 0.25 };
                 initGameData();
                 setSystemMessage("SISTEMA REINICIADO", "Configurações Padrão Restauradas", false);
             }
         };
 
-        // --- SISTEMA DE SOM ---
-        // Admin: Apenas atualiza o banco, não toca
         window.adminTriggerWhistle = () => {
             if(!isAdmin) return;
             game.soundTrigger = Date.now();
             salvarState();
         };
 
-        // Cliente Público: Toca o som localmente
         function checkAndPlaySound() {
-            // Se for admin, não toca (para não ter som duplicado ou na mesa de controle)
-            if(isAdmin) return;
-
-            // Trigger manual
+            if(isAdmin) return; // Admin não toca som
             if(game.soundTrigger > lastSoundTs) {
                 lastSoundTs = game.soundTrigger;
                 playAudioLocal();
             }
-
-            // Trigger Fim de Jogo (usa o timestamp da animação de fim de jogo)
             if(game.endGameAnim.active && game.endGameAnim.ts > lastEndGameTs) {
+                // lastEndGameTs atualiza no render, mas garantimos aqui que toca
                 playAudioLocal();
             }
         }
@@ -505,13 +496,13 @@
         function showEndGameOverlay() { game.endGameAnim = { active: true, ts: Date.now() }; }
 
         function render() {
-            checkAndPlaySound(); // Verifica se precisa tocar som
+            checkAndPlaySound();
 
             if(game.endGameAnim && game.endGameAnim.ts > lastEndGameTs) {
                 lastEndGameTs = game.endGameAnim.ts;
                 const overlay = document.getElementById('endgame-overlay');
                 overlay.classList.remove('hidden');
-                setTimeout(() => { overlay.classList.add('hidden'); }, 3000);
+                setTimeout(() => { overlay.classList.add('hidden'); }, 4000); // 4 Segundos
             }
 
             if(game.lastAnim && game.lastAnim.ts > lastAnimTs) { lastAnimTs = game.lastAnim.ts; doEmojiExplosion(game.lastAnim.type); }
@@ -527,16 +518,11 @@
 
             const infoPanel = document.getElementById('info-panel');
             const placarDiv = document.getElementById('placarDisplay');
-            const setupDiv = document.getElementById('setupControls');
             
-            if(game.partidaAtiva) {
-                placarDiv.classList.remove('hidden'); infoPanel.classList.remove('hidden'); setupDiv.classList.add('hidden');
-            } else {
-                placarDiv.classList.add('hidden'); infoPanel.classList.add('hidden');
-                // Alteração: Se setupLocked é true, esconde setupControls PRA SEMPRE (mesmo se admin)
-                if(isAdmin && !game.setupLocked) setupDiv.classList.remove('!hidden', 'hidden'); else setupDiv.classList.add('!hidden');
-            }
-
+            // Logica simplificada: Sempre mostra placar e painel
+            placarDiv.classList.remove('hidden'); 
+            infoPanel.classList.remove('hidden');
+            
             const bell = document.getElementById('admin-notif-bell');
             if(isAdmin && game.requests.length > 0) bell.classList.remove('hidden'); else bell.classList.add('hidden');
 
@@ -592,38 +578,48 @@
             else return;
 
             const layer = document.getElementById('emoji-layer');
-
-            for(let i = 0; i < 60; i++) { 
+            // Menos emojis (15)
+            for(let i = 0; i < 15; i++) { 
                 const el = document.createElement('div');
                 el.innerText = icon;
                 el.className = 'emoji-particle';
                 el.style.left = Math.random() * 100 + 'vw';
-                el.style.bottom = '-20vh';
-                el.style.animationDuration = (Math.random() * 1.2 + 1.2) + 's';
-                el.style.fontSize = (Math.random() * 6 + 6) + 'rem';
+                el.style.bottom = '-10vh';
+                // Mais lento
+                el.style.animationDuration = (Math.random() * 2 + 3) + 's'; // 3 a 5 segundos
+                el.style.fontSize = (Math.random() * 4 + 4) + 'rem';
                 layer.appendChild(el);
-                setTimeout(() => el.remove(), 2500);
+                setTimeout(() => el.remove(), 5000);
             }
         }
 
         window.registrarPontoSimples = (lado, hist, isErro) => {
             if(!isAdmin || !game.partidaAtiva) return;
             if(hist) salvarState(true);
+            
             if(isErro) {
                 const beneficiados = lado === 'A' ? game.timeA : game.timeB;
                 beneficiados.forEach(p => game.ranking[p.nome].ptsErroAdversario++);
                 addToLog(`PONTO TIME ${lado} - ERRO ADVERSÁRIO`, lado);
+                // MENSAGEM ESPECIFICA NO PAINEL
+                setSystemMessage(`TIME ${lado}`, "PONTO POR ERRO", false);
             }
+
             if(game.saqueLado !== lado) {
                 game.saqueLado = lado;
                 if(lado === 'A') { if(!game.jaSacouA) game.jaSacouA = true; else game.idxA = (game.idxA + 1) % game.timeA.length; }
                 else { if(!game.jaSacouB) game.jaSacouB = true; else game.idxB = (game.idxB + 1) % game.timeB.length; }
             }
             if(lado === 'A') game.scoreA++; else game.scoreB++;
+            
             const limit = game.config.points;
-            if((lado==='A' && game.scoreA >= limit-1 && game.scoreA > game.scoreB) || (lado==='B' && game.scoreB >= limit-1 && game.scoreB > game.scoreA)) { setSystemMessage("MATCH POINT!", `Time ${lado} jogando pelo set`, false); }
-            else if(game.config.desempate === '3direto' && game.scoreA === limit-1 && game.scoreB === limit-1) setSystemMessage("VAI A 3!", "Desempate Direto", false);
-            else if(game.config.desempate === '2vantagem' && game.scoreA >= limit-1 && game.scoreB >= limit-1 && Math.abs(game.scoreA-game.scoreB) < 2) setSystemMessage("VAI A 2!", "Vantagem Necessária", false);
+            // Só muda mensagem se NÃO for erro (pois erro tem prioridade de mensagem solicitada)
+            if(!isErro) {
+                if((lado==='A' && game.scoreA >= limit-1 && game.scoreA > game.scoreB) || (lado==='B' && game.scoreB >= limit-1 && game.scoreB > game.scoreA)) { setSystemMessage("MATCH POINT!", `Time ${lado} jogando pelo set`, false); }
+                else if(game.config.desempate === '3direto' && game.scoreA === limit-1 && game.scoreB === limit-1) setSystemMessage("VAI A 3!", "Desempate Direto", false);
+                else if(game.config.desempate === '2vantagem' && game.scoreA >= limit-1 && game.scoreB >= limit-1 && Math.abs(game.scoreA-game.scoreB) < 2) setSystemMessage("VAI A 2!", "Vantagem Necessária", false);
+            }
+            
             verificarFimDeSet();
             salvarState(false);
         };
@@ -633,10 +629,8 @@
             salvarState(true);
             const p = (modalCtx.lado==='A'?game.timeA:game.timeB)[modalCtx.idx];
             
-            // Lógica de Score
             if(tipo==='ataque') {
                 game.ranking[p.nome].ptsAtaque++;
-                // Distribui 0.25 para os companheiros APENAS no ataque
                 const timeAtual = modalCtx.lado === 'A' ? game.timeA : game.timeB;
                 timeAtual.forEach(companheiro => {
                     if(companheiro.id !== p.id) {
@@ -644,10 +638,9 @@
                     }
                 });
             }
-            if(tipo==='bloqueio') game.ranking[p.nome].ptsBloqueio++; // Bloqueio é individual
-            if(tipo==='saque') game.ranking[p.nome].ptsAce++; // Ace é individual
+            if(tipo==='bloqueio') game.ranking[p.nome].ptsBloqueio++; 
+            if(tipo==='saque') game.ranking[p.nome].ptsAce++; 
             
-            // CONTAGEM POR PARTIDA
             if(!game.currentMatchStats) game.currentMatchStats = {};
             game.currentMatchStats[p.id] = (game.currentMatchStats[p.id] || 0) + 1;
             
@@ -677,14 +670,13 @@
 
         function finalizarPartida(venceu) {
             setSystemMessage(`VITÓRIA TIME ${venceu}!`, "Set Finalizado", false);
-            showEndGameOverlay(); // Isso vai triggerar o som no cliente público
+            showEndGameOverlay(); 
             const tV = venceu === 'A' ? game.timeA : game.timeB;
             const tD = venceu === 'A' ? game.timeB : game.timeA;
             tV.forEach(j => game.ranking[j.nome].v++);
             tD.forEach(j => { game.ranking[j.nome].d++; (j.estrela ? game.esperaEstrela : game.esperaGeral).push(j); });
             if(venceu === 'A') { game.timeB = []; game.winsConsecA++; game.winsConsecB = 0; } else { game.timeA = []; game.winsConsecB++; game.winsConsecA = 0; }
             
-            // RESETAR STATS DA PARTIDA
             game.currentMatchStats = {};
             game.lastScorerId = null; game.currentStreak = 0; game.nextGameReason = 'default';
             
@@ -695,26 +687,12 @@
             }
             const fill = (time) => { while(time.length < game.config.size) { let p = null; const precisaStar = time.filter(x=>x.estrela).length < game.config.stars; if(precisaStar) p = game.esperaEstrela.find(x => !x.bloqueado && !time.some(j=>estaoBloqueados(x,j))); if(!p) p = game.esperaGeral.find(x => !x.bloqueado && !time.some(j=>estaoBloqueados(x,j))); if(!p && !precisaStar) p = game.esperaEstrela.find(x => !x.bloqueado && !time.some(j=>estaoBloqueados(x,j))); if(!p) p = game.esperaGeral.find(x => !x.bloqueado) || game.esperaEstrela.find(x => !x.bloqueado); if(!p) break; const f = p.estrela ? game.esperaEstrela : game.esperaGeral; f.splice(f.indexOf(p), 1); time.push(p); } };
             fill(game.timeA); fill(game.timeB);
-            game.scoreA = 0; game.scoreB = 0; game.idxA = 0; game.idxB = 0; game.jaSacouA = false; game.jaSacouB = false; game.partidaAtiva = false; game.saqueLado = venceu;
+            game.scoreA = 0; game.scoreB = 0; game.idxA = 0; game.idxB = 0; game.jaSacouA = false; game.jaSacouB = false; 
+            game.partidaAtiva = true; // Mantem ativa
+            game.saqueLado = venceu;
             salvarState();
         }
 
-        window.validarEIniciarPartida = () => {
-            if (game.timeA.length === 0 || game.timeB.length === 0) {
-                alert("Por favor, adicione jogadores a ambos os times antes de iniciar.");
-                return;
-            }
-            game.scoreA = 0;
-            game.scoreB = 0;
-            game.partidaAtiva = true;
-            // Trava o setup permanentemente
-            game.setupLocked = true;
-            
-            salvarState();
-            window.adminTriggerWhistle();
-        };
-
-        // --- SISTEMA DE CONFIGURAÇÃO TEMPORÁRIA ---
         window.abrirConfig = () => {
             tempConfig = JSON.parse(JSON.stringify(game.config)); 
             tempConfig.publicRanking = game.publicRanking; 
@@ -759,7 +737,6 @@
             salvarState();
         };
 
-        // --- SISTEMA DE SOLICITAÇÃO ---
         window.solicitarTrocaCategoria = () => {
             const p = modalCtx.pFila;
             if(game.deniedRequests.includes(p.id)) { alert("Alteração Negada pelo Admin."); return; }
@@ -808,7 +785,6 @@
             salvarState();
         };
 
-        // --- RENDER LEADERS ---
         function renderLeaders() {
             const pl = Object.entries(game.ranking).map(([n, s]) => ({ n, ...s, score: parseFloat(getScore(n)) }));
             const cats = [{t:"Top Score",i:"🏆",f:p=>p.score},{t:"Matador",i:"🔥",f:p=>p.ptsAtaque},{t:"Paredão",i:"🚫",f:p=>p.ptsBloqueio},{t:"Ace",i:"⚡",f:p=>p.ptsAce},{t:"Vitórias",i:"🥇",f:p=>p.v}];
@@ -856,11 +832,8 @@
 
         window.abrirWeights = () => { 
             document.getElementById('modalConfigMenu').classList.add('hidden');
-            
             document.getElementById('wAtqG').value = game.weights.atqG; document.getElementById('wBlqG').value = game.weights.blqG; document.getElementById('wAceG').value = game.weights.aceG; document.getElementById('wAtqE').value = game.weights.atqE; document.getElementById('wBlqE').value = game.weights.blqE; document.getElementById('wAceE').value = game.weights.aceE; document.getElementById('wErr').value = game.weights.err; document.getElementById('wVit').value = game.weights.vit; 
-            // Novo Campo
             document.getElementById('wTeam').value = game.weights.wTeam;
-
             document.getElementById('modalWeights').classList.remove('hidden'); 
         };
         window.fecharModais = () => {
@@ -874,7 +847,6 @@
         
         window.salvarWeightsEClose = () => { 
             game.weights.atqG = parseFloat(document.getElementById('wAtqG').value); game.weights.blqG = parseFloat(document.getElementById('wBlqG').value); game.weights.aceG = parseFloat(document.getElementById('wAceG').value); game.weights.atqE = parseFloat(document.getElementById('wAtqE').value); game.weights.blqE = parseFloat(document.getElementById('wBlqE').value); game.weights.aceE = parseFloat(document.getElementById('wAceE').value); game.weights.err = parseFloat(document.getElementById('wErr').value); game.weights.vit = parseFloat(document.getElementById('wVit').value); 
-            // Salvar novo peso
             game.weights.wTeam = parseFloat(document.getElementById('wTeam').value);
 
             document.getElementById('modalWeights').classList.add('hidden');
@@ -901,9 +873,7 @@
             const ptsAce = s.ptsAce * (s.estrela ? w.aceE : w.aceG);
             const ptsErr = s.ptsErroAdversario * w.err;
             const ptsVit = s.v * w.vit;
-            // Cálculo do Acerto Time
             const ptsTeam = (s.ptsAcertoTime || 0) * w.wTeam;
-
             return (ptsVit + ptsAtq + ptsBlq + ptsAce + ptsErr + ptsTeam).toFixed(2); 
         }
 
