@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V9.4</title>
+    <title>Vôlei Hub PRO - V9.5</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -327,7 +327,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const gameRef = ref(db, 'partida/v9_4'); // Atualizado para v9.4
+        const gameRef = ref(db, 'partida/v9_5'); // Atualizado para v9.5
 
         const INITIAL_GERAL = ["MATHEUS MATOS","MARCIANO", "DANIELE", "RAFAEL", "SABRINA", "JANIR", "YURI", "MAICON", "THALYSON", "ODAIR", "LUCAS GABRIEL", "JOÃO", "LUIZ EDUARDO", "MATHEUS JAPA", "ANDERSON"];
         const INITIAL_ESTRELA = ["PATY", "MATEUS BRAZ", "RHUANA", "KEMILLY", "WELLINGTON"];
@@ -458,7 +458,12 @@
             DEFAULT_RESTRICTIONS.forEach(pair => { const p1 = all.find(p => p.nome === pair[0]); const p2 = all.find(p => p.nome === pair[1]); if(p1 && p2) game.restricoes.push([p1.id, p2.id]); });
             game.esperaGeral.forEach(p => p.bloqueado = true);
             game.esperaEstrela.forEach(p => p.bloqueado = true);
+            
             game.partidaAtiva = true; 
+            game.saqueLado = 'A'; // Padrão
+            game.jaSacouA = true; // Se A começa, A já "gastou" o saque do jogador 1
+            game.jaSacouB = false;
+
             salvarState();
         }
 
@@ -630,24 +635,22 @@
             }
             if(lado === 'A') game.scoreA++; else game.scoreB++;
             
+            // LÓGICA DE MATCH POINT
             const limit = game.config.points;
-            if(!isErro) {
-                // LÓGICA DE MATCH POINT
-                let isMatchPoint = false;
-                if(game.config.desempate === '3direto') {
-                   // Se estiver 11x11 (limit-1), nao é match point ainda pois vai a 15.
-                   // Mas se estiver 14x11, é.
-                   // Simplificacao: Se faltar 1 ponto para acabar
-                   if((lado==='A' && game.scoreA >= limit-1 && game.scoreA > game.scoreB) || (lado==='B' && game.scoreB >= limit-1 && game.scoreB > game.scoreA)) isMatchPoint = true;
-                } else {
-                   // Padrao/Vantagem
-                   if((lado==='A' && game.scoreA >= limit-1 && game.scoreA > game.scoreB) || (lado==='B' && game.scoreB >= limit-1 && game.scoreB > game.scoreA)) isMatchPoint = true;
-                }
+            let isMatchPoint = false;
+            
+            if(game.config.desempate === '3direto') {
+               if((lado==='A' && game.scoreA >= limit-1 && game.scoreA > game.scoreB) || (lado==='B' && game.scoreB >= limit-1 && game.scoreB > game.scoreA)) isMatchPoint = true;
+            } else {
+               if((lado==='A' && game.scoreA >= limit-1 && game.scoreA > game.scoreB) || (lado==='B' && game.scoreB >= limit-1 && game.scoreB > game.scoreA)) isMatchPoint = true;
+            }
 
-                if(isMatchPoint) {
-                    setSystemMessage("MATCH POINT!", `Time ${lado} jogando pelo set`, true);
-                }
-                else if(game.config.desempate === '3direto' && game.scoreA === limit-1 && game.scoreB === limit-1) setSystemMessage("VAI A 3!", "Desempate Direto", false);
+            if(isMatchPoint) {
+                // PRIORIDADE MÁXIMA: Sobrescreve "Ponto por Erro" se for Match Point
+                setSystemMessage("MATCH POINT!", `Time ${lado} jogando pelo set`, true);
+            } else if (!isErro) {
+                // Mensagens secundárias (Vai a 3, Vai a 2) só aparecem se não for erro (para não poluir)
+                if(game.config.desempate === '3direto' && game.scoreA === limit-1 && game.scoreB === limit-1) setSystemMessage("VAI A 3!", "Desempate Direto", false);
                 else if(game.config.desempate === '2vantagem' && game.scoreA >= limit-1 && game.scoreB >= limit-1 && Math.abs(game.scoreA-game.scoreB) < 2) setSystemMessage("VAI A 2!", "Vantagem Necessária", false);
             }
             
@@ -730,9 +733,14 @@
             }
             const fill = (time) => { while(time.length < game.config.size) { let p = null; const precisaStar = time.filter(x=>x.estrela).length < game.config.stars; if(precisaStar) p = game.esperaEstrela.find(x => !x.bloqueado && !time.some(j=>estaoBloqueados(x,j))); if(!p) p = game.esperaGeral.find(x => !x.bloqueado && !time.some(j=>estaoBloqueados(x,j))); if(!p && !precisaStar) p = game.esperaEstrela.find(x => !x.bloqueado && !time.some(j=>estaoBloqueados(x,j))); if(!p) p = game.esperaGeral.find(x => !x.bloqueado) || game.esperaEstrela.find(x => !x.bloqueado); if(!p) break; const f = p.estrela ? game.esperaEstrela : game.esperaGeral; f.splice(f.indexOf(p), 1); time.push(p); } };
             fill(game.timeA); fill(game.timeB);
-            game.scoreA = 0; game.scoreB = 0; game.idxA = 0; game.idxB = 0; game.jaSacouA = false; game.jaSacouB = false; 
-            game.partidaAtiva = true; 
+            game.scoreA = 0; game.scoreB = 0; game.idxA = 0; game.idxB = 0; 
+            
+            // CORREÇÃO: QUEM GANHOU COMEÇA SACANDO, E JA 'GASTOU' O SAQUE 1
             game.saqueLado = venceu;
+            game.jaSacouA = (venceu === 'A');
+            game.jaSacouB = (venceu === 'B');
+
+            game.partidaAtiva = true; 
             salvarState();
         }
 
