@@ -444,6 +444,11 @@
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
+            // NOVO: Desbloqueia o motor de voz no celular dos visitantes no 1º toque na tela
+            if ('speechSynthesis' in window) {
+                const unlockMsg = new SpeechSynthesisUtterance('');
+                window.speechSynthesis.speak(unlockMsg);
+            }
         }, { once: true });
 
         function tocarApitoRealista() {
@@ -663,6 +668,7 @@
         let lastAnimTs = 0;
         let lastEndGameTs = 0;
         let lastSoundTs = 0; 
+        let lastVoiceTs = Date.now();
 
         onValue(gameRef, (snapshot) => {
             const data = snapshot.val();
@@ -675,6 +681,7 @@
                     systemMsg: data.systemMsg || { text:"AGUARDANDO", sub:"...", ts: 0 }, 
                     matchLog: data.matchLog || [], 
                     lastAnim: data.lastAnim || { ts: 0 }, 
+                    lastVoice: data.lastVoice || { text: "", ts: 0 },
                     endGameAnim: data.endGameAnim || { active: false, ts: 0 }, 
                     nextGameReason: data.nextGameReason || 'default', 
                     publicRanking: data.publicRanking || false, 
@@ -772,12 +779,12 @@
         };
 
         function checkAndPlaySound() {
-            if(isAdmin) return; 
+            // A trava "if(isAdmin) return" foi removida para o Admin ouvir o próprio apito!
             if(game.soundTrigger > lastSoundTs) {
                 lastSoundTs = game.soundTrigger;
                 tocarApitoRealista();
             }
-            if(game.endGameAnim.active && game.endGameAnim.ts > lastEndGameTs) {
+            if(game.endGameAnim && game.endGameAnim.ts > lastEndGameTs) {
                 tocarApitoRealista();
             }
         }
@@ -789,6 +796,11 @@
 
         function render() {
             checkAndPlaySound();
+            // Sincroniza e reproduz a voz para todos os aparelhos
+            if(game.lastVoice && game.lastVoice.ts > lastVoiceTs) {
+                lastVoiceTs = game.lastVoice.ts;
+                narrarPonto(game.lastVoice.text);
+            }
 
             if(game.endGameAnim && game.endGameAnim.ts > lastEndGameTs) {
                 lastEndGameTs = game.endGameAnim.ts;
@@ -907,7 +919,7 @@
             
             // Registra o erro adversário normalmente
             if(isErro) {
-                narrarPonto("Erro"); // <--- AVISO SONORO
+                game.lastVoice = { text: "Ponto por erro", ts: Date.now() }; // Salva voz no BD
                 
                 const beneficiados = lado === 'A' ? game.timeA : game.timeB;
                 beneficiados.forEach(p => game.ranking[p.nome].ptsErroAdversario++);
@@ -969,7 +981,7 @@
             const p = (modalCtx.lado==='A'?game.timeA:game.timeB)[modalCtx.idx];
             
            if(tipo==='ataque') {
-                narrarPonto("Ataque"); // <--- AVISO SONORO
+                game.lastVoice = { text: "Ponto de Ataque", ts: Date.now() }; // Salva voz no BD
                 game.ranking[p.nome].ptsAtaque++;
                 const timeAtual = modalCtx.lado === 'A' ? game.timeA : game.timeB;
                 timeAtual.forEach(companheiro => {
@@ -979,11 +991,11 @@
                 });
             }
             if(tipo==='bloqueio') {
-                narrarPonto("Bloqueio"); // <--- AVISO SONORO
+                game.lastVoice = { text: "Ponto de Bloqueio", ts: Date.now() }; // Salva voz no BD
                 game.ranking[p.nome].ptsBloqueio++; 
             }
             if(tipo==='saque') {
-                narrarPonto("Ace"); // <--- AVISO SONORO
+                game.lastVoice = { text: "Ponto de saque", ts: Date.now() }; // Salva voz no BD
                 game.ranking[p.nome].ptsAce++; 
             }
             
