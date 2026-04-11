@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V1.1.6</title>
+    <title>Vôlei Hub PRO - V1.1.7</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -480,6 +480,18 @@
             osc1.stop(now + 1.2); osc2.stop(now + 1.2);
         }
 
+        // --- MOTOR DE VOZ SINTÉTICA (NARRADOR) ---
+        function narrarPonto(texto) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Cancela a fala anterior para não "encavalar"
+                const msg = new SpeechSynthesisUtterance(texto);
+                msg.lang = 'pt-BR'; // Idioma
+                msg.rate = 1.3;     // Velocidade um pouco mais rápida e dinâmica (1 é o padrão)
+                msg.pitch = 1.1;    // Tom de voz levemente mais alto para destacar
+                window.speechSynthesis.speak(msg);
+            }
+        }
+
         let game = {
             partidaAtiva: true, 
             setupLocked: true, 
@@ -895,6 +907,8 @@
             
             // Registra o erro adversário normalmente
             if(isErro) {
+                narrarPonto("Erro"); // <--- AVISO SONORO
+                
                 const beneficiados = lado === 'A' ? game.timeA : game.timeB;
                 beneficiados.forEach(p => game.ranking[p.nome].ptsErroAdversario++);
                 addToLog(`PONTO TIME ${lado} - ERRO ADVERSÁRIO`, lado);
@@ -954,7 +968,8 @@
             salvarState(true);
             const p = (modalCtx.lado==='A'?game.timeA:game.timeB)[modalCtx.idx];
             
-            if(tipo==='ataque') {
+           if(tipo==='ataque') {
+                narrarPonto("Ataque"); // <--- AVISO SONORO
                 game.ranking[p.nome].ptsAtaque++;
                 const timeAtual = modalCtx.lado === 'A' ? game.timeA : game.timeB;
                 timeAtual.forEach(companheiro => {
@@ -963,8 +978,14 @@
                     }
                 });
             }
-            if(tipo==='bloqueio') game.ranking[p.nome].ptsBloqueio++; 
-            if(tipo==='saque') game.ranking[p.nome].ptsAce++; 
+            if(tipo==='bloqueio') {
+                narrarPonto("Bloqueio"); // <--- AVISO SONORO
+                game.ranking[p.nome].ptsBloqueio++; 
+            }
+            if(tipo==='saque') {
+                narrarPonto("Ace"); // <--- AVISO SONORO
+                game.ranking[p.nome].ptsAce++; 
+            }
             
             if(!game.currentMatchStats) game.currentMatchStats = {};
             game.currentMatchStats[p.id] = (game.currentMatchStats[p.id] || 0) + 1;
