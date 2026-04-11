@@ -491,7 +491,7 @@
                 window.speechSynthesis.cancel(); // Cancela a fala anterior para não "encavalar"
                 const msg = new SpeechSynthesisUtterance(texto);
                 msg.lang = 'pt-BR'; // Idioma
-                msg.rate = 1.3;     // Velocidade um pouco mais rápida e dinâmica (1 é o padrão)
+                msg.rate = 1;     // Velocidade um pouco mais rápida e dinâmica (1 é o padrão)
                 msg.pitch = 1.1;    // Tom de voz levemente mais alto para destacar
                 window.speechSynthesis.speak(msg);
             }
