@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V1.1.4</title>
+    <title>Vôlei Hub PRO - V1.1.5</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -1235,8 +1235,11 @@
         window.solicitarTrocaCategoria = () => {
             const p = modalCtx.pFila;
             if(game.deniedRequests.includes(p.id)) { alert("Alteração Negada pelo Admin."); return; }
-            const req = { id: p.id, nome: p.nome };
-            if(!game.requests.some(r => r.id === req.id)) {
+            
+            // CORREÇÃO: Criando o ID único da requisição que estava faltando
+            const reqId = p.id + '_cat'; 
+            
+            if(!game.requests.some(r => r.reqId === reqId)) {
                 game.requests.push({ reqId: reqId, id: p.id, nome: p.nome, tipo: 'categoria', solicitante: (meuNome || 'Visitante Anônimo') });
                 alert("Solicitação enviada ao Admin!");
                 salvarState();
@@ -1290,17 +1293,26 @@
         window.responderSolicitacao = (idx, aprovado) => {
             const req = game.requests[idx];
             if(aprovado) {
-                const list = game.esperaGeral.find(x=>x.id===req.id) ? game.esperaGeral : game.esperaEstrela;
+                // Encontra em qual fila o jogador está
+                const list = game.esperaGeral.some(x=>x.id===req.id) ? game.esperaGeral : game.esperaEstrela;
                 const p = list.find(x=>x.id===req.id);
+                
                 if(p) {
-                    list.splice(list.indexOf(p), 1);
-                    p.estrela = !p.estrela;
-                    (p.estrela ? game.esperaEstrela : game.esperaGeral).push(p);
-                    if(game.ranking[p.nome]) game.ranking[p.nome].estrela = p.estrela;
+                    // CORREÇÃO: Separa a lógica baseada no tipo da solicitação
+                    if (req.tipo === 'bloqueio') {
+                        p.bloqueado = true; // Aplica apenas o bloqueio
+                    } else {
+                        // Aplica apenas a troca de categoria
+                        list.splice(list.indexOf(p), 1);
+                        p.estrela = !p.estrela;
+                        (p.estrela ? game.esperaEstrela : game.esperaGeral).push(p);
+                        if(game.ranking[p.nome]) game.ranking[p.nome].estrela = p.estrela;
+                    }
                 }
             } else {
                 game.deniedRequests.push(req.id);
             }
+            
             game.requests.splice(idx, 1);
             window.abrirSolicitacoes(); 
             salvarState();
