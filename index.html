@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V1.1.2</title>
+    <title>Vôlei Hub PRO - V1.1.3</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -134,7 +134,10 @@
             <input id="novoNome" type="text" placeholder="NOME DO JOGADOR..." class="bg-slate-800 flex-1 p-4 rounded-2xl outline-none border border-slate-700 focus:border-orange-500 text-sm font-bold uppercase placeholder-slate-600">
             <button onclick="window.adicionarNovoJogador()" class="bg-blue-600 hover:bg-blue-500 px-6 rounded-2xl font-black text-sm uppercase transition shadow-lg">Add</button>
         </div>
-
+        <button onclick="window.abrirHistoricoModal()" class="w-full bg-slate-800/80 text-slate-300 font-black uppercase py-4 rounded-2xl mb-4 shadow-lg border border-slate-700 hover:bg-slate-700 transition flex justify-between items-center px-4 admin-section">
+            <span class="flex items-center gap-2"><span class="text-lg">📅</span> Histórico de Partidas</span>
+            <span class="text-orange-500 text-xs">Visualizar ❯</span>
+        </button>
         <section id="rankingSection" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl admin-section">
             <div class="p-4 bg-slate-800/60 border-b border-slate-800 text-center">
                 <h2 class="text-xs font-black uppercase text-orange-500 italic mb-3 tracking-widest">🏆 Ranking Master</h2>
@@ -200,11 +203,11 @@
             <h2 class="text-xl font-black text-blue-400 uppercase mb-4 italic">Quem é você?</h2>
             
             <p class="text-[10px] text-slate-400 mb-2 uppercase font-bold">Selecione seu nome na lista:</p>
-            <select id="selMeuNome" class="config-input mb-4 h-10"></select>
+            <select id="selMeuNome" class="config-input mb-4 h-10" onchange="window.verificarBloqueioSelect()"></select>
             
             <div class="flex gap-2 mb-6">
-                <button onclick="window.salvarIdentificacao(false)" class="flex-1 bg-slate-600 hover:bg-slate-500 p-3 rounded-xl font-bold uppercase text-[9px] shadow-lg transition">Confirmar</button>
-                <button onclick="window.salvarIdentificacao(true)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 p-3 rounded-xl font-bold uppercase text-[9px] shadow-lg transition text-white">Confirmar e Desbloquear</button>
+                <button onclick="window.salvarIdentificacao(false)" class="flex-1 bg-slate-600 hover:bg-slate-500 p-3 rounded-xl font-bold uppercase text-[9px] shadow-lg transition">Apenas Confirmar</button>
+                <button id="btnConfirmarLiberar" onclick="window.salvarIdentificacao(true)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 p-3 rounded-xl font-bold uppercase text-[9px] shadow-lg transition text-white hidden">Confirmar e Liberar</button>
             </div>
             <button onclick="window.salvarIdentificacao()" class="w-full bg-blue-600 p-3 rounded-xl font-bold uppercase text-xs mb-6 shadow-lg hover:bg-blue-500 transition">Confirmar Identidade</button>
 
@@ -351,7 +354,28 @@
             <button onclick="document.getElementById('modalRestricao').classList.add('hidden')" class="w-full bg-slate-700 py-3 rounded-xl font-bold uppercase text-xs">Voltar</button>
         </div>
     </div>
+    <div id="modalHistorico" class="modal-global hidden">
+        <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-slate-600 overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-black text-white uppercase italic">Histórico de Partidas</h2>
+                <button onclick="document.getElementById('modalHistorico').classList.add('hidden')" class="text-slate-400 text-3xl font-light hover:text-white transition">&times;</button>
+            </div>
+            <div id="listaHistoricoContainer" class="space-y-3"></div>
+        </div>
+    </div>
 
+    <div id="modalDetalhePartida" class="modal-global hidden" style="z-index: 2200;">
+        <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-blue-500 overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-black text-blue-400 uppercase italic">Detalhes da Partida</h2>
+                <button onclick="document.getElementById('modalDetalhePartida').classList.add('hidden')" class="text-slate-400 text-3xl font-light hover:text-white transition">&times;</button>
+            </div>
+            <div id="detalhePartidaScore" class="flex justify-around items-center bg-slate-900 p-4 rounded-xl mb-4 border border-slate-700"></div>
+            <div class="text-[10px] font-black uppercase text-slate-500 mb-2 tracking-widest text-center">Logs da Partida</div>
+            <div id="detalhePartidaLog" class="space-y-1 bg-slate-900/50 p-2 rounded-xl border border-slate-700/50 max-h-[250px] overflow-y-auto"></div>
+            <button onclick="document.getElementById('modalDetalhePartida').classList.add('hidden')" class="w-full mt-4 bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600 transition">Voltar</button>
+        </div>
+    </div>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -466,7 +490,64 @@
                 document.getElementById('modalIdentificacao').classList.remove('hidden');
             }
         };
+        // Controle dinâmico do botão Liberar Identificação
+        window.verificarBloqueioSelect = () => {
+            const sel = document.getElementById('selMeuNome');
+            const btnLib = document.getElementById('btnConfirmarLiberar');
+            // Se o texto da opção selecionada contiver "(Bloqueado)", o botão verde aparece!
+            if(sel.options[sel.selectedIndex].text.includes('(Bloqueado)')) {
+                btnLib.classList.remove('hidden');
+            } else {
+                btnLib.classList.add('hidden');
+            }
+        };
 
+        // Funções do Histórico de Partidas
+        window.abrirHistoricoModal = () => {
+            const container = document.getElementById('listaHistoricoContainer');
+            if (!game.historicoPartidas || game.historicoPartidas.length === 0) {
+                container.innerHTML = '<div class="text-center text-slate-500 text-xs italic py-6">Nenhuma partida registrada ainda.</div>';
+            } else {
+                container.innerHTML = game.historicoPartidas.map(p => `
+                    <div class="bg-slate-700/40 p-4 rounded-xl border border-slate-600 cursor-pointer hover:bg-slate-700 hover:border-slate-500 transition shadow-md" onclick="window.abrirDetalhePartida(${p.id})">
+                        <div class="flex justify-between items-center mb-3 border-b border-slate-600/50 pb-2">
+                            <span class="text-[10px] font-black uppercase px-2 py-1 rounded bg-slate-800 ${p.vencedor === 'A' ? 'text-blue-400 border border-blue-900' : 'text-orange-400 border border-orange-900'}">Vitória Time ${p.vencedor}</span>
+                            <span class="text-2xl font-black text-white leading-none">${p.scoreA} <span class="text-slate-500 text-lg mx-1">x</span> ${p.scoreB}</span>
+                        </div>
+                        <div class="flex justify-between text-[9px] font-bold text-slate-400 uppercase">
+                            <div class="w-1/2 pr-2 leading-relaxed ${p.vencedor === 'A' ? 'text-blue-300' : ''}">${p.timeA.join('<br>')}</div>
+                            <div class="w-1/2 pl-2 text-right leading-relaxed border-l border-slate-600 ${p.vencedor === 'B' ? 'text-orange-300' : ''}">${p.timeB.join('<br>')}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            document.getElementById('modalHistorico').classList.remove('hidden');
+        };
+
+        window.abrirDetalhePartida = (id) => {
+            const p = game.historicoPartidas.find(x => x.id === id);
+            if (!p) return;
+            
+            document.getElementById('detalhePartidaScore').innerHTML = `
+                <div class="text-center w-2/5">
+                    <div class="text-[9px] text-blue-500 font-black mb-1 uppercase">Time A</div>
+                    <div class="text-4xl font-black text-white leading-none">${p.scoreA}</div>
+                    <div class="text-[9px] uppercase font-bold text-blue-300/70 mt-2 leading-tight">${p.timeA.join('<br>')}</div>
+                </div>
+                <div class="text-slate-600 font-black italic text-xl">VS</div>
+                <div class="text-center w-2/5">
+                    <div class="text-[9px] text-orange-500 font-black mb-1 uppercase">Time B</div>
+                    <div class="text-4xl font-black text-white leading-none">${p.scoreB}</div>
+                    <div class="text-[9px] uppercase font-bold text-orange-300/70 mt-2 leading-tight">${p.timeB.join('<br>')}</div>
+                </div>
+            `;
+            
+            document.getElementById('detalhePartidaLog').innerHTML = p.log && p.log.length > 0 
+                ? p.log.map(l => `<div class="log-item log-${l.type}">${l.text}</div>`).join('') 
+                : '<div class="text-center text-slate-500 text-[10px] italic py-4">Sem detalhes de pontuação salvos.</div>';
+                
+            document.getElementById('modalDetalhePartida').classList.remove('hidden');
+        };
         window.salvarIdentificacao = (liberar = false) => {
             const val = document.getElementById('selMeuNome').value;
             if (val) {
@@ -911,6 +992,22 @@
 }
 
         function finalizarPartida(venceu) {
+            // --- SALVAR HISTÓRICO DA PARTIDA ---
+            if(!game.historicoPartidas) game.historicoPartidas = [];
+            const matchSnapshot = {
+                id: Date.now(),
+                vencedor: venceu,
+                scoreA: game.scoreA,
+                scoreB: game.scoreB,
+                timeA: game.timeA.map(p => p.nome),
+                timeB: game.timeB.map(p => p.nome),
+                log: [...game.matchLog] // Tira uma "foto" do log de pontos
+            };
+            game.historicoPartidas.unshift(matchSnapshot); // Coloca em primeiro (mais recente)
+            if(game.historicoPartidas.length > 30) game.historicoPartidas.pop(); // Guarda as últimas 30
+            game.matchLog = []; // Zera o log para a próxima partida
+            // -----------------------------------
+
             setSystemMessage(`VITÓRIA TIME ${venceu}!`, "Set Finalizado", false);
             showEndGameOverlay(); 
             const tV = venceu === 'A' ? game.timeA : game.timeB;
