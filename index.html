@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V1.1.0</title>
+    <title>Vôlei Hub PRO - V1.1.1</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -110,11 +110,11 @@
 
         <div class="grid grid-cols-2 gap-3">
             <div class="space-y-1">
-                <h3 class="text-[9px] font-black text-center text-blue-500 uppercase mb-1">Time A</h3>
+                <h3 id="labelTimeA" class="text-[9px] font-black text-center text-blue-500 uppercase mb-1">Time A - Score: 0.00</h3>
                 <div id="areaA" class="space-y-2 min-h-[160px] bg-slate-800/30 rounded-xl p-2 border border-dashed border-slate-700/50"></div>
             </div>
             <div class="space-y-1">
-                <h3 class="text-[9px] font-black text-center text-orange-500 uppercase mb-1">Time B</h3>
+                <h3 id="labelTimeB" class="text-[9px] font-black text-center text-orange-500 uppercase mb-1">Time B - Score: 0.00</h3>
                 <div id="areaB" class="space-y-2 min-h-[160px] bg-slate-800/30 rounded-xl p-2 border border-dashed border-slate-700/50"></div>
             </div>
         </div>
@@ -661,12 +661,17 @@
             document.getElementById('winsA').innerText = `Sets: ${game.winsConsecA}`;
             document.getElementById('winsB').innerText = `Sets: ${game.winsConsecB}`;
 
+            
             const drawTeam = (l) => (l === 'A' ? game.timeA : game.timeB).map((p, i) => `
                 <div class="jogador-card bg-slate-800 p-3 rounded-xl border-l-4 ${l==='A'?'border-l-blue-500':'border-l-orange-500'} ${game.partidaAtiva && game.saqueLado===l && (l==='A'?game.idxA:game.idxB)===i?'sacando':''} ${p.estrela?'is-estrela':''}" onclick="window.abrirPontoTecnico('${l}', ${i})" data-id="${p.id}">
                     <div class="uppercase font-black text-[10px] truncate"><span class="bola-saque mr-1">🏐</span> ${p.estrela?'⭐ ':''}${p.nome}</div>
                 </div>`).join('');
             document.getElementById('areaA').innerHTML = drawTeam('A');
             document.getElementById('areaB').innerHTML = drawTeam('B');
+            // Calcula e exibe o Score Total de cada time em tempo real
+            const sumScore = (team) => team.reduce((acc, p) => acc + parseFloat(getScore(p.nome)), 0).toFixed(2);
+            document.getElementById('labelTimeA').innerText = `TIME A - Score: ${sumScore(game.timeA)}`;
+            document.getElementById('labelTimeB').innerText = `TIME B - Score: ${sumScore(game.timeB)}`;
 
             const f = filaTab === 'geral' ? game.esperaGeral : game.esperaEstrela;
             let countLib = 0;
@@ -878,16 +883,14 @@
             if(game.config.maxWins > 0 && (game.winsConsecA >= game.config.maxWins || game.winsConsecB >= game.config.maxWins)) {
                 if(game.config.reaction === 'dividir') { 
                     game.nextGameReason = 'mixed'; 
-                    // Ordena os vencedores do Maior Score para o Menor Score
+                    // Ordena os vencedores: Maior Score -> Menor Score
                     const pool = [...tV].sort((a,b) => parseFloat(getScore(b.nome)) - parseFloat(getScore(a.nome))); 
                     
                     if (pool.length >= 4) {
-                        // Time A base: Melhor jogador [0] + Pior jogador [último]
-                        game.timeA = [pool[0], pool[pool.length - 1]];
-                        // Time B base: 2º Melhor [1] + 3º Melhor [2]
-                        game.timeB = [pool[1], pool[2]];
+                        game.timeA = [pool[0], pool[pool.length - 1]]; // Melhor e Pior
+                        game.timeB = [pool[1], pool[2]]; // 2º e 3º melhores
                         
-                        // Caso haja mais de 4 jogadores (ex: time de 5), distribui os que sobrarem de forma balanceada
+                        // Distribui os que sobrarem (caso o time tenha 5 ou mais)
                         for(let i = 3; i < pool.length - 1; i++) {
                             const sA = game.timeA.reduce((acc, p) => acc + parseFloat(getScore(p.nome)), 0);
                             const sB = game.timeB.reduce((acc, p) => acc + parseFloat(getScore(p.nome)), 0);
@@ -895,12 +898,10 @@
                             else game.timeB.push(pool[i]);
                         }
                     } else {
-                        // Fallback de segurança se o time for menor que 4 jogadores
                         const half = Math.ceil(pool.length / 2); 
                         game.timeA = pool.slice(0, half); 
                         game.timeB = pool.slice(half);
                     }
-                    
                     setSystemMessage("TIMES MISTURADOS", "Limite de Vitórias Atingido", false);
                 }
                 else { 
@@ -911,27 +912,20 @@
                 game.winsConsecA = 0; game.winsConsecB = 0;
             }
 
-            // --- NOVO SISTEMA DE PREENCHIMENTO BALANCEADO ---
+            // GUARDA OS TIMES ORIGINAIS (As bases que sobraram na quadra)
+            const originalA = [...game.timeA];
+            const originalB = [...game.timeB];
+
+            // 1. Extração da Fila: Puxa exatamente as pessoas necessárias validando as regras
             const fillBothTeams = () => {
-                // Roda enquanto algum dos dois times precisar de jogadores
                 while (game.timeA.length < game.config.size || game.timeB.length < game.config.size) {
                     let targetTeam;
-                    
-                    // Descobre quem precisa do jogador
-                    if (game.timeA.length === game.config.size) {
-                        targetTeam = game.timeB;
-                    } else if (game.timeB.length === game.config.size) {
-                        targetTeam = game.timeA;
-                    } else {
-                        // SE FOR UMA DIVISÃO MISTURADA: O time com o MENOR SCORE total recebe o próximo jogador
-                        if (game.nextGameReason === 'mixed') {
-                            const scoreA = game.timeA.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0);
-                            const scoreB = game.timeB.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0);
-                            targetTeam = scoreA <= scoreB ? game.timeA : game.timeB;
-                        } else {
-                            // Se for preenchimento normal (saiu ambos, ou fluxo normal), enche o A primeiro
-                            targetTeam = game.timeA.length < game.config.size ? game.timeA : game.timeB;
-                        }
+                    if (game.timeA.length === game.config.size) targetTeam = game.timeB;
+                    else if (game.timeB.length === game.config.size) targetTeam = game.timeA;
+                    else {
+                        const scoreA = game.timeA.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0);
+                        const scoreB = game.timeB.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0);
+                        targetTeam = scoreA <= scoreB ? game.timeA : game.timeB;
                     }
 
                     let p = null; 
@@ -953,21 +947,78 @@
                         const isValidFallback = (x) => !x.bloqueado && (!x.elite || podeElite);
                         p = game.esperaGeral.find(isValidFallback) || game.esperaEstrela.find(isValidFallback);
                     }
-                    
                     if(!p) p = game.esperaGeral.find(x => !x.bloqueado) || game.esperaEstrela.find(x => !x.bloqueado); 
 
-                    if(!p) break; // Para se a fila estiver vazia
-                    
+                    if(!p) break; 
                     const f = p.estrela ? game.esperaEstrela : game.esperaGeral; 
                     f.splice(f.indexOf(p), 1); 
                     targetTeam.push(p); 
                 }
             };
-            
             fillBothTeams();
+
+            // 2. OTIMIZADOR DE COMBINAÇÕES (SWAP)
+            // Analisa todas as formas possíveis de distribuir os jogadores novos entre os times A e B
+            // em busca da menor diferença matemática de Score, mantendo regras intactas.
+            const addedA = game.timeA.slice(originalA.length);
+            const addedB = game.timeB.slice(originalB.length);
+            const allAdded = [...addedA, ...addedB];
+
+            if (allAdded.length > 0) {
+                let bestDiff = Infinity;
+                let bestComboA = [];
+                let bestComboB = [];
+
+                // Verifica se a combinação gerada não viola nenhuma regra do jogo
+                const isComboValid = (baseTeam, combo) => {
+                    const fullTeam = [...baseTeam, ...combo];
+                    if (fullTeam.filter(x => x.estrela).length > game.config.stars) return false;
+                    if (fullTeam.filter(x => x.elite).length > 2) return false;
+                    for(let i=0; i<fullTeam.length; i++) {
+                        for(let j=i+1; j<fullTeam.length; j++) {
+                            if(estaoBloqueados(fullTeam[i], fullTeam[j])) return false;
+                        }
+                    }
+                    return true;
+                };
+
+                // Gerador matemático de combinações possíveis
+                const getCombos = (arr, k) => {
+                    if (k === 0) return [[]];
+                    if (arr.length === 0) return [];
+                    const [first, ...rest] = arr;
+                    const withFirst = getCombos(rest, k - 1).map(c => [first, ...c]);
+                    const withoutFirst = getCombos(rest, k);
+                    return [...withFirst, ...withoutFirst];
+                };
+
+                const combos = getCombos(allAdded, addedA.length);
+
+                combos.forEach(comboA => {
+                    const comboB = allAdded.filter(p => !comboA.includes(p));
+                    if (isComboValid(originalA, comboA) && isComboValid(originalB, comboB)) {
+                        const scoreA = originalA.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0) + comboA.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0);
+                        const scoreB = originalB.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0) + comboB.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0);
+                        const diff = Math.abs(scoreA - scoreB);
+                        
+                        // Se essa troca deixar o jogo mais parelho, salva ela como a melhor opção
+                        if (diff < bestDiff) {
+                            bestDiff = diff;
+                            bestComboA = comboA;
+                            bestComboB = comboB;
+                        }
+                    }
+                });
+
+                // Aplica a melhor combinação encontrada
+                if (bestDiff !== Infinity) {
+                    game.timeA = [...originalA, ...bestComboA];
+                    game.timeB = [...originalB, ...bestComboB];
+                }
+            }
+
             game.scoreA = 0; game.scoreB = 0; game.idxA = 0; game.idxB = 0; 
             
-            // Quem ganhou começa sacando
             game.saqueLado = venceu;
             game.jaSacouA = (venceu === 'A');
             game.jaSacouB = (venceu === 'B');
