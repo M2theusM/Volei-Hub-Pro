@@ -621,6 +621,7 @@
             if(!isAdmin || !game.partidaAtiva) return;
             if(hist) salvarState(true);
             
+            // Registra o erro adversário normalmente
             if(isErro) {
                 const beneficiados = lado === 'A' ? game.timeA : game.timeB;
                 beneficiados.forEach(p => game.ranking[p.nome].ptsErroAdversario++);
@@ -635,7 +636,7 @@
             }
             if(lado === 'A') game.scoreA++; else game.scoreB++;
             
-            // --- NOVA LÓGICA DE MATCH POINT ---
+            // --- NOVA LÓGICA DE MATCH POINT E AVISOS ---
             const limit = game.config.points;
             let alvoA = limit;
             let alvoB = limit;
@@ -654,25 +655,28 @@
             // 2. Verifica se estão a 1 ponto de ganhar
             const aNoMatchPoint = (game.scoreA === alvoA - 1);
             const bNoMatchPoint = (game.scoreB === alvoB - 1);
+            
+            // 3. Gatilhos exatos para o momento do empate
+            const empate11 = (game.scoreA === limit - 1 && game.scoreB === limit - 1);
+            const empateVantagem = (game.scoreA >= limit - 1 && game.scoreB >= limit - 1 && game.scoreA === game.scoreB);
 
-            // 3. Exibe as mensagens usando seu sistema nativo (setSystemMessage)
+            // 4. Ordem de prioridade das mensagens na tela
             if (aNoMatchPoint && bNoMatchPoint) {
-                setSystemMessage("MATCH POINT!", "AMBOS JOGANDO PELO SET", true);
+                setSystemMessage("MATCH POINT!", "AMBOS JOGANDO PELO SET", false);
             } else if (aNoMatchPoint) {
-                setSystemMessage("MATCH POINT!", "Time A jogando pelo set", true);
+                setSystemMessage("MATCH POINT!", "Time A jogando pelo set", false);
             } else if (bNoMatchPoint) {
-                setSystemMessage("MATCH POINT!", "Time B jogando pelo set", true);
-            } else if (!isErro) {
-                // Mensagens secundárias voltam se não houver match point
-                if(game.config.desempate === '3direto' && game.scoreA === limit-1 && game.scoreB === limit-1) setSystemMessage("VAI A 3!", "Desempate Direto", false);
-                else if(game.config.desempate === '2vantagem' && game.scoreA >= limit-1 && game.scoreB >= limit-1 && Math.abs(game.scoreA-game.scoreB) < 2) setSystemMessage("VAI A 2!", "Vantagem Necessária", false);
+                setSystemMessage("MATCH POINT!", "Time B jogando pelo set", false);
+            } else if (game.config.desempate === '3direto' && empate11) {
+                setSystemMessage("VAI A 3!", "Desempate Direto Ativado", false);
+            } else if (game.config.desempate === '2vantagem' && empateVantagem) {
+                setSystemMessage("VAI A 2!", "Vantagem de 2 pontos necessária", false);
             }
             // ------------------------------------
             
             verificarFimDeSet();
             salvarState(false);
         };
-
         window.registrarAcaoJogador = (tipo) => {
             if(!isAdmin) return;
             salvarState(true);
