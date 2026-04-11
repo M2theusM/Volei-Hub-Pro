@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V1.0.4</title>
+    <title>Vôlei Hub PRO - V1.0.5</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -74,6 +74,9 @@
                 <button id="admin-notif-bell" onclick="window.abrirSolicitacoes()" class="hidden text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 transition">🔔<div id="admin-notif-dot"></div></button>
                 <button onclick="window.undoLastAction()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase transition">↩ Desfazer</button>
                 <button onclick="window.abrirConfig()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase transition">⚙️ Menu</button>
+            </div>
+            <div id="visitor-controls" class="flex gap-2 ml-auto" style="display: none;">
+                <button id="btnMeuPerfil" onclick="window.acaoMeuPerfil()" class="text-[10px] bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded-lg border border-blue-500 font-bold uppercase transition text-white shadow-lg">👤 Identificar-se</button>
             </div>
         </div>
         
@@ -192,7 +195,25 @@
             <button onclick="window.fecharModais()" class="w-full bg-slate-700 py-3 rounded-xl font-bold uppercase text-xs">Fechar</button>
         </div>
     </div>
+    <div id="modalIdentificacao" class="modal-global hidden">
+        <div class="bg-slate-800 w-full max-w-sm rounded-3xl p-6 border border-blue-500 shadow-2xl">
+            <h2 class="text-xl font-black text-blue-400 uppercase mb-4 italic">Quem é você?</h2>
+            
+            <p class="text-[10px] text-slate-400 mb-2 uppercase font-bold">Selecione seu nome na lista:</p>
+            <select id="selMeuNome" class="config-input mb-4 h-10"></select>
+            <button onclick="window.salvarIdentificacao()" class="w-full bg-blue-600 p-3 rounded-xl font-bold uppercase text-xs mb-6 shadow-lg hover:bg-blue-500 transition">Confirmar Identidade</button>
 
+            <div class="border-t border-slate-700 pt-4">
+                <p class="text-[10px] text-orange-400 mb-2 uppercase font-bold">Ainda não está na fila?</p>
+                <div class="flex gap-2">
+                    <input id="novoMeuNome" type="text" placeholder="DIGITE SEU NOME..." class="bg-slate-900 flex-1 p-3 rounded-xl outline-none border border-slate-700 text-xs font-bold uppercase focus:border-orange-500 text-white">
+                    <button onclick="window.addESalvarIdentificacao()" class="bg-orange-600 px-4 rounded-xl font-black text-xs uppercase hover:bg-orange-500 transition shadow-lg">Add</button>
+                </div>
+            </div>
+            
+            <button onclick="window.fecharModais()" class="w-full mt-6 text-slate-500 text-[10px] font-bold uppercase py-2">Cancelar</button>
+        </div>
+    </div>
     <div id="modalConfigMenu" class="modal-global hidden">
         <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-slate-700 overflow-y-auto max-h-[90vh]">
             <h2 class="text-xl font-black text-orange-500 uppercase mb-6 italic">Configurações</h2>
@@ -233,7 +254,8 @@
             <button onclick="window.fecharModais()" class="w-full py-4 text-slate-500 text-[10px] font-bold uppercase">Fechar</button>
         </div>
     </div>
-
+    <button id="btnDeslogar" onclick="window.deslogarIdentidade()" class="w-full mt-6 bg-red-900/30 text-red-500 py-3 rounded-xl uppercase text-xs font-black hover:bg-red-900/50 hidden border border-red-900/50">Sair / Trocar de Conta</button>
+    <button onclick="window.fecharModais()" class="w-full mt-2 bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600">Voltar</button>
     <div id="modalAudit" class="modal-global hidden">
         <div class="bg-slate-800 w-full max-w-xs rounded-3xl p-6 border border-orange-500">
             <h3 id="auditNome" class="font-black text-orange-500 uppercase text-lg italic mb-2">---</h3>
@@ -406,6 +428,54 @@
 
         let tempConfig = {};
         let historicoLocal = [];
+        let meuNome = localStorage.getItem('voleihub_meunome') || '';
+
+        // Funções de Identidade do Visitante
+        window.acaoMeuPerfil = () => {
+            if (meuNome) {
+                window.abrirAuditModal(meuNome); // Abre os stats diretos se já estiver logado
+            } else {
+                const all = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela].sort((a,b)=>a.nome.localeCompare(b.nome)); 
+                const opt = `<option value="" disabled selected>- Selecione seu nome -</option>` + all.map(p=>`<option value="${p.nome}">${p.nome}</option>`).join(''); 
+                document.getElementById('selMeuNome').innerHTML = opt;
+                document.getElementById('modalIdentificacao').classList.remove('hidden');
+            }
+        };
+
+        window.salvarIdentificacao = () => {
+            const val = document.getElementById('selMeuNome').value;
+            if (val) {
+                meuNome = val;
+                localStorage.setItem('voleihub_meunome', meuNome);
+                window.fecharModais();
+                render();
+            } else {
+                alert("Selecione um nome na lista!");
+            }
+        };
+
+        window.addESalvarIdentificacao = () => {
+            const n = document.getElementById('novoMeuNome').value.toUpperCase().trim(); 
+            if(!n) return; 
+            
+            adicionarLocal(n, false); // Adiciona na fila geral por padrão
+            salvarState();
+            
+            meuNome = n; // Já define como sendo o usuário atual
+            localStorage.setItem('voleihub_meunome', meuNome);
+            document.getElementById('novoMeuNome').value = '';
+            
+            window.fecharModais();
+            render();
+            alert(`Bem-vindo, ${n}!`);
+        };
+
+        window.deslogarIdentidade = () => {
+            meuNome = '';
+            localStorage.removeItem('voleihub_meunome');
+            window.fecharModais();
+            render();
+        };
         let filaTab = 'geral';
         let rkTab = 'tudo';
         let modalCtx = { lado: '', idx: 0 };
@@ -575,7 +645,7 @@
 
             const drawTeam = (l) => (l === 'A' ? game.timeA : game.timeB).map((p, i) => `
                 <div class="jogador-card bg-slate-800 p-3 rounded-xl border-l-4 ${l==='A'?'border-l-blue-500':'border-l-orange-500'} ${game.partidaAtiva && game.saqueLado===l && (l==='A'?game.idxA:game.idxB)===i?'sacando':''} ${p.estrela?'is-estrela':''}" onclick="window.abrirPontoTecnico('${l}', ${i})" data-id="${p.id}">
-                    <div class="uppercase font-black text-[10px] truncate"><span class="bola-saque mr-1">🏐</span> ${p.estrela?'⭐ ':''}${p.elite?'💎 ':''}${p.nome}</div>
+                    <div class="uppercase font-black text-[10px] truncate"><span class="bola-saque mr-1">🏐</span> ${p.estrela?'⭐ ':''}${p.nome}</div>
                 </div>`).join('');
             document.getElementById('areaA').innerHTML = drawTeam('A');
             document.getElementById('areaB').innerHTML = drawTeam('B');
@@ -600,8 +670,19 @@
             document.getElementById('tabEstrela').className = `text-[10px] font-black uppercase px-4 py-2 rounded-lg transition ${filaTab === 'estrela' ? 'tab-active shadow-lg' : 'bg-slate-700 hover:bg-slate-600'}`;
 
             const rk = Object.entries(game.ranking).map(([n, s]) => ({ n, ...s, score: parseFloat(getScore(n)) })).filter(x => x.score > 0 && (rkTab==='tudo'?true:rkTab==='estrela'?x.estrela:!x.estrela)).sort((a,b) => b.score - a.score);
-            document.getElementById('rankingContainer').innerHTML = rk.map((j, i) => `<div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 cursor-pointer mb-1 hover:bg-slate-800 transition" onclick="window.abrirAuditModal('${j.n}')"><div class="flex items-center gap-3"><span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span><div class="rank-name uppercase text-[10px] font-bold text-slate-300">${j.estrela?'⭐ ':''}${j.elite?'💎 ':''}${j.n}</div></div><div class="text-orange-500 font-black text-xs">${j.score}</div></div>`).join('');
+            document.getElementById('rankingContainer').innerHTML = rk.map((j, i) => `<div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 cursor-pointer mb-1 hover:bg-slate-800 transition" onclick="window.abrirAuditModal('${j.n}')"><div class="flex items-center gap-3"><span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span><div class="rank-name uppercase text-[10px] font-bold text-slate-300">${j.estrela?'⭐ ':''}${j.n}</div></div><div class="text-orange-500 font-black text-xs">${j.score}</div></div>`).join('');
             renderLeaders();
+            // Controle visual do botão de visitante vs admin
+            const visitorControls = document.getElementById('visitor-controls');
+            if (visitorControls) {
+                if (!isAdmin) {
+                    visitorControls.style.display = 'flex';
+                    const btnPerfil = document.getElementById('btnMeuPerfil');
+                    if (btnPerfil) btnPerfil.innerText = meuNome ? `👤 ${meuNome}` : "👤 Identificar-se";
+                } else {
+                    visitorControls.style.display = 'none';
+                }
+            }
             
             if(isAdmin) {
                 sortables.forEach(s => s.destroy());
@@ -887,7 +968,7 @@
             if(game.deniedRequests.includes(p.id)) { alert("Alteração Negada pelo Admin."); return; }
             const req = { id: p.id, nome: p.nome };
             if(!game.requests.some(r => r.id === req.id)) {
-                game.requests.push(req);
+                game.requests.push({ reqId: reqId, id: p.id, nome: p.nome, tipo: 'categoria', solicitante: (meuNome || 'Visitante Anônimo') });
                 alert("Solicitação enviada ao Admin!");
                 salvarState();
             } else { alert("Já solicitado."); }
@@ -909,11 +990,11 @@
                     if (r.tipo === 'bloqueio') {
                         badgeCor = "bg-red-600";
                         tipoAcao = "AÇÃO: BLOQUEIO 🚫";
-                        detalheAcao = "Solicitou bloqueio na fila";
+                        detalheAcao = `Solicitado por: ${r.solicitante || 'Desconhecido'}`; 
                     } else { 
                         badgeCor = "bg-yellow-600";
                         tipoAcao = "AÇÃO: CATEGORIA ⭐";
-                        detalheAcao = "Solicitou inversão de categoria";
+                        detalheAcao = `Solicitado por: ${r.solicitante || 'Desconhecido'}`; 
                     }
                     
                     return `
@@ -984,7 +1065,10 @@
         }
 
         window.abrirAuditModal = (n) => {
-            const s = game.ranking[n]; const w = game.weights;
+            const s = game.ranking[n]; 
+            if(!s) return; // Segurança caso o nome não exista
+            
+            const w = game.weights;
             const atqW = s.estrela ? w.atqE : w.atqG; const blqW = s.estrela ? w.blqE : w.blqG; const aceW = s.estrela ? w.aceE : w.aceG;
             document.getElementById('auditNome').innerText = n;
             document.getElementById('auditLosses').innerText = `Derrotas: ${s.d}`;
@@ -998,6 +1082,15 @@
                 <div class="flex justify-between text-yellow-500"><span>Acerto Time (x${w.wTeam}):</span> <b>${s.ptsAcertoTime}</b></div>
             `;
             document.getElementById('auditTotal').innerText = getScore(n);
+            
+            // Lógica do botão de deslogar
+            const btnDeslogar = document.getElementById('btnDeslogar');
+            if (!isAdmin && n === meuNome) {
+                btnDeslogar.classList.remove('hidden');
+            } else {
+                btnDeslogar.classList.add('hidden');
+            }
+
             document.getElementById('modalAudit').classList.remove('hidden');
         };
 
@@ -1065,7 +1158,8 @@
                     const reqId = modalCtx.pFila.id + '_block'; 
                     
                     if(!game.requests.some(r => r.reqId === reqId)) {
-                        game.requests.push({ reqId: reqId, id: modalCtx.pFila.id, nome: modalCtx.pFila.nome, tipo: 'bloqueio', acao: 'bloquear' });
+                        // Troque o push para incluir o solicitante:
+                        game.requests.push({ reqId: reqId, id: modalCtx.pFila.id, nome: modalCtx.pFila.nome, tipo: 'bloqueio', acao: 'bloquear', solicitante: (meuNome || 'Visitante Anônimo') });
                         alert("Solicitação para BLOQUEAR enviada ao Admin!");
                         salvarState();
                     } else {
