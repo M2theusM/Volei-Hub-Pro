@@ -334,9 +334,17 @@
         const PHRASES = ["", "Na conta! Fez 1 ponto.", "Dobradinha! 2 pontos nessa partida", "Pegando fogo! 🔥 Terceiro ponto nesse jogo.", "Insuportável! 4 pontos e contando...", "Mão de ferro! 👊 5 pontos feitos", "Dono da quadra! Fez metade do set sozinho!", "Modo God ativado! ⚡ 7 pontos na partida.", "Chamem o SAMU! Já são 8 pontos.", "Lendário! 9 pontos na partida.", "10 pontos feitos! Fechem as portas e apaguem as luzes! 🏆"];
         const DEFAULT_RESTRICTIONS = [["PATY", "MATEUS BRAZ"], ["MARCIANO", "JANIR"], ["RAFAEL", "YURI"], ["MATEUS BRAZ", "YURI"], ["MATHEUS MATOS", "KEMILLY"], ["RHUANA", "YURI"]];
 
-        const params = new URLSearchParams(window.location.search);
-        const isAdmin = params.get('admin') === 'true';
-        if(isAdmin) document.body.classList.add('is-admin');
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('admin') === 'true') {
+        const senha = prompt("🔒 Área Administrativa. Insira a chave de acesso:");
+        if (senha === "5cat@mat") { 
+        document.body.classList.add('is-admin');
+        } else {
+        alert("Senha incorreta. Acesso negado.");
+        document.body.classList.remove('is-admin');
+        window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        }
 
         // --- MOTOR DE ÁUDIO SINTÉTICO (APITO REALISTA) ---
         let audioCtx;
