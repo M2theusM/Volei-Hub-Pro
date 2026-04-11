@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
-        /* Estilos Originais Preservados */
+        /* Mantendo seu CSS Original */
         .jogador-card { touch-action: none; border: 2px solid transparent; transition: all 0.2s; cursor: pointer; position: relative; z-index: 10; user-select: none; }
         .sacando { border-color: #f59e0b !important; background-color: #2d3748 !important; box-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
         .is-estrela { border-right: 4px solid #f59e0b !important; }
@@ -30,7 +30,7 @@
             <div class="flex gap-2">
                 <div id="admin-notif-bell" onclick="abrirSolicitacoes()" class="admin-only hidden relative cursor-pointer bg-slate-700 p-2 rounded-lg">
                     <span>🔔</span>
-                    <span id="notif-count" class="absolute -top-1 -right-1 bg-red-600 w-3 h-3 rounded-full border border-slate-900 animate-pulse"></span>
+                    <span class="absolute -top-1 -right-1 bg-red-600 w-3 h-3 rounded-full border border-slate-900 animate-pulse"></span>
                 </div>
                 <button onclick="abrirConfig()" class="admin-only text-[10px] bg-slate-700 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase">⚙️ Menu</button>
             </div>
@@ -51,8 +51,8 @@
 
     <main class="p-4 max-w-md mx-auto space-y-6">
         <div class="grid grid-cols-2 gap-3">
-            <div id="areaA" class="space-y-2 min-h-[150px] bg-blue-900/10 rounded-xl p-2 border border-blue-500/20"></div>
-            <div id="areaB" class="space-y-2 min-h-[150px] bg-orange-900/10 rounded-xl p-2 border border-orange-500/20"></div>
+            <div id="areaA" class="space-y-2 min-h-[160px] bg-blue-900/10 rounded-xl p-2 border border-blue-500/20"></div>
+            <div id="areaB" class="space-y-2 min-h-[160px] bg-orange-900/10 rounded-xl p-2 border border-orange-500/20"></div>
         </div>
 
         <section class="bg-slate-800/50 rounded-2xl border border-slate-700 overflow-hidden">
@@ -60,37 +60,37 @@
                 <button onclick="setFilaTab('geral')" id="tabGeral" class="tab-active text-[10px] font-black uppercase px-4 py-2 rounded-lg">Geral</button>
                 <button onclick="setFilaTab('estrela')" id="tabEstrela" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg">Estrelas ⭐</button>
             </div>
-            <div id="esperaContainer" class="p-4 space-y-2"></div>
+            <div id="esperaContainer" class="p-4 space-y-2 min-h-[100px]"></div>
         </section>
 
         <button onclick="abrirHistorico()" class="w-full bg-slate-800 border border-slate-700 text-blue-400 p-3 rounded-xl font-black uppercase text-[10px]">📜 Ver Histórico Recente</button>
 
         <section id="rankingSection" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
             <div class="p-4 bg-slate-800 border-b border-slate-800 text-center">
-                <h2 class="text-xs font-black uppercase text-orange-500 italic mb-3">🏆 Ranking Master</h2>
+                <h2 class="text-xs font-black uppercase text-orange-500 italic mb-3 tracking-widest">🏆 Ranking Master</h2>
                 <div class="flex gap-2">
                     <button onclick="setRankingTab('tudo')" id="rkTabTudo" class="tab-active flex-1 text-[9px] font-black uppercase py-2 rounded-lg">Tudo</button>
                     <button onclick="setRankingTab('geral')" id="rkTabGeral" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg">Geral</button>
-                    <button onclick="setRankingTab('estrela')" id="rkTabEstrela" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg">Estrelas</button>
+                    <button onclick="setRankingTab('estrela')" id="rkTabEstrela" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg">Estrelas ⭐</button>
                 </div>
             </div>
             <div id="rankingContainer" class="p-2 space-y-1"></div>
         </section>
 
-        <section id="hallFamaSection" class="space-y-3 pb-20">
+        <section id="hallFamaSection" class="space-y-4 pb-20">
             <h2 class="text-xs font-black uppercase text-slate-500 text-center tracking-widest italic">⚡ Hall da Fama</h2>
-            <div id="leadersGrid" class="space-y-2"></div>
+            <div id="leadersGrid" class="space-y-3"></div>
         </section>
     </main>
 
     <div class="admin-only fixed bottom-6 left-4 right-4 flex gap-2 z-50">
-        <button onclick="registrarPontoSimples('A', true)" class="flex-1 bg-blue-600 py-4 rounded-2xl font-black text-xs uppercase shadow-xl">Ponto Time A</button>
-        <button onclick="registrarPontoSimples('B', true)" class="flex-1 bg-orange-600 py-4 rounded-2xl font-black text-xs uppercase shadow-xl">Ponto Time B</button>
+        <button onclick="registrarPontoSimples('A')" class="flex-1 bg-blue-600 py-4 rounded-2xl font-black text-xs uppercase shadow-xl">Ponto A</button>
+        <button onclick="registrarPontoSimples('B')" class="flex-1 bg-orange-600 py-4 rounded-2xl font-black text-xs uppercase shadow-xl">Ponto B</button>
     </div>
 
     <div id="modalConfig" class="modal-global hidden">
         <div class="bg-slate-900 w-full max-w-md rounded-3xl p-6 border-2 border-slate-700">
-            <h2 class="text-xl font-black uppercase mb-6">Configurações</h2>
+            <h2 class="text-xl font-black uppercase mb-6 text-center">Configurações</h2>
             <div class="space-y-4 mb-6">
                 <div>
                     <label class="text-[10px] uppercase font-bold text-slate-500">Pontos do Set</label>
@@ -99,9 +99,9 @@
                 <button onclick="document.getElementById('placarDisplay').classList.toggle('placar-oculto')" class="w-full bg-slate-800 py-3 rounded-xl text-[10px] font-black border border-slate-700">👁️ ESCONDER PLACAR (PRINT)</button>
             </div>
             <div class="grid grid-cols-3 gap-2 mb-6">
-                <span class="text-[8px] text-center">PESOS</span>
-                <span class="text-[8px] text-center">GERAL</span>
-                <span class="text-[8px] text-orange-400 text-center">ESTRELA</span>
+                <span class="text-[8px] text-center uppercase">Ação</span>
+                <span class="text-[8px] text-center uppercase">Geral</span>
+                <span class="text-[8px] text-orange-400 text-center uppercase">Estrela</span>
                 <span class="text-[10px]">Ataque</span>
                 <input type="number" id="wAtqG" step="0.1" class="config-input py-1 text-xs">
                 <input type="number" id="wAtqE" step="0.1" class="config-input py-1 text-xs">
@@ -118,14 +118,13 @@
 
     <div id="modalHistorico" class="modal-global hidden">
         <div class="bg-slate-900 w-full max-w-md rounded-3xl p-6 border-2 border-blue-500 max-h-[80vh] overflow-y-auto">
-            <h2 class="text-xl font-black text-blue-400 uppercase italic mb-4">Histórico Recente</h2>
+            <h2 class="text-xl font-black text-blue-400 uppercase italic mb-4">Histórico</h2>
             <div id="listaHistorico" class="space-y-2"></div>
-            <button onclick="fecharModais()" class="w-full bg-slate-800 p-3 rounded-xl mt-4 font-bold text-xs uppercase">Fechar</button>
+            <button onclick="fecharModais()" class="w-full bg-slate-800 p-3 rounded-xl mt-4 font-bold text-xs">FECHAR</button>
         </div>
     </div>
 
     <script>
-        // CONFIGURAÇÕES E DADOS SEED
         const ELITE_PLAYERS = ["Matheus Matos", "Odair", "Rafael", "Marciano", "Janir", "Lucas Primavera"];
         
         let game = {
@@ -135,28 +134,28 @@
             matchLog: [],
             solicitacoes: [],
             config: { cPoints: 12, cDesempate: '3direto' },
-            weights: { atqG: 1, atqE: 1.5, vitG: 5, vitE: 10, err: 0.5 },
+            weights: { atqG: 1, atqE: 1.5, vitG: 5, vitE: 10, err: 0.5 }, // PESOS INICIALIZADOS AQUI
             ranking: {
-                "p1": { nome: "Daniele", estrela: true, ataques:0, bloqueios:0, aces:0, vitorias:0 },
-                "p2": { nome: "Edinho", estrela: false, ataques:0, bloqueios:0, aces:0, vitorias:0 },
-                "p3": { nome: "Júnior", estrela: false, ataques:0, bloqueios:0, aces:0, vitorias:0 },
-                "p4": { nome: "Hemily", estrela: true, ataques:0, bloqueios:0, aces:0, vitorias:0 },
-                "p5": { nome: "Ítalo", estrela: false, ataques:0, bloqueios:0, aces:0, vitorias:0 },
-                "p6": { nome: "Janir", estrela: false, ataques:0, bloqueios:0, aces:0, vitorias:0 },
-                "p7": { nome: "Kemilly", estrela: true, ataques:0, bloqueios:0, aces:0, vitorias:0 },
-                "p8": { nome: "Lucas Primavera", estrela: false, ataques:0, bloqueios:0, aces:0, vitorias:0 },
-                "p9": { nome: "Luiz Eduardo", estrela: false, ataques:0, bloqueios:0, aces:0, vitorias:0 },
-                "p10": { nome: "Maicon", estrela: false, ataques:0, bloqueios:0, aces:0, vitorias:0 },
-                "p11": { nome: "Marciano", estrela: false, ataques:0, bloqueios:0, aces:0, vitorias:0 },
-                "p12": { nome: "Mateus Braz", estrela: false, ataques:0, bloqueios:0, aces:0, vitorias:0 },
-                "p13": { nome: "Matheus Matos", estrela: false, ataques:0, bloqueios:0, aces:0, vitorias:0 },
-                "p14": { nome: "Odair", estrela: false, ataques:0, bloqueios:0, aces:0, vitorias:0 },
-                "p15": { nome: "Paty", estrela: true, ataques:0, bloqueios:0, aces:0, vitorias:0 },
-                "p16": { nome: "Rafael", estrela: false, ataques:0, bloqueios:0, aces:0, vitorias:0 },
-                "p17": { nome: "Rhuana", estrela: true, ataques:0, bloqueios:0, aces:0, vitorias:0 },
-                "p18": { nome: "Robson", estrela: false, ataques:0, bloqueios:0, aces:0, vitorias:0 },
-                "p19": { nome: "Samuel", estrela: false, ataques:0, bloqueios:0, aces:0, vitorias:0 },
-                "p20": { nome: "Yuri", estrela: false, ataques:0, bloqueios:0, aces:0, vitorias:0 }
+                "p1": { nome: "Daniele", estrela: true, ataques: 0, vitorias: 0 },
+                "p2": { nome: "Edinho", estrela: false, ataques: 0, vitorias: 0 },
+                "p3": { nome: "Júnior", estrela: false, ataques: 0, vitorias: 0 },
+                "p4": { nome: "Hemily", estrela: true, ataques: 0, vitorias: 0 },
+                "p5": { nome: "Ítalo", estrela: false, ataques: 0, vitorias: 0 },
+                "p6": { nome: "Janir", estrela: false, ataques: 0, vitorias: 0 },
+                "p7": { nome: "Kemilly", estrela: true, ataques: 0, vitorias: 0 },
+                "p8": { nome: "Lucas Primavera", estrela: false, ataques: 0, vitorias: 0 },
+                "p9": { nome: "Luiz Eduardo", estrela: false, ataques: 0, vitorias: 0 },
+                "p10": { nome: "Maicon", estrela: false, ataques: 0, vitorias: 0 },
+                "p11": { nome: "Marciano", estrela: false, ataques: 0, vitorias: 0 },
+                "p12": { nome: "Mateus Braz", estrela: false, ataques: 0, vitorias: 0 },
+                "p13": { nome: "Matheus Matos", estrela: false, ataques: 0, vitorias: 0 },
+                "p14": { nome: "Odair", estrela: false, ataques: 0, vitorias: 0 },
+                "p15": { nome: "Paty", estrela: true, ataques: 0, vitorias: 0 },
+                "p16": { nome: "Rafael", estrela: false, ataques: 0, vitorias: 0 },
+                "p17": { nome: "Rhuana", estrela: true, ataques: 0, vitorias: 0 },
+                "p18": { nome: "Robson", estrela: false, ataques: 0, vitorias: 0 },
+                "p19": { nome: "Samuel", estrela: false, ataques: 0, vitorias: 0 },
+                "p20": { nome: "Yuri", estrela: false, ataques: 0, vitorias: 0 }
             }
         };
 
@@ -166,21 +165,25 @@
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('admin') === 'true') {
-                const pass = prompt("🔐 Senha de Admin:");
+                const pass = prompt("🔐 Digite a Senha Admin:");
                 if (pass === "5cat@mat") {
                     document.body.classList.add('is-admin');
                 } else {
-                    alert("Acesso Negado!");
+                    alert("Senha incorreta!");
                     window.location.href = window.location.pathname;
                 }
             }
             const saved = localStorage.getItem('voleiHub_v12');
-            if(saved) game = JSON.parse(saved);
+            if(saved) {
+                const parsed = JSON.parse(saved);
+                // Merge para garantir que novos campos (como weights) não quebrem
+                game = { ...game, ...parsed };
+                game.weights = parsed.weights || game.weights; 
+            }
             renderTudo();
         };
 
-        // --- FUNÇÕES DE VOZ ---
-        function narrar(t) {
+        function falar(t) {
             if ('speechSynthesis' in window) {
                 const u = new SpeechSynthesisUtterance(t);
                 u.lang = 'pt-BR'; u.rate = 1.3;
@@ -188,10 +191,9 @@
             }
         }
 
-        // --- LÓGICA DE JOGO ---
-        function registrarPontoSimples(lado, narrarAcao = true) {
+        function registrarPontoSimples(lado) {
             if (lado === 'A') game.scoreA++; else game.scoreB++;
-            if (narrarAcao) narrar("Ponto Time " + lado);
+            falar("Ponto Time " + lado);
             
             let limite = parseInt(game.config.cPoints);
             let alvo = (game.scoreA >= 11 && game.scoreB >= 11 && game.config.cDesempate === '3direto') ? 14 : limite;
@@ -203,10 +205,9 @@
         }
 
         function finalizarSet(v) {
-            narrar("Vitória do Time " + v);
+            falar("Vitória do Time " + v);
             game.matchLog.push({
-                placar: `${game.scoreA}x${game.scoreB}`,
-                vencedor: v,
+                res: `${game.scoreA}x${game.scoreB}`,
                 data: new Date().toLocaleTimeString(),
                 jogadores: [...game.timeA, ...game.timeB].map(id => game.ranking[id].nome)
             });
@@ -214,15 +215,14 @@
             const vIds = v === 'A' ? game.timeA : game.timeB;
             const pIds = v === 'A' ? game.timeB : game.timeA;
 
-            // Dividir vencedores: Melhor+Pior vs 2º+3º
+            // Lógica Dividir: Melhor+Pior vs 2º+3º
             let sorted = vIds.sort((a,b) => getScore(b) - getScore(a));
             game.timeA = [sorted[0], sorted[3]];
             game.timeB = [sorted[1], sorted[2]];
 
             game.fila.push(...pIds);
             
-            // Puxar 4 novos da fila respeitando limite de 2 Elites
-            let novos = [];
+            // Puxar 4 novos da fila respeitando limite de 2 ELITES
             let eliteA = game.timeA.filter(id => ELITE_PLAYERS.includes(game.ranking[id].nome)).length;
             let eliteB = game.timeB.filter(id => ELITE_PLAYERS.includes(game.ranking[id].nome)).length;
 
@@ -245,30 +245,25 @@
             salvar(); renderTudo();
         }
 
-        // --- RENDERIZAÇÃO ---
         function renderTudo() {
             document.getElementById('scoreA').innerText = game.scoreA;
             document.getElementById('scoreB').innerText = game.scoreB;
 
-            // Render Quadra
             const areaA = document.getElementById('areaA'); areaA.innerHTML = '';
             game.timeA.forEach(id => areaA.innerHTML += card(id));
             const areaB = document.getElementById('areaB'); areaB.innerHTML = '';
             game.timeB.forEach(id => areaB.innerHTML += card(id));
 
-            // Render Fila
             const fCont = document.getElementById('esperaContainer'); fCont.innerHTML = '';
-            let filaFiltrada = game.fila.filter(id => filaTab === 'estrela' ? game.ranking[id].estrela : !game.ranking[id].estrela);
-            filaFiltrada.forEach(id => fCont.innerHTML += `<div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-xs">${game.ranking[id].nome}</div>`);
+            let fFiltro = game.fila.filter(id => filaTab === 'estrela' ? game.ranking[id].estrela : !game.ranking[id].estrela);
+            fFiltro.forEach(id => fCont.innerHTML += `<div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-xs">${game.ranking[id].nome}</div>`);
 
-            // Render Ranking
             const rCont = document.getElementById('rankingContainer'); rCont.innerHTML = '';
-            let rkSorted = Object.keys(game.ranking).sort((a,b) => getScore(b) - getScore(a));
-            rkSorted.forEach(id => {
+            Object.keys(game.ranking).sort((a,b) => getScore(b) - getScore(a)).forEach(id => {
                 const p = game.ranking[id];
-                const isE = ELITE_PLAYERS.includes(p.nome);
                 if (rankingTab === 'estrela' && !p.estrela) return;
                 if (rankingTab === 'geral' && p.estrela) return;
+                const isE = ELITE_PLAYERS.includes(p.nome);
                 rCont.innerHTML += `
                     <div class="flex justify-between items-center bg-slate-800 p-3 rounded-xl border border-slate-700 ${p.estrela?'is-estrela':''} ${isE?'is-elite':''}">
                         <span class="text-xs font-bold">${isE?'💎':''} ${p.estrela?'⭐':''} ${p.nome}</span>
@@ -284,25 +279,34 @@
         function card(id) {
             const p = game.ranking[id];
             const isE = ELITE_PLAYERS.includes(p.nome);
-            return `<div onclick="registrarAcao('${id}')" class="jogador-card bg-slate-800 p-4 rounded-xl text-center text-xs font-black border-slate-700 ${isE?'is-elite':''}">${p.nome}</div>`;
+            return `<div onclick="acaoJogador('${id}')" class="jogador-card bg-slate-800 p-4 rounded-xl text-center text-xs font-black border-slate-700 ${isE?'is-elite':''}">${p.nome}</div>`;
         }
 
-        function registrarAcao(id) {
+        function acaoJogador(id) {
             if(!document.body.classList.contains('is-admin')) return;
             game.ranking[id].ataques++;
-            narrar("Ataque de " + game.ranking[id].nome);
+            falar("Ataque de " + game.ranking[id].nome);
             salvar(); renderTudo();
         }
 
         function getScore(id) {
-            const p = game.ranking[id]; const w = game.weights;
+            const p = game.ranking[id];
+            const w = game.weights || { atqG:1, atqE:1.5, vitG:5, vitE:10 };
             if(!p) return 0;
             return p.estrela ? (p.ataques * w.atqE + p.vitorias * w.vitE) : (p.ataques * w.atqG + p.vitorias * w.vitG);
         }
 
-        // --- AUXILIARES ---
-        function salvar() { localStorage.setItem('voleiHub_v12', JSON.stringify(game)); }
-        function fecharModais() { document.querySelectorAll('.modal-global').forEach(m => m.classList.add('hidden')); }
+        function renderHallFama() {
+            const g = document.getElementById('leadersGrid'); g.innerHTML = '';
+            const top = Object.keys(game.ranking).sort((a,b) => getScore(b) - getScore(a))[0];
+            if(top) {
+                g.innerHTML += `<div class="bg-gradient-to-r from-orange-600 to-yellow-500 p-4 rounded-2xl text-center">
+                    <p class="text-[9px] font-black uppercase italic">Dono da Quadra</p>
+                    <p class="text-lg font-black">${game.ranking[top].nome}</p>
+                </div>`;
+            }
+        }
+
         function abrirConfig() { 
             document.getElementById('cPoints').value = game.config.cPoints;
             document.getElementById('wAtqG').value = game.weights.atqG;
@@ -311,6 +315,7 @@
             document.getElementById('wVitE').value = game.weights.vitE;
             document.getElementById('modalConfig').classList.remove('hidden'); 
         }
+
         function salvarConfig() {
             game.config.cPoints = document.getElementById('cPoints').value;
             game.weights.atqG = parseFloat(document.getElementById('wAtqG').value);
@@ -319,38 +324,31 @@
             game.weights.vitE = parseFloat(document.getElementById('wVitE').value);
             salvar(); fecharModais(); renderTudo();
         }
+
         function abrirHistorico() {
             const c = document.getElementById('listaHistorico'); c.innerHTML = '';
             [...game.matchLog].reverse().forEach(l => {
-                c.innerHTML += `<div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-[10px]"><span class="text-blue-400 font-bold">${l.placar}</span> - ${l.jogadores.join(', ')}</div>`;
+                c.innerHTML += `<div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-[10px]"><span class="text-blue-400 font-bold">${l.res}</span> - ${l.jogadores.join(', ')}</div>`;
             });
             document.getElementById('modalHistorico').classList.remove('hidden');
         }
-        function setFilaTab(t) { filaTab = t; renderTudo(); }
-        function setRankingTab(t) { rankingTab = t; renderTudo(); }
 
-        function renderHallFama() {
-            const g = document.getElementById('leadersGrid'); g.innerHTML = '';
-            // Lógica simplificada do seu Hall da Fama original
-            const topScore = Object.keys(game.ranking).sort((a,b) => getScore(b) - getScore(a))[0];
-            if(topScore) {
-                g.innerHTML += `<div class="bg-gradient-to-r from-orange-600 to-yellow-500 p-4 rounded-2xl text-center">
-                    <p class="text-[9px] font-black uppercase italic">Dono da Quadra</p>
-                    <p class="text-lg font-black">${game.ranking[topScore].nome}</p>
-                </div>`;
-            }
-        }
-
+        function abrirSolicitacoes() { alert("Nenhuma solicitação pendente."); }
         function solicitarBloqueio(id) {
             if(document.body.classList.contains('is-admin')) {
-                delete game.ranking[id]; // ou lógica de bloqueio
+                delete game.ranking[id];
             } else {
                 game.solicitacoes.push(id);
                 document.getElementById('admin-notif-bell').classList.remove('hidden');
-                alert("Bloqueio enviado para aprovação do Admin.");
+                alert("Bloqueio solicitado ao Admin.");
             }
             salvar(); renderTudo();
         }
+
+        function salvar() { localStorage.setItem('voleiHub_v12', JSON.stringify(game)); }
+        function fecharModais() { document.querySelectorAll('.modal-global').forEach(m => m.classList.add('hidden')); }
+        function setFilaTab(t) { filaTab = t; renderTudo(); }
+        function setRankingTab(t) { rankingTab = t; renderTudo(); }
     </script>
 </body>
 </html>
