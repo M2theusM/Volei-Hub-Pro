@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V1.0.9</title>
+    <title>Vôlei Hub PRO - V1.1.0</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -878,11 +878,29 @@
             if(game.config.maxWins > 0 && (game.winsConsecA >= game.config.maxWins || game.winsConsecB >= game.config.maxWins)) {
                 if(game.config.reaction === 'dividir') { 
                     game.nextGameReason = 'mixed'; 
-                    const pool = [...tV].sort((a,b) => getScore(b.nome) - getScore(a.nome)); 
-                    const half = Math.ceil(pool.length / 2); 
-                    game.timeA = pool.slice(0, half); 
-                    game.timeB = pool.slice(half);
-                    // AVISO DE TIMES MISTURADOS
+                    // Ordena os vencedores do Maior Score para o Menor Score
+                    const pool = [...tV].sort((a,b) => parseFloat(getScore(b.nome)) - parseFloat(getScore(a.nome))); 
+                    
+                    if (pool.length >= 4) {
+                        // Time A base: Melhor jogador [0] + Pior jogador [último]
+                        game.timeA = [pool[0], pool[pool.length - 1]];
+                        // Time B base: 2º Melhor [1] + 3º Melhor [2]
+                        game.timeB = [pool[1], pool[2]];
+                        
+                        // Caso haja mais de 4 jogadores (ex: time de 5), distribui os que sobrarem de forma balanceada
+                        for(let i = 3; i < pool.length - 1; i++) {
+                            const sA = game.timeA.reduce((acc, p) => acc + parseFloat(getScore(p.nome)), 0);
+                            const sB = game.timeB.reduce((acc, p) => acc + parseFloat(getScore(p.nome)), 0);
+                            if (sA <= sB) game.timeA.push(pool[i]);
+                            else game.timeB.push(pool[i]);
+                        }
+                    } else {
+                        // Fallback de segurança se o time for menor que 4 jogadores
+                        const half = Math.ceil(pool.length / 2); 
+                        game.timeA = pool.slice(0, half); 
+                        game.timeB = pool.slice(half);
+                    }
+                    
                     setSystemMessage("TIMES MISTURADOS", "Limite de Vitórias Atingido", false);
                 }
                 else { 
@@ -892,17 +910,38 @@
                 }
                 game.winsConsecA = 0; game.winsConsecB = 0;
             }
-            const fill = (time) => { 
-                while(time.length < game.config.size) { 
-                    let p = null; 
-                    const precisaStar = time.filter(x => x.estrela).length < game.config.stars; 
-                    const podeElite = time.filter(x => x.elite).length < 2; // LIMITADOR: Máximo 2 elites por time
 
-                    // Função para checar se o jogador pode entrar (ignora bloqueados, restrições e barra o 3º elite)
+            // --- NOVO SISTEMA DE PREENCHIMENTO BALANCEADO ---
+            const fillBothTeams = () => {
+                // Roda enquanto algum dos dois times precisar de jogadores
+                while (game.timeA.length < game.config.size || game.timeB.length < game.config.size) {
+                    let targetTeam;
+                    
+                    // Descobre quem precisa do jogador
+                    if (game.timeA.length === game.config.size) {
+                        targetTeam = game.timeB;
+                    } else if (game.timeB.length === game.config.size) {
+                        targetTeam = game.timeA;
+                    } else {
+                        // SE FOR UMA DIVISÃO MISTURADA: O time com o MENOR SCORE total recebe o próximo jogador
+                        if (game.nextGameReason === 'mixed') {
+                            const scoreA = game.timeA.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0);
+                            const scoreB = game.timeB.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0);
+                            targetTeam = scoreA <= scoreB ? game.timeA : game.timeB;
+                        } else {
+                            // Se for preenchimento normal (saiu ambos, ou fluxo normal), enche o A primeiro
+                            targetTeam = game.timeA.length < game.config.size ? game.timeA : game.timeB;
+                        }
+                    }
+
+                    let p = null; 
+                    const precisaStar = targetTeam.filter(x => x.estrela).length < game.config.stars; 
+                    const podeElite = targetTeam.filter(x => x.elite).length < 2;
+
                     const isValid = (x) => {
                         if (x.bloqueado) return false;
-                        if (time.some(j => estaoBloqueados(x,j))) return false;
-                        if (x.elite && !podeElite) return false; // Se ele é elite e a vaga já acabou, ignora ele
+                        if (targetTeam.some(j => estaoBloqueados(x,j))) return false;
+                        if (x.elite && !podeElite) return false; 
                         return true;
                     };
 
@@ -910,25 +949,25 @@
                     if(!p) p = game.esperaGeral.find(isValid); 
                     if(!p && !precisaStar) p = game.esperaEstrela.find(isValid); 
                     
-                    // Fallback ignorando restrições de dupla (mas MANTENDO o limite de elite)
                     if(!p) {
                         const isValidFallback = (x) => !x.bloqueado && (!x.elite || podeElite);
                         p = game.esperaGeral.find(isValidFallback) || game.esperaEstrela.find(isValidFallback);
                     }
                     
-                    // Último caso: Pega qualquer um desbloqueado para não travar o app
                     if(!p) p = game.esperaGeral.find(x => !x.bloqueado) || game.esperaEstrela.find(x => !x.bloqueado); 
 
-                    if(!p) break; 
+                    if(!p) break; // Para se a fila estiver vazia
+                    
                     const f = p.estrela ? game.esperaEstrela : game.esperaGeral; 
                     f.splice(f.indexOf(p), 1); 
-                    time.push(p); 
-                } 
+                    targetTeam.push(p); 
+                }
             };
-            fill(game.timeA); fill(game.timeB);
+            
+            fillBothTeams();
             game.scoreA = 0; game.scoreB = 0; game.idxA = 0; game.idxB = 0; 
             
-            // CORREÇÃO: QUEM GANHOU COMEÇA SACANDO, E JA 'GASTOU' O SAQUE 1
+            // Quem ganhou começa sacando
             game.saqueLado = venceu;
             game.jaSacouA = (venceu === 'A');
             game.jaSacouB = (venceu === 'B');
