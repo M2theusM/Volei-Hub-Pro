@@ -302,7 +302,12 @@
 
     <div id="modalFilaEscala" class="modal-global hidden">
         <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-emerald-500/30">
-            <h3 id="modalNomeFila" class="font-black text-white uppercase text-xl italic mb-6">---</h3>
+            
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modalNomeFila" class="font-black text-white uppercase text-xl italic leading-none">---</h3>
+                <button onclick="window.fecharModais()" class="text-slate-400 text-3xl font-light hover:text-white transition">&times;</button>
+            </div>
+
             <div class="grid grid-cols-2 gap-4 mb-4 admin-only-control">
                 <div class="space-y-2">
                     <p class="text-[8px] font-black text-blue-400 uppercase text-center italic">Time A</p>
@@ -315,9 +320,13 @@
                     <div id="subsB" class="space-y-1 max-h-[120px] overflow-y-auto"></div>
                 </div>
             </div>
+            
             <button id="btnStatusBloqueio" class="w-full bg-slate-700 p-3 rounded-xl font-black uppercase text-xs mb-2 hover:bg-slate-600">---</button>
             <button id="btnTrocarCategoria" class="w-full bg-slate-800 text-blue-400 p-3 rounded-xl font-black uppercase text-[10px] border border-blue-900/30 mb-2" onclick="window.solicitarTrocaCategoria()">Trocar Categoria</button>
             <button id="btnToggleElite" class="w-full bg-slate-800 text-purple-400 p-3 rounded-xl font-black uppercase text-[10px] border border-purple-900/30 mb-2 admin-only-control" onclick="window.toggleElite()">Marcar Elite 💎</button>
+            
+            <button onclick="window.fecharModais()" class="w-full mt-4 bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600 transition">Voltar</button>
+            
         </div>
     </div>
 
