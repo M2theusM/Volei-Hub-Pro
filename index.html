@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V1.0.0</title>
+    <title>Vôlei Hub PRO - V1.0.2</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -294,7 +294,7 @@
             </div>
             <button id="btnStatusBloqueio" class="w-full bg-slate-700 p-3 rounded-xl font-black uppercase text-xs mb-2 hover:bg-slate-600">---</button>
             <button id="btnTrocarCategoria" class="w-full bg-slate-800 text-blue-400 p-3 rounded-xl font-black uppercase text-[10px] border border-blue-900/30 mb-2" onclick="window.solicitarTrocaCategoria()">Trocar Categoria</button>
-            <button onclick="window.fecharModais()" class="w-full py-2 text-slate-500 uppercase text-[10px] font-bold">Voltar</button>
+            <button id="btnToggleElite" class="w-full bg-slate-800 text-purple-400 p-3 rounded-xl font-black uppercase text-[10px] border border-purple-900/30 mb-2 admin-only-control" onclick="window.toggleElite()">Marcar Elite 💎</button>
         </div>
     </div>
 
@@ -329,10 +329,12 @@
         const db = getDatabase(app);
         const gameRef = ref(db, 'partida/v9_5'); // Atualizado para v9.5
 
-        const INITIAL_GERAL = ["MATHEUS MATOS","MARCIANO", "DANIELE", "RAFAEL", "SABRINA", "JANIR", "YURI", "MAICON", "THALYSON", "ODAIR", "LUCAS GABRIEL", "JOÃO", "LUIZ EDUARDO", "MATHEUS JAPA", "ANDERSON"];
-        const INITIAL_ESTRELA = ["PATY", "MATEUS BRAZ", "RHUANA", "KEMILLY", "WELLINGTON"];
+        const INITIAL_GERAL = ["DANIELE", "EDINHO", "JUNIOR", "NINO", "LUIZ EDUARDO", "MAICON", "MATEUS BRAZ", "ROBSON", "SAMUEL", "YURI"];
+        const INITIAL_ESTRELA = ["PATY", "HEMILY", "RHUANA", "KEMILLY"];
+        const INITIAL_ELITE = ["MATHEUS MATOS", "ODAIR", "RAFAEL", "LUCAS GABRIEL", "MARCIANO", "JANIR"];
+        
         const PHRASES = ["", "Na conta! Fez 1 ponto.", "Dobradinha! 2 pontos nessa partida", "Pegando fogo! 🔥 Terceiro ponto nesse jogo.", "Insuportável! 4 pontos e contando...", "Mão de ferro! 👊 5 pontos feitos", "Dono da quadra! Fez metade do set sozinho!", "Modo God ativado! ⚡ 7 pontos na partida.", "Chamem o SAMU! Já são 8 pontos.", "Lendário! 9 pontos na partida.", "10 pontos feitos! Fechem as portas e apaguem as luzes! 🏆"];
-        const DEFAULT_RESTRICTIONS = [["PATY", "MATEUS BRAZ"], ["MARCIANO", "JANIR"], ["RAFAEL", "YURI"], ["MATEUS BRAZ", "YURI"], ["MATHEUS MATOS", "KEMILLY"], ["RHUANA", "YURI"]];
+        const DEFAULT_RESTRICTIONS = [["PATY", "MATEUS BRAZ"],["RAFAEL", "YURI"], ["MATEUS BRAZ", "YURI"]];
 
         const params = new URLSearchParams(window.location.search);
         const isAdmin = params.get('admin') === 'true';
@@ -440,12 +442,16 @@
         function ensureRankingConsistency() {
             const allPlayers = [...game.esperaGeral, ...game.esperaEstrela, ...game.timeA, ...game.timeB];
             allPlayers.forEach(p => { 
+                // Valida retroativamente quem já estava no banco de dados
+                if (typeof p.elite === 'undefined') {
+                    p.elite = INITIAL_ELITE.includes(p.nome);
+                }
+
                 if(!game.ranking[p.nome]) {
-                    game.ranking[p.nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: p.estrela };
+                    game.ranking[p.nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: p.estrela, elite: p.elite };
                 }
-                if(typeof game.ranking[p.nome].ptsAcertoTime === 'undefined') {
-                    game.ranking[p.nome].ptsAcertoTime = 0;
-                }
+                if(typeof game.ranking[p.nome].ptsAcertoTime === 'undefined') game.ranking[p.nome].ptsAcertoTime = 0;
+                if(typeof game.ranking[p.nome].elite === 'undefined') game.ranking[p.nome].elite = p.elite;
             });
         }
 
@@ -469,8 +475,9 @@
 
         function adicionarLocal(nome, isEstrela) {
             const id = Math.random().toString(36).substr(2, 9);
-            const obj = { id, nome, estrela: isEstrela, bloqueado: false };
-            if(!game.ranking[nome]) game.ranking[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: isEstrela };
+            const isElite = INITIAL_ELITE.includes(nome); // <- Verifica se o novo nome é Elite
+            const obj = { id, nome, estrela: isEstrela, elite: isElite, bloqueado: false };
+            if(!game.ranking[nome]) game.ranking[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: isEstrela, elite: isElite };
             const lista = isEstrela ? game.esperaEstrela : game.esperaGeral;
             let idx = 0;
             for(let i=0; i<lista.length; i++) { const s = game.ranking[lista[i].nome]; if(s && (s.v + s.d) === 0) idx = i + 1; }
@@ -559,7 +566,7 @@
 
             const drawTeam = (l) => (l === 'A' ? game.timeA : game.timeB).map((p, i) => `
                 <div class="jogador-card bg-slate-800 p-3 rounded-xl border-l-4 ${l==='A'?'border-l-blue-500':'border-l-orange-500'} ${game.partidaAtiva && game.saqueLado===l && (l==='A'?game.idxA:game.idxB)===i?'sacando':''} ${p.estrela?'is-estrela':''}" onclick="window.abrirPontoTecnico('${l}', ${i})" data-id="${p.id}">
-                    <div class="uppercase font-black text-[10px] truncate"><span class="bola-saque mr-1">🏐</span> ${p.estrela?'⭐ ':''}${p.nome}</div>
+                    <div class="uppercase font-black text-[10px] truncate"><span class="bola-saque mr-1">🏐</span> ${p.estrela?'⭐ ':''}${p.elite?'💎 ':''}${p.nome}</div>
                 </div>`).join('');
             document.getElementById('areaA').innerHTML = drawTeam('A');
             document.getElementById('areaB').innerHTML = drawTeam('B');
@@ -570,7 +577,7 @@
                 let dest = "";
                 if(!p.bloqueado && filaTab === 'geral') { countLib++; if(countLib<=3) dest="is-proximo"; }
                 return `<div data-id="${p.id}" class="bg-slate-800 p-3 rounded-xl flex justify-between items-center border border-slate-700 ${p.bloqueado ? 'is-bloqueado' : ''} ${dest}">
-                    <div onclick="window.abrirEscalacao('${filaTab}', ${i})" class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2 cursor-pointer">${p.estrela ? '⭐ ' : ''}${p.nome}</div>
+                    <div onclick="window.abrirEscalacao('${filaTab}', ${i})" class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2 cursor-pointer">${p.estrela ? '⭐ ' : ''}${p.elite ? '💎 ' : ''}${p.nome}</div>
                     ${isAdmin ? '<div class="drag-handle hover:text-white">⠿</div>' : ''}
                 </div>`;
             }).join('') : '<div class="text-center text-slate-600 text-[10px] py-4 italic">Fila vazia...</div>';
@@ -584,7 +591,7 @@
             document.getElementById('tabEstrela').className = `text-[10px] font-black uppercase px-4 py-2 rounded-lg transition ${filaTab === 'estrela' ? 'tab-active shadow-lg' : 'bg-slate-700 hover:bg-slate-600'}`;
 
             const rk = Object.entries(game.ranking).map(([n, s]) => ({ n, ...s, score: parseFloat(getScore(n)) })).filter(x => x.score > 0 && (rkTab==='tudo'?true:rkTab==='estrela'?x.estrela:!x.estrela)).sort((a,b) => b.score - a.score);
-            document.getElementById('rankingContainer').innerHTML = rk.map((j, i) => `<div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 cursor-pointer mb-1 hover:bg-slate-800 transition" onclick="window.abrirAuditModal('${j.n}')"><div class="flex items-center gap-3"><span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span><div class="rank-name uppercase text-[10px] font-bold text-slate-300">${j.estrela?'⭐':''} ${j.n}</div></div><div class="text-orange-500 font-black text-xs">${j.score}</div></div>`).join('');
+            document.getElementById('rankingContainer').innerHTML = rk.map((j, i) => `<div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 cursor-pointer mb-1 hover:bg-slate-800 transition" onclick="window.abrirAuditModal('${j.n}')"><div class="flex items-center gap-3"><span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span><div class="rank-name uppercase text-[10px] font-bold text-slate-300">${j.estrela?'⭐ ':''}${j.elite?'💎 ':''}${j.n}</div></div><div class="text-orange-500 font-black text-xs">${j.score}</div></div>`).join('');
             renderLeaders();
             
             if(isAdmin) {
@@ -777,7 +784,39 @@
                 }
                 game.winsConsecA = 0; game.winsConsecB = 0;
             }
-            const fill = (time) => { while(time.length < game.config.size) { let p = null; const precisaStar = time.filter(x=>x.estrela).length < game.config.stars; if(precisaStar) p = game.esperaEstrela.find(x => !x.bloqueado && !time.some(j=>estaoBloqueados(x,j))); if(!p) p = game.esperaGeral.find(x => !x.bloqueado && !time.some(j=>estaoBloqueados(x,j))); if(!p && !precisaStar) p = game.esperaEstrela.find(x => !x.bloqueado && !time.some(j=>estaoBloqueados(x,j))); if(!p) p = game.esperaGeral.find(x => !x.bloqueado) || game.esperaEstrela.find(x => !x.bloqueado); if(!p) break; const f = p.estrela ? game.esperaEstrela : game.esperaGeral; f.splice(f.indexOf(p), 1); time.push(p); } };
+            const fill = (time) => { 
+                while(time.length < game.config.size) { 
+                    let p = null; 
+                    const precisaStar = time.filter(x => x.estrela).length < game.config.stars; 
+                    const podeElite = time.filter(x => x.elite).length < 2; // LIMITADOR: Máximo 2 elites por time
+
+                    // Função para checar se o jogador pode entrar (ignora bloqueados, restrições e barra o 3º elite)
+                    const isValid = (x) => {
+                        if (x.bloqueado) return false;
+                        if (time.some(j => estaoBloqueados(x,j))) return false;
+                        if (x.elite && !podeElite) return false; // Se ele é elite e a vaga já acabou, ignora ele
+                        return true;
+                    };
+
+                    if(precisaStar) p = game.esperaEstrela.find(isValid); 
+                    if(!p) p = game.esperaGeral.find(isValid); 
+                    if(!p && !precisaStar) p = game.esperaEstrela.find(isValid); 
+                    
+                    // Fallback ignorando restrições de dupla (mas MANTENDO o limite de elite)
+                    if(!p) {
+                        const isValidFallback = (x) => !x.bloqueado && (!x.elite || podeElite);
+                        p = game.esperaGeral.find(isValidFallback) || game.esperaEstrela.find(isValidFallback);
+                    }
+                    
+                    // Último caso: Pega qualquer um desbloqueado para não travar o app
+                    if(!p) p = game.esperaGeral.find(x => !x.bloqueado) || game.esperaEstrela.find(x => !x.bloqueado); 
+
+                    if(!p) break; 
+                    const f = p.estrela ? game.esperaEstrela : game.esperaGeral; 
+                    f.splice(f.indexOf(p), 1); 
+                    time.push(p); 
+                } 
+            };
             fill(game.timeA); fill(game.timeB);
             game.scoreA = 0; game.scoreB = 0; game.idxA = 0; game.idxB = 0; 
             
@@ -954,7 +993,66 @@
         window.escalarParaTime = (lado) => { const t = lado==='A'?game.timeA:game.timeB; if(t.length<game.config.size) { const l = modalCtx.tabFila==='geral'?game.esperaGeral:game.esperaEstrela; const p = l.splice(modalCtx.idxFila, 1)[0]; p.bloqueado=false; t.push(p); window.fecharModais(); salvarState(); } else alert("Time Cheio!"); };
         function syncQuadra() { if(!isAdmin) return; const p = [...game.timeA, ...game.timeB]; const get = (id) => [...document.getElementById(id).children].map(e => p.find(x => x.id === e.dataset.id)).filter(x=>x); game.timeA = get('areaA'); game.timeB = get('areaB'); salvarState(); }
         function syncFila() { if(!isAdmin) return; const l = filaTab==='geral'?game.esperaGeral:game.esperaEstrela; const els = document.getElementById('esperaContainer').children; const novos = [...els].map(e => l.find(x => x.id === e.dataset.id)).filter(x=>x); if(filaTab==='geral') game.esperaGeral = novos; else game.esperaEstrela = novos; salvarState(); }
-        window.abrirEscalacao = (tab, idx) => { const l = tab==='geral'?game.esperaGeral:game.esperaEstrela; modalCtx = { pFila: l[idx], idxFila: idx, tabFila: tab }; document.getElementById('modalNomeFila').innerText = modalCtx.pFila.nome; const btn = document.getElementById('btnStatusBloqueio'); const btnTroca = document.getElementById('btnTrocarCategoria'); btn.innerText = modalCtx.pFila.bloqueado ? "LIBERAR" : "BLOQUEAR"; btn.onclick = () => { modalCtx.pFila.bloqueado = !modalCtx.pFila.bloqueado; window.fecharModais(); salvarState(); }; if(game.requests.some(r=>r.id===modalCtx.pFila.id)) btnTroca.innerText = "SOLICITADO..."; else if(game.deniedRequests.includes(modalCtx.pFila.id)) { btnTroca.innerText = "ALTERAÇÃO NEGADA"; btnTroca.classList.add('opacity-50'); } else btnTroca.innerText = "TROCAR CATEGORIA"; if(isAdmin) { const gen = (t, side) => t.map((j, i) => `<button onclick="window.substituirJogador('${side}', ${i})" class="w-full bg-slate-700 p-2 rounded text-[9px] mb-1 uppercase border border-slate-600">Sub: ${j.nome}</button>`).join(''); document.getElementById('subsA').innerHTML = gen(game.timeA, 'A'); document.getElementById('subsB').innerHTML = gen(game.timeB, 'B'); } document.getElementById('modalFilaEscala').classList.remove('hidden'); };
+        // --- 1. FUNÇÃO NOVA PARA MARCAR/DESMARCAR O ELITE ---
+        window.toggleElite = () => {
+            if(!isAdmin) return; // Apenas admin pode alterar
+            
+            // Inverte o status de elite do jogador selecionado
+            modalCtx.pFila.elite = !modalCtx.pFila.elite;
+            
+            // Salva no ranking também para o status não sumir ao recarregar a página
+            if(game.ranking[modalCtx.pFila.nome]) {
+                game.ranking[modalCtx.pFila.nome].elite = modalCtx.pFila.elite;
+            }
+            
+            window.fecharModais();
+            salvarState();
+        };
+
+        // --- 2. SUA FUNÇÃO DE ABRIR ESCALAÇÃO ATUALIZADA ---
+        window.abrirEscalacao = (tab, idx) => { 
+            const l = tab === 'geral' ? game.esperaGeral : game.esperaEstrela; 
+            modalCtx = { pFila: l[idx], idxFila: idx, tabFila: tab }; 
+            
+            document.getElementById('modalNomeFila').innerText = modalCtx.pFila.nome; 
+            
+            // -> CONTROLE DO BOTÃO ELITE (NOVO) <-
+            const btnElite = document.getElementById('btnToggleElite');
+            if (btnElite) {
+                // Muda o texto do botão dependendo se o jogador já é elite ou não
+                btnElite.innerText = modalCtx.pFila.elite ? "REMOVER MARCAÇÃO 💎" : "MARCAR COMO ELITE 💎";
+            }
+
+            // -> CONTROLE DO BOTÃO BLOQUEIO NORMAL <-
+            const btn = document.getElementById('btnStatusBloqueio'); 
+            btn.innerText = modalCtx.pFila.bloqueado ? "LIBERAR" : "BLOQUEAR"; 
+            btn.onclick = () => { 
+                modalCtx.pFila.bloqueado = !modalCtx.pFila.bloqueado; 
+                window.fecharModais(); 
+                salvarState(); 
+            }; 
+
+            // -> CONTROLE DO BOTÃO TROCAR CATEGORIA <-
+            const btnTroca = document.getElementById('btnTrocarCategoria'); 
+            if(game.requests.some(r => r.id === modalCtx.pFila.id)) {
+                btnTroca.innerText = "SOLICITADO..."; 
+            } else if(game.deniedRequests.includes(modalCtx.pFila.id)) { 
+                btnTroca.innerText = "ALTERAÇÃO NEGADA"; 
+                btnTroca.classList.add('opacity-50'); 
+            } else {
+                btnTroca.innerText = "TROCAR CATEGORIA";
+                btnTroca.classList.remove('opacity-50');
+            } 
+            
+            // -> LISTA DE SUBSTITUIÇÃO (ADMIN) <-
+            if(isAdmin) { 
+                const gen = (t, side) => t.map((j, i) => `<button onclick="window.substituirJogador('${side}', ${i})" class="w-full bg-slate-700 p-2 rounded text-[9px] mb-1 uppercase border border-slate-600">Sub: ${j.nome}</button>`).join(''); 
+                document.getElementById('subsA').innerHTML = gen(game.timeA, 'A'); 
+                document.getElementById('subsB').innerHTML = gen(game.timeB, 'B'); 
+            } 
+            
+            document.getElementById('modalFilaEscala').classList.remove('hidden'); 
+        };
         window.substituirJogador = (side, idx) => { const t = side==='A'?game.timeA:game.timeB; if(estaoBloqueados(modalCtx.pFila, t[idx])) return alert("Bloqueado!"); const sai = t.splice(idx, 1)[0]; const entra = (modalCtx.tabFila==='geral'?game.esperaGeral:game.esperaEstrela).splice(modalCtx.idxFila, 1)[0]; entra.bloqueado = false; t.splice(idx, 0, entra); (sai.estrela?game.esperaEstrela:game.esperaGeral).push(sai); window.fecharModais(); salvarState(); };
         window.undoLastAction = () => { if(!isAdmin || historicoLocal.length===0) return; game = JSON.parse(historicoLocal.pop()); set(gameRef, game); };
         window.definirSacadorManual = () => { game.saqueLado = modalCtx.lado; if(modalCtx.lado === 'A') { game.idxA = modalCtx.idx; game.jaSacouA = true; } else { game.idxB = modalCtx.idx; game.jaSacouB = true; } window.fecharModais(); salvarState(); };
