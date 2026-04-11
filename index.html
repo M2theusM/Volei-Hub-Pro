@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V1.0.2</title>
+    <title>Vôlei Hub PRO - V1.0.3</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -1018,25 +1018,49 @@
             salvarState();
         };
 
-        // --- 2. SUA FUNÇÃO DE ABRIR ESCALAÇÃO ATUALIZADA ---
+        // --- SUA FUNÇÃO DE ABRIR ESCALAÇÃO ATUALIZADA (COM REORDENAÇÃO) ---
         window.abrirEscalacao = (tab, idx) => { 
             const l = tab === 'geral' ? game.esperaGeral : game.esperaEstrela; 
             modalCtx = { pFila: l[idx], idxFila: idx, tabFila: tab }; 
             
             document.getElementById('modalNomeFila').innerText = modalCtx.pFila.nome; 
             
-            // -> CONTROLE DO BOTÃO ELITE (NOVO) <-
+            // -> CONTROLE DO BOTÃO ELITE <-
             const btnElite = document.getElementById('btnToggleElite');
             if (btnElite) {
-                // Muda o texto do botão dependendo se o jogador já é elite ou não
                 btnElite.innerText = modalCtx.pFila.elite ? "REMOVER MARCAÇÃO 💎" : "MARCAR COMO ELITE 💎";
             }
 
-            // -> CONTROLE DO BOTÃO BLOQUEIO NORMAL <-
+            // -> CONTROLE DO BOTÃO BLOQUEIO NORMAL (COM REORDENAÇÃO NA FILA) <-
             const btn = document.getElementById('btnStatusBloqueio'); 
             btn.innerText = modalCtx.pFila.bloqueado ? "LIBERAR" : "BLOQUEAR"; 
+            
             btn.onclick = () => { 
-                modalCtx.pFila.bloqueado = !modalCtx.pFila.bloqueado; 
+                const estavaBloqueado = modalCtx.pFila.bloqueado;
+                modalCtx.pFila.bloqueado = !estavaBloqueado; 
+                
+                // Se o jogador está sendo LIBERADO, move ele para a posição correta
+                if (estavaBloqueado) {
+                    // 1. Remove da posição atual
+                    l.splice(modalCtx.idxFila, 1);
+                    
+                    // 2. Procura a nova posição (após os jogadores com 0 jogos)
+                    let novaPos = 0;
+                    for (let i = 0; i < l.length; i++) {
+                        const stats = game.ranking[l[i].nome];
+                        const jogos = stats ? (stats.v + stats.d) : 0;
+                        
+                        if (jogos === 0) {
+                            novaPos = i + 1; // Pula quem tem 0 jogos
+                        } else {
+                            break; // Parou de achar jogadores com 0 jogos, essa é a posição!
+                        }
+                    }
+                    
+                    // 3. Insere o jogador na nova posição calculada
+                    l.splice(novaPos, 0, modalCtx.pFila);
+                }
+                
                 window.fecharModais(); 
                 salvarState(); 
             }; 
@@ -1062,6 +1086,7 @@
             
             document.getElementById('modalFilaEscala').classList.remove('hidden'); 
         };
+        
         window.substituirJogador = (side, idx) => { const t = side==='A'?game.timeA:game.timeB; if(estaoBloqueados(modalCtx.pFila, t[idx])) return alert("Bloqueado!"); const sai = t.splice(idx, 1)[0]; const entra = (modalCtx.tabFila==='geral'?game.esperaGeral:game.esperaEstrela).splice(modalCtx.idxFila, 1)[0]; entra.bloqueado = false; t.splice(idx, 0, entra); (sai.estrela?game.esperaEstrela:game.esperaGeral).push(sai); window.fecharModais(); salvarState(); };
         window.undoLastAction = () => { if(!isAdmin || historicoLocal.length===0) return; game = JSON.parse(historicoLocal.pop()); set(gameRef, game); };
         window.definirSacadorManual = () => { game.saqueLado = modalCtx.lado; if(modalCtx.lado === 'A') { game.idxA = modalCtx.idx; game.jaSacouA = true; } else { game.idxB = modalCtx.idx; game.jaSacouB = true; } window.fecharModais(); salvarState(); };
