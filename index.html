@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V1.1.1</title>
+    <title>Vôlei Hub PRO - V1.1.2</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -201,6 +201,11 @@
             
             <p class="text-[10px] text-slate-400 mb-2 uppercase font-bold">Selecione seu nome na lista:</p>
             <select id="selMeuNome" class="config-input mb-4 h-10"></select>
+            
+            <div class="flex gap-2 mb-6">
+                <button onclick="window.salvarIdentificacao(false)" class="flex-1 bg-slate-600 hover:bg-slate-500 p-3 rounded-xl font-bold uppercase text-[9px] shadow-lg transition">Apenas Confirmar</button>
+                <button onclick="window.salvarIdentificacao(true)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 p-3 rounded-xl font-bold uppercase text-[9px] shadow-lg transition text-white">Confirmar e Liberar</button>
+            </div>
             <button onclick="window.salvarIdentificacao()" class="w-full bg-blue-600 p-3 rounded-xl font-bold uppercase text-xs mb-6 shadow-lg hover:bg-blue-500 transition">Confirmar Identidade</button>
 
             <div class="border-t border-slate-700 pt-4">
@@ -289,7 +294,6 @@
                     <button onclick="window.registrarAcaoJogador('ataque')" class="w-full bg-slate-700 p-4 rounded-2xl font-bold uppercase text-xs flex justify-between italic hover:bg-slate-600">
                         <div class="flex flex-col text-left">
                             <span>💥 Ponto de Ataque</span>
-                            <span class="text-[8px] text-slate-400 font-normal normal-case">+0.25 p/ companheiros</span>
                         </div>
                         <span id="labelAtq" class="text-orange-500"></span>
                     </button>
@@ -451,17 +455,55 @@
                 window.abrirAuditModal(meuNome); // Abre os stats diretos se já estiver logado
             } else {
                 const all = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela].sort((a,b)=>a.nome.localeCompare(b.nome)); 
-                const opt = `<option value="" disabled selected>- Selecione seu nome -</option>` + all.map(p=>`<option value="${p.nome}">${p.nome}</option>`).join(''); 
+                
+                // Adiciona o "(Bloqueado)" ao lado do nome se o jogador estiver bloqueado
+                const opt = `<option value="" disabled selected>- Selecione seu nome -</option>` + all.map(p => {
+                    const status = p.bloqueado ? ' (Bloqueado)' : '';
+                    return `<option value="${p.nome}">${p.nome}${status}</option>`;
+                }).join(''); 
+                
                 document.getElementById('selMeuNome').innerHTML = opt;
                 document.getElementById('modalIdentificacao').classList.remove('hidden');
             }
         };
 
-        window.salvarIdentificacao = () => {
+        window.salvarIdentificacao = (liberar = false) => {
             const val = document.getElementById('selMeuNome').value;
             if (val) {
                 meuNome = val;
                 localStorage.setItem('voleihub_meunome', meuNome);
+                
+                // Se o usuário clicou no botão verde "Confirmar e Liberar"
+                if(liberar) {
+                    let list = null;
+                    let p = null;
+                    
+                    // Encontra em qual fila o jogador está
+                    if (game.esperaGeral.some(x => x.nome === val)) {
+                        list = game.esperaGeral; p = list.find(x => x.nome === val);
+                    } else if (game.esperaEstrela.some(x => x.nome === val)) {
+                        list = game.esperaEstrela; p = list.find(x => x.nome === val);
+                    }
+                    
+                    // Se achou o jogador e ele estava bloqueado, libera e organiza a fila
+                    if (p && p.bloqueado) {
+                        p.bloqueado = false;
+                        
+                        // Retira ele da posição atual e o coloca de forma justa no final da fila (respeitando novatos com 0 jogos)
+                        list.splice(list.indexOf(p), 1);
+                        let novaPos = 0;
+                        for (let i = 0; i < list.length; i++) {
+                            const stats = game.ranking[list[i].nome];
+                            const jogos = stats ? (stats.v + stats.d) : 0;
+                            if (jogos === 0) novaPos = i + 1;
+                            else break;
+                        }
+                        list.splice(novaPos, 0, p);
+                        
+                        salvarState(); // Salva a liberação no banco de dados
+                    }
+                }
+                
                 window.fecharModais();
                 render();
             } else {
