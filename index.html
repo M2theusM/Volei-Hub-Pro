@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V1.1.5</title>
+    <title>Vôlei Hub PRO - V1.1.6</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -378,6 +378,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDdX-lpFmddIHt2scaramJSyo3RnJOxtO4",
@@ -391,6 +392,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        const auth = getAuth(app);
         const gameRef = ref(db, 'partida/v9_5'); // Atualizado para v9.5
 
         const INITIAL_GERAL = ["DANIELE", "EDINHO", "JUNIOR", "NINO", "LUIZ EDUARDO", "MAICON", "MATEUS BRAZ", "ROBSON", "SAMUEL", "YURI"];
@@ -400,9 +402,37 @@
         const PHRASES = ["", "Na conta! Fez 1 ponto.", "Dobradinha! 2 pontos nessa partida", "Pegando fogo! 🔥 Terceiro ponto nesse jogo.", "Insuportável! 4 pontos e contando...", "Mão de ferro! 👊 5 pontos feitos", "Dono da quadra! Fez metade do set sozinho!", "Modo God ativado! ⚡ 7 pontos na partida.", "Chamem o SAMU! Já são 8 pontos.", "Lendário! 9 pontos na partida.", "10 pontos feitos! Fechem as portas e apaguem as luzes! 🏆"];
         const DEFAULT_RESTRICTIONS = [["PATY", "MATEUS BRAZ"],["RAFAEL", "YURI"], ["MATEUS BRAZ", "YURI"]];
 
+        let isAdmin = false;
+
+        // Fica escutando para ver se você está logado
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                isAdmin = true;
+                document.body.classList.add('is-admin');
+            } else {
+                isAdmin = false;
+                document.body.classList.remove('is-admin');
+            }
+            render(); // Atualiza a tela escondendo/mostrando os botões
+        });
+
+        // Função secreta para você logar
+        window.fazerLoginAdmin = () => {
+            const email = prompt("E-mail do Administrador:");
+            if (!email) return;
+            const senha = prompt("Senha:");
+            if (!senha) return;
+
+            signInWithEmailAndPassword(auth, email, senha)
+                .then(() => { alert("Acesso de Administrador Liberado! 🔐"); })
+                .catch((error) => { alert("Erro de acesso: Usuário ou senha incorretos."); });
+        };
+
+        // Escuta a URL. Se você acessar com "?login=admin", ele pede a senha.
         const params = new URLSearchParams(window.location.search);
-        const isAdmin = params.get('admin') === 'true';
-        if(isAdmin) document.body.classList.add('is-admin');
+        if (params.get('login') === 'admin') {
+            setTimeout(window.fazerLoginAdmin, 800); 
+        }
 
         // --- MOTOR DE ÁUDIO SINTÉTICO (APITO REALISTA) ---
         let audioCtx;
