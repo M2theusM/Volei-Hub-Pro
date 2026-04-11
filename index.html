@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V1.0.6</title>
+    <title>Vôlei Hub PRO - V1.0.7</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -215,13 +215,14 @@
         </div>
     </div>
     <div id="modalConfigMenu" class="modal-global hidden">
-        <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-slate-700 overflow-y-auto max-h-[90vh]">
-            <h2 class="text-xl font-black text-orange-500 uppercase mb-6 italic">Configurações</h2>
-            <div class="space-y-4 mb-6">
-                <div class="bg-slate-700/50 p-4 rounded-xl border border-slate-600">
+       <div class="bg-slate-700/50 p-4 rounded-xl border border-slate-600 space-y-3">
                     <div class="flex justify-between items-center">
                         <span class="text-[10px] font-black uppercase text-blue-400">Exibir Ranking p/ Todos</span>
                         <button id="btnToggleRank" onclick="window.togglePublicRanking()" class="text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400">Desativado</button>
+                    </div>
+                    <div class="flex justify-between items-center border-t border-slate-600 pt-3">
+                        <span class="text-[10px] font-black uppercase text-orange-400">Esconder Placar (Print)</span>
+                        <button id="btnToggleScoreboard" onclick="window.toggleScoreboardVis()" class="text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400">Visível</button>
                     </div>
                 </div>
 
@@ -641,8 +642,11 @@
 
             const infoPanel = document.getElementById('info-panel');
             const placarDiv = document.getElementById('placarDisplay');
-            
-            placarDiv.classList.remove('hidden'); 
+            if (game.config.hideScoreboard) {
+                placarDiv.classList.add('hidden'); // Esconde se a opção estiver ativada
+            } else {
+                placarDiv.classList.remove('hidden'); // Mostra normalmente
+            }
             infoPanel.classList.remove('hidden');
             
             const bell = document.getElementById('admin-notif-bell');
@@ -932,6 +936,7 @@
         window.abrirConfig = () => {
             tempConfig = JSON.parse(JSON.stringify(game.config)); 
             tempConfig.publicRanking = game.publicRanking; 
+            tempConfig.hideScoreboard = game.config.hideScoreboard || false; // Nova Propriedade
             
             document.getElementById('cSize').value = tempConfig.size;
             document.getElementById('cStars').value = tempConfig.stars;
@@ -949,14 +954,33 @@
             updateToggleBtnUI();
         };
 
+        // Nova função para o botão do placar
+        window.toggleScoreboardVis = () => {
+            tempConfig.hideScoreboard = !tempConfig.hideScoreboard;
+            updateToggleBtnUI();
+        };
+
         function updateToggleBtnUI() {
-            const btn = document.getElementById('btnToggleRank');
+            // Controle do botão de Ranking
+            const btnRk = document.getElementById('btnToggleRank');
             if(tempConfig.publicRanking) {
-                btn.innerText = "ATIVADO (Salvar p/ Aplicar)";
-                btn.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-green-500 text-green-400";
+                btnRk.innerText = "ATIVADO (Salvar p/ Aplicar)";
+                btnRk.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-green-500 text-green-400";
             } else {
-                btn.innerText = "DESATIVADO";
-                btn.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400";
+                btnRk.innerText = "DESATIVADO";
+                btnRk.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400";
+            }
+
+            // Controle do botão de Esconder Placar
+            const btnSb = document.getElementById('btnToggleScoreboard');
+            if(btnSb) {
+                if(tempConfig.hideScoreboard) {
+                    btnSb.innerText = "OCULTO (Salvar p/ Aplicar)";
+                    btnSb.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-red-500 text-red-400";
+                } else {
+                    btnSb.innerText = "VISÍVEL";
+                    btnSb.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400";
+                }
             }
         }
 
@@ -967,7 +991,10 @@
             game.config.maxWins = parseInt(document.getElementById('cMax').value);
             game.config.reaction = document.getElementById('cReaction').value;
             game.config.desempate = document.getElementById('cDesempate').value;
+            
+            // Salva as novas configurações
             game.publicRanking = tempConfig.publicRanking;
+            game.config.hideScoreboard = tempConfig.hideScoreboard;
             
             window.fecharModais();
             salvarState();
