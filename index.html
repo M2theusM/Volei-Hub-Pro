@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V1.0.5</title>
+    <title>Vôlei Hub PRO - V1.0.6</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -254,8 +254,7 @@
             <button onclick="window.fecharModais()" class="w-full py-4 text-slate-500 text-[10px] font-bold uppercase">Fechar</button>
         </div>
     </div>
-    <button id="btnDeslogar" onclick="window.deslogarIdentidade()" class="w-full mt-6 bg-red-900/30 text-red-500 py-3 rounded-xl uppercase text-xs font-black hover:bg-red-900/50 hidden border border-red-900/50">Sair / Trocar de Conta</button>
-    <button onclick="window.fecharModais()" class="w-full mt-2 bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600">Voltar</button>
+
     <div id="modalAudit" class="modal-global hidden">
         <div class="bg-slate-800 w-full max-w-xs rounded-3xl p-6 border border-orange-500">
             <h3 id="auditNome" class="font-black text-orange-500 uppercase text-lg italic mb-2">---</h3>
@@ -268,7 +267,9 @@
                 <span class="text-xs font-black uppercase text-slate-400">Total Score</span>
                 <span id="auditTotal" class="text-3xl font-black text-orange-500">0</span>
             </div>
-            <button onclick="window.fecharModais()" class="w-full mt-6 bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600">Voltar</button>
+            
+            <button id="btnDeslogar" onclick="window.deslogarIdentidade()" class="w-full mt-6 bg-red-900/30 text-red-500 py-3 rounded-xl uppercase text-xs font-black hover:bg-red-900/50 hidden border border-red-900/50">Sair / Trocar de Conta</button>
+            <button onclick="window.fecharModais()" class="w-full mt-2 bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600">Voltar</button>
         </div>
     </div>
 
