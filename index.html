@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V1.0.3</title>
+    <title>Vôlei Hub PRO - V1.0.4</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -1018,46 +1018,50 @@
             salvarState();
         };
 
-        // --- SUA FUNÇÃO DE ABRIR ESCALAÇÃO ATUALIZADA (COM REORDENAÇÃO) ---
         window.abrirEscalacao = (tab, idx) => { 
             const l = tab === 'geral' ? game.esperaGeral : game.esperaEstrela; 
             modalCtx = { pFila: l[idx], idxFila: idx, tabFila: tab }; 
             
             document.getElementById('modalNomeFila').innerText = modalCtx.pFila.nome; 
             
-            // -> CONTROLE DO BOTÃO ELITE <-
             const btnElite = document.getElementById('btnToggleElite');
-            if (btnElite) {
-                btnElite.innerText = modalCtx.pFila.elite ? "REMOVER MARCAÇÃO 💎" : "MARCAR COMO ELITE 💎";
-            }
+            if (btnElite) btnElite.innerText = modalCtx.pFila.elite ? "REMOVER MARCAÇÃO 💎" : "MARCAR COMO ELITE 💎";
 
-            // -> CONTROLE DO BOTÃO BLOQUEIO NORMAL (COM REORDENAÇÃO NA FILA) <-
+            // -> CONTROLE DO BOTÃO BLOQUEIO/LIBERAÇÃO <-
             const btn = document.getElementById('btnStatusBloqueio'); 
             btn.innerText = modalCtx.pFila.bloqueado ? "LIBERAR" : "BLOQUEAR"; 
             
             btn.onclick = () => { 
-                const estavaBloqueado = modalCtx.pFila.bloqueado;
+                const estavaBloqueado = modalCtx.pFila.bloqueado; 
+                
+                // SE NÃO FOR ADMIN E TENTAR BLOQUEAR: Cria a solicitação
+                if (!isAdmin && !estavaBloqueado) {
+                    const reqId = modalCtx.pFila.id + '_block'; 
+                    
+                    if(!game.requests.some(r => r.reqId === reqId)) {
+                        game.requests.push({ reqId: reqId, id: modalCtx.pFila.id, nome: modalCtx.pFila.nome, tipo: 'bloqueio', acao: 'bloquear' });
+                        alert("Solicitação para BLOQUEAR enviada ao Admin!");
+                        salvarState();
+                    } else {
+                        alert("Já existe uma solicitação pendente para este jogador.");
+                    }
+                    window.fecharModais();
+                    return;
+                }
+
+                // SE FOR ADMIN OU SE A AÇÃO FOR "LIBERAR": Aplica na hora
                 modalCtx.pFila.bloqueado = !estavaBloqueado; 
                 
-                // Se o jogador está sendo LIBERADO, move ele para a posição correta
+                // Se está liberando (estava bloqueado), faz a reordenação inteligente
                 if (estavaBloqueado) {
-                    // 1. Remove da posição atual
                     l.splice(modalCtx.idxFila, 1);
-                    
-                    // 2. Procura a nova posição (após os jogadores com 0 jogos)
                     let novaPos = 0;
                     for (let i = 0; i < l.length; i++) {
                         const stats = game.ranking[l[i].nome];
                         const jogos = stats ? (stats.v + stats.d) : 0;
-                        
-                        if (jogos === 0) {
-                            novaPos = i + 1; // Pula quem tem 0 jogos
-                        } else {
-                            break; // Parou de achar jogadores com 0 jogos, essa é a posição!
-                        }
+                        if (jogos === 0) novaPos = i + 1;
+                        else break;
                     }
-                    
-                    // 3. Insere o jogador na nova posição calculada
                     l.splice(novaPos, 0, modalCtx.pFila);
                 }
                 
@@ -1067,7 +1071,7 @@
 
             // -> CONTROLE DO BOTÃO TROCAR CATEGORIA <-
             const btnTroca = document.getElementById('btnTrocarCategoria'); 
-            if(game.requests.some(r => r.id === modalCtx.pFila.id)) {
+            if(game.requests.some(r => r.id === modalCtx.pFila.id && (!r.tipo || r.tipo === 'categoria'))) {
                 btnTroca.innerText = "SOLICITADO..."; 
             } else if(game.deniedRequests.includes(modalCtx.pFila.id)) { 
                 btnTroca.innerText = "ALTERAÇÃO NEGADA"; 
@@ -1077,7 +1081,6 @@
                 btnTroca.classList.remove('opacity-50');
             } 
             
-            // -> LISTA DE SUBSTITUIÇÃO (ADMIN) <-
             if(isAdmin) { 
                 const gen = (t, side) => t.map((j, i) => `<button onclick="window.substituirJogador('${side}', ${i})" class="w-full bg-slate-700 p-2 rounded text-[9px] mb-1 uppercase border border-slate-600">Sub: ${j.nome}</button>`).join(''); 
                 document.getElementById('subsA').innerHTML = gen(game.timeA, 'A'); 
