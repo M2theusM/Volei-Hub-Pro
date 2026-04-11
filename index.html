@@ -635,24 +635,39 @@
             }
             if(lado === 'A') game.scoreA++; else game.scoreB++;
             
-            // LÓGICA DE MATCH POINT
+            // --- NOVA LÓGICA DE MATCH POINT ---
             const limit = game.config.points;
-            let isMatchPoint = false;
-            
-            if(game.config.desempate === '3direto') {
-               if((lado==='A' && game.scoreA >= limit-1 && game.scoreA > game.scoreB) || (lado==='B' && game.scoreB >= limit-1 && game.scoreB > game.scoreA)) isMatchPoint = true;
-            } else {
-               if((lado==='A' && game.scoreA >= limit-1 && game.scoreA > game.scoreB) || (lado==='B' && game.scoreB >= limit-1 && game.scoreB > game.scoreA)) isMatchPoint = true;
+            let alvoA = limit;
+            let alvoB = limit;
+
+            // 1. Define o alvo dinâmico
+            if (game.config.desempate === '3direto') {
+                if (game.scoreA >= limit - 1 && game.scoreB >= limit - 1) {
+                    alvoA = (limit - 1) + 3;
+                    alvoB = (limit - 1) + 3;
+                }
+            } else if (game.config.desempate === '2vantagem') {
+                alvoA = Math.max(limit, game.scoreB + 2);
+                alvoB = Math.max(limit, game.scoreA + 2);
             }
 
-            if(isMatchPoint) {
-                // PRIORIDADE MÁXIMA: Sobrescreve "Ponto por Erro" se for Match Point
-                setSystemMessage("MATCH POINT!", `Time ${lado} jogando pelo set`, true);
+            // 2. Verifica se estão a 1 ponto de ganhar
+            const aNoMatchPoint = (game.scoreA === alvoA - 1);
+            const bNoMatchPoint = (game.scoreB === alvoB - 1);
+
+            // 3. Exibe as mensagens usando seu sistema nativo (setSystemMessage)
+            if (aNoMatchPoint && bNoMatchPoint) {
+                setSystemMessage("MATCH POINT!", "AMBOS JOGANDO PELO SET", true);
+            } else if (aNoMatchPoint) {
+                setSystemMessage("MATCH POINT!", "Time A jogando pelo set", true);
+            } else if (bNoMatchPoint) {
+                setSystemMessage("MATCH POINT!", "Time B jogando pelo set", true);
             } else if (!isErro) {
-                // Mensagens secundárias (Vai a 3, Vai a 2) só aparecem se não for erro (para não poluir)
+                // Mensagens secundárias voltam se não houver match point
                 if(game.config.desempate === '3direto' && game.scoreA === limit-1 && game.scoreB === limit-1) setSystemMessage("VAI A 3!", "Desempate Direto", false);
                 else if(game.config.desempate === '2vantagem' && game.scoreA >= limit-1 && game.scoreB >= limit-1 && Math.abs(game.scoreA-game.scoreB) < 2) setSystemMessage("VAI A 2!", "Vantagem Necessária", false);
             }
+            // ------------------------------------
             
             verificarFimDeSet();
             salvarState(false);
