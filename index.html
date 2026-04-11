@@ -457,11 +457,20 @@
 
         function initGameData() {
             game.esperaGeral = []; game.esperaEstrela = [];
+            
+            // Carrega os 3 grupos nas suas respectivas filas
             INITIAL_GERAL.forEach(n => adicionarLocal(n, false));
             INITIAL_ESTRELA.forEach(n => adicionarLocal(n, true));
+            INITIAL_ELITE.forEach(n => adicionarLocal(n, false)); // <-- AGORA OS ELITES ENTRAM NA FILA GERAL!
+
             const all = [...game.esperaGeral, ...game.esperaEstrela];
             game.restricoes = [];
-            DEFAULT_RESTRICTIONS.forEach(pair => { const p1 = all.find(p => p.nome === pair[0]); const p2 = all.find(p => p.nome === pair[1]); if(p1 && p2) game.restricoes.push([p1.id, p2.id]); });
+            DEFAULT_RESTRICTIONS.forEach(pair => { 
+                const p1 = all.find(p => p.nome === pair[0]); 
+                const p2 = all.find(p => p.nome === pair[1]); 
+                if(p1 && p2) game.restricoes.push([p1.id, p2.id]); 
+            });
+            
             game.esperaGeral.forEach(p => p.bloqueado = true);
             game.esperaEstrela.forEach(p => p.bloqueado = true);
             
