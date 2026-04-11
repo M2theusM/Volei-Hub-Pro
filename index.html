@@ -3,13 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V10.0</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
+    <title>Vôlei Hub PRO - V11.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         .jogador-card { touch-action: none; border: 2px solid transparent; transition: all 0.2s; cursor: pointer; position: relative; z-index: 10; user-select: none; }
-        .sacando { border-color: #f59e0b !important; background-color: #2d3748 !important; box-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
         .is-estrela { border-right: 4px solid #f59e0b !important; }
         .is-elite { border-left: 4px solid #00d4ff !important; }
         .modal-global { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
@@ -17,7 +14,7 @@
         body { background-color: #0f172a; color: white; font-family: system-ui, -apple-system, sans-serif; overscroll-behavior: none; }
         .is-admin .admin-only { display: flex !important; }
         .admin-only { display: none !important; }
-        #placarDisplay.oculto { visibility: hidden; pointer-events: none; }
+        #placarDisplay.oculto { opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body class="p-4 pb-24">
@@ -32,12 +29,12 @@
                 <span class="absolute -top-1 -right-1 bg-red-600 w-3 h-3 rounded-full border-2 border-slate-900 animate-pulse"></span>
                 <span class="text-xl">🔔</span>
             </div>
-            <button onclick="abrirConfig()" class="bg-slate-800 p-2 rounded-xl border border-slate-700 shadow-lg">⚙️</button>
+            <button onclick="abrirConfig()" class="bg-slate-800 p-2 rounded-xl border border-slate-700">⚙️</button>
         </div>
     </header>
 
-    <div id="placarDisplay" class="bg-slate-800 rounded-3xl p-6 border-b-4 border-slate-700 shadow-2xl mb-6 relative overflow-hidden transition-all duration-300">
-        <div class="flex justify-between items-center relative z-10">
+    <div id="placarDisplay" class="bg-slate-800 rounded-3xl p-6 border-b-4 border-slate-700 shadow-2xl mb-6 transition-all duration-300">
+        <div class="flex justify-between items-center">
             <div class="text-center flex-1">
                 <span class="text-[10px] font-black uppercase text-blue-400 tracking-widest mb-1 block">Time A</span>
                 <div id="scoreA" class="text-6xl font-black tabular-nums">00</div>
@@ -50,31 +47,28 @@
         </div>
     </div>
 
-    <div id="quadraContainer" class="space-y-4 mb-8">
-        <div id="timeA" class="grid grid-cols-2 gap-3 p-4 bg-blue-900/20 rounded-2xl border border-blue-500/30"></div>
+    <div class="space-y-4 mb-8">
+        <div id="quadraA" class="grid grid-cols-2 gap-3 p-4 bg-blue-900/20 rounded-2xl border border-blue-500/30 min-h-[100px]"></div>
         <div class="flex justify-center -my-6 relative z-20">
-            <div class="bg-slate-700 px-6 py-1 rounded-full text-[10px] font-black uppercase border-2 border-slate-800 shadow-xl">Rede</div>
+            <div class="bg-slate-700 px-6 py-1 rounded-full text-[10px] font-black uppercase border-2 border-slate-800">Rede</div>
         </div>
-        <div id="timeB" class="grid grid-cols-2 gap-3 p-4 bg-orange-900/20 rounded-2xl border border-orange-500/30"></div>
+        <div id="quadraB" class="grid grid-cols-2 gap-3 p-4 bg-orange-900/20 rounded-2xl border border-orange-500/30 min-h-[100px]"></div>
     </div>
 
     <div class="admin-only fixed bottom-6 left-4 right-4 flex gap-2 z-50">
-        <button onclick="registrarPontoSimples('A', true)" class="flex-1 bg-blue-600 py-4 rounded-2xl font-black text-sm uppercase shadow-lg shadow-blue-900/40 active:scale-95 transition">Ponto A</button>
-        <button onclick="registrarPontoSimples('B', true)" class="flex-1 bg-orange-600 py-4 rounded-2xl font-black text-sm uppercase shadow-lg shadow-orange-900/40 active:scale-95 transition">Ponto B</button>
+        <button onclick="registrarPontoSimples('A', true)" class="flex-1 bg-blue-600 py-4 rounded-2xl font-black text-sm uppercase shadow-lg active:scale-95">Ponto A</button>
+        <button onclick="registrarPontoSimples('B', true)" class="flex-1 bg-orange-600 py-4 rounded-2xl font-black text-sm uppercase shadow-lg active:scale-95">Ponto B</button>
     </div>
 
     <div class="space-y-4">
-        <button onclick="abrirHistorico()" class="w-full bg-slate-800 border border-slate-700 text-blue-400 p-3 rounded-xl font-black uppercase text-[10px] hover:bg-slate-700">📜 Histórico de Partidas</button>
+        <button onclick="abrirHistorico()" class="w-full bg-slate-800 border border-slate-700 text-blue-400 p-3 rounded-xl font-black uppercase text-[10px]">📜 Histórico de Partidas</button>
         
-        <section id="rankingSection" class="bg-slate-900 rounded-3xl border border-slate-800 p-5 shadow-xl">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xs font-black uppercase tracking-widest text-emerald-400">Ranking Master</h3>
-                <button onclick="abrirAddJogador()" class="admin-only bg-emerald-600 px-3 py-1 rounded-lg text-[10px] font-bold">+ NOVO</button>
-            </div>
+        <section class="bg-slate-900 rounded-3xl border border-slate-800 p-5">
+            <h3 class="text-xs font-black uppercase tracking-widest text-emerald-400 mb-4">Ranking Master</h3>
             <div id="listaRanking" class="space-y-2"></div>
         </section>
 
-        <section class="bg-slate-900 rounded-3xl border border-slate-800 p-5 shadow-xl mb-12">
+        <section class="bg-slate-900 rounded-3xl border border-slate-800 p-5 mb-12">
             <h3 class="text-xs font-black uppercase tracking-widest text-blue-400 mb-4 italic">Próximos na Fila</h3>
             <div id="listaFila" class="space-y-2"></div>
         </section>
@@ -82,7 +76,7 @@
 
     <div id="modalHistorico" class="modal-global hidden">
         <div class="bg-slate-900 w-full max-w-md rounded-3xl p-6 border-2 border-blue-500 max-h-[80vh] overflow-y-auto">
-            <h2 class="text-xl font-black text-blue-400 uppercase italic mb-4">Histórico Recente</h2>
+            <h2 class="text-xl font-black text-blue-400 uppercase italic mb-4">Histórico</h2>
             <div id="conteudoHistorico" class="space-y-3"></div>
             <button onclick="fecharModais()" class="w-full bg-slate-800 p-3 rounded-xl mt-4 font-bold uppercase text-[10px]">Fechar</button>
         </div>
@@ -90,354 +84,197 @@
 
     <div id="modalConfig" class="modal-global hidden">
         <div class="bg-slate-900 w-full max-w-md rounded-3xl p-6 border-2 border-slate-700">
-            <h2 class="text-xl font-black uppercase italic mb-6">Configurações</h2>
-            
+            <h2 class="text-xl font-black uppercase italic mb-4">Configurações</h2>
             <div class="space-y-4 mb-6">
-                <div>
-                    <label class="text-[10px] font-black uppercase text-slate-500 mb-2 block">Set de quantos pontos?</label>
-                    <input type="number" id="cPoints" class="config-input" value="12">
-                </div>
-                <div>
-                    <label class="text-[10px] font-black uppercase text-slate-500 mb-2 block">Regra de Desempate</label>
-                    <select id="cDesempate" class="config-input">
-                        <option value="normal">Diferença de 2</option>
-                        <option value="3direto">3 Diretos (pós 11x11)</option>
-                    </select>
-                </div>
-                <button onclick="togglePlacarOculto()" class="w-full bg-slate-800 py-3 rounded-xl text-[10px] font-black uppercase border border-slate-700">👁️ Esconder Placar p/ Print</button>
+                <input type="number" id="cPoints" class="config-input" placeholder="Pontos do Set">
+                <select id="cDesempate" class="config-input">
+                    <option value="3direto">Desempate: 3 Diretos (pós 11x11)</option>
+                    <option value="normal">Diferença de 2</option>
+                </select>
+                <button onclick="document.getElementById('placarDisplay').classList.toggle('oculto')" class="w-full bg-slate-800 py-3 rounded-xl text-[10px] font-black uppercase border border-slate-700">👁️ Esconder Placar p/ Print</button>
             </div>
-
-            <h3 class="text-xs font-black text-emerald-400 uppercase mb-3">Pesos de Pontuação (Geral vs Estrela)</h3>
-            <div class="grid grid-cols-3 gap-2 mb-4">
-                <div class="text-[8px] font-bold text-slate-500 text-center uppercase">Ação</div>
-                <div class="text-[8px] font-bold text-white text-center uppercase">Geral</div>
-                <div class="text-[8px] font-bold text-orange-400 text-center uppercase">Estrela</div>
-                
-                <div>Ataque</div>
-                <input type="number" id="wAtqG" step="0.1" class="config-input py-1 text-xs">
-                <input type="number" id="wAtqE" step="0.1" class="config-input py-1 text-xs">
-                
-                <div>Bloqueio</div>
-                <input type="number" id="wBlqG" step="0.1" class="config-input py-1 text-xs">
-                <input type="number" id="wBlqE" step="0.1" class="config-input py-1 text-xs">
-                
-                <div>Ace</div>
-                <input type="number" id="wAceG" step="0.1" class="config-input py-1 text-xs">
-                <input type="number" id="wAceE" step="0.1" class="config-input py-1 text-xs">
-
-                <div>Vitória</div>
-                <input type="number" id="wVitG" step="0.1" class="config-input py-1 text-xs">
-                <input type="number" id="wVitE" step="0.1" class="config-input py-1 text-xs">
+            <div class="grid grid-cols-3 gap-2 mb-6">
+                <div class="text-[8px] text-center">PESOS</div>
+                <div class="text-[8px] text-center">GERAL</div>
+                <div class="text-[8px] text-center text-orange-400">ESTRELA</div>
+                <div>Ataque</div> <input type="number" id="wAtqG" step="0.1" class="config-input py-1 text-xs"> <input type="number" id="wAtqE" step="0.1" class="config-input py-1 text-xs">
+                <div>Vitória</div> <input type="number" id="wVitG" step="0.1" class="config-input py-1 text-xs"> <input type="number" id="wVitE" step="0.1" class="config-input py-1 text-xs">
             </div>
-
-            <div class="flex gap-2">
-                <button onclick="salvarConfig()" class="flex-1 bg-emerald-600 py-3 rounded-xl font-bold uppercase text-xs">Salvar</button>
-                <button onclick="fecharModais()" class="flex-1 bg-slate-700 py-3 rounded-xl font-bold uppercase text-xs">Sair</button>
-            </div>
+            <button onclick="salvarConfig()" class="w-full bg-emerald-600 py-3 rounded-xl font-bold uppercase text-xs">Salvar Alterações</button>
         </div>
     </div>
 
     <script>
-        const ELITE_PLAYERS = ["Matheus Matos", "Odair", "Rafael", "Marciano", "Janir"];
+        const ELITE_PLAYERS = ["Matheus Matos", "Odair", "Rafael", "Marciano", "Janir", "Lucas Primavera"];
         
+        // BANCO DE DADOS INICIAL COM SEUS JOGADORES
         let game = {
-            scoreA: 0,
-            scoreB: 0,
-            timeA: [],
-            timeB: [],
-            fila: [],
-            ranking: {},
+            scoreA: 0, scoreB: 0,
+            timeA: [], timeB: [],
             matchLog: [],
-            solicitacoes: [],
             config: {
-                cPoints: 12,
-                cDesempate: '3direto',
-                weights: {
-                    atqG: 1, atqE: 1.5,
-                    blqG: 1.2, blqE: 1.8,
-                    aceG: 1.5, aceE: 2,
-                    vitG: 5, vitE: 10,
-                    err: 0.5
-                }
-            }
+                cPoints: 12, cDesempate: '3direto',
+                weights: { atqG: 1, atqE: 1.5, vitG: 5, vitE: 10 }
+            },
+            ranking: {
+                "p1": { nome: "Daniele", estrela: true, ataques: 0, vitorias: 0 },
+                "p2": { nome: "Edinho", estrela: false, ataques: 0, vitorias: 0 },
+                "p3": { nome: "Júnior", estrela: false, ataques: 0, vitorias: 0 },
+                "p4": { nome: "Hemily", estrela: true, ataques: 0, vitorias: 0 },
+                "p5": { nome: "Ítalo", estrela: false, ataques: 0, vitorias: 0 },
+                "p6": { nome: "Janir", estrela: false, ataques: 0, vitorias: 0 },
+                "p7": { nome: "Kemilly", estrela: true, ataques: 0, vitorias: 0 },
+                "p8": { nome: "Lucas Primavera", estrela: false, ataques: 0, vitorias: 0 },
+                "p9": { nome: "Luiz Eduardo", estrela: false, ataques: 0, vitorias: 0 },
+                "p10": { nome: "Maicon", estrela: false, ataques: 0, vitorias: 0 },
+                "p11": { nome: "Marciano", estrela: false, ataques: 0, vitorias: 0 },
+                "p12": { nome: "Mateus Braz", estrela: false, ataques: 0, vitorias: 0 },
+                "p13": { nome: "Matheus Matos", estrela: false, ataques: 0, vitorias: 0 },
+                "p14": { nome: "Odair", estrela: false, ataques: 0, vitorias: 0 },
+                "p15": { nome: "Paty", estrela: true, ataques: 0, vitorias: 0 },
+                "p16": { nome: "Rafael", estrela: false, ataques: 0, vitorias: 0 },
+                "p17": { nome: "Rhuana", estrela: true, ataques: 0, vitorias: 0 },
+                "p18": { nome: "Robson", estrela: false, ataques: 0, vitorias: 0 },
+                "p19": { nome: "Samuel", estrela: false, ataques: 0, vitorias: 0 },
+                "p20": { nome: "Yuri", estrela: false, ataques: 0, vitorias: 0 }
+            },
+            fila: ["p1","p2","p3","p4","p5","p6","p7","p8","p9","p10","p11","p12","p13","p14","p15","p16","p17","p18","p19","p20"]
         };
 
-        // --- SEGURANÇA ADMIN ---
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('admin') === 'true') {
-                const pass = prompt("🔐 Digite a senha de acesso:");
-                if (pass === "5cat@mat") {
-                    document.body.classList.add('is-admin');
-                } else {
-                    alert("Acesso Negado!");
-                    window.location.href = window.location.pathname;
-                }
+                const pass = prompt("🔐 Chave de acesso:");
+                if (pass === "5cat@mat") document.body.classList.add('is-admin');
+                else window.location.href = window.location.pathname;
             }
-            carregarDados();
+            const local = localStorage.getItem('voleiHubSeed');
+            if(local) game = JSON.parse(local);
             renderTudo();
         };
 
-        // --- NARRAÇÃO ---
-        function narrar(texto) {
+        function narrar(t) {
             if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(texto);
-                utterance.lang = 'pt-BR';
-                utterance.rate = 1.3;
-                window.speechSynthesis.speak(utterance);
+                const u = new SpeechSynthesisUtterance(t);
+                u.lang = 'pt-BR'; u.rate = 1.3;
+                window.speechSynthesis.speak(u);
             }
         }
 
-        function togglePlacarOculto() {
-            document.getElementById('placarDisplay').classList.toggle('oculto');
-        }
-
-        function registrarPontoSimples(lado, manual = false) {
-            if (lado === 'A') game.scoreA++;
-            else game.scoreB++;
-            
+        function registrarPontoSimples(lado, manual) {
+            if (lado === 'A') game.scoreA++; else game.scoreB++;
             if(manual) narrar(lado === 'A' ? "Ponto Time A" : "Ponto Time B");
-            
             atualizarPlacar();
             verificarFimSet();
-            salvarDados();
+            salvar();
         }
 
-        // LÓGICA DE DESEMPATE 11x11 -> 14
         function verificarFimSet() {
             let pLimite = parseInt(game.config.cPoints);
             let alvo = pLimite;
-
             if (game.config.cDesempate === '3direto') {
-                if (game.scoreA >= (pLimite - 1) && game.scoreB >= (pLimite - 1)) {
-                    alvo = (pLimite - 1) + 3; // Ex: 11+3 = 14
-                }
-            } else {
-                // Diferença de 2
-                if (game.scoreA >= pLimite && game.scoreA - game.scoreB >= 2) alvo = game.scoreA;
-                else if (game.scoreB >= pLimite && game.scoreB - game.scoreA >= 2) alvo = game.scoreB;
-                else alvo = 999;
+                if (game.scoreA >= (pLimite-1) && game.scoreB >= (pLimite-1)) alvo = (pLimite-1) + 3;
             }
-
             if (game.scoreA >= alvo) finalizarSet('A');
             else if (game.scoreB >= alvo) finalizarSet('B');
         }
 
-        function finalizarSet(vencedor) {
-            alert("Time " + vencedor + " Venceu!");
-            
-            // Log do histórico
+        function finalizarSet(v) {
+            narrar("Fim de set. Vitória do time " + v);
             game.matchLog.push({
                 data: new Date().toLocaleString(),
                 placar: `${game.scoreA} x ${game.scoreB}`,
-                vencedor: vencedor,
                 timeA: game.timeA.map(id => game.ranking[id].nome),
                 timeB: game.timeB.map(id => game.ranking[id].nome)
             });
 
-            // Lógica de "Dividir Vencedores" com Score e Elite
-            const vIds = vencedor === 'A' ? game.timeA : game.timeB;
-            const pIds = vencedor === 'A' ? game.timeB : game.timeA;
+            const vencedores = v === 'A' ? game.timeA : game.timeB;
+            const perdedores = v === 'A' ? game.timeB : game.timeA;
 
-            // Ordena vencedores por score
-            let vSorted = vIds.sort((a, b) => getScore(b) - getScore(a));
-            
-            // Best+Worst e 2nd+3rd
+            // Lógica Dividir e Balancear Score
+            let vSorted = vencedores.sort((a,b) => getScore(b) - getScore(a));
             let baseA = [vSorted[0], vSorted[3]];
             let baseB = [vSorted[1], vSorted[2]];
 
-            // Puxa 4 da fila respeitando limite Elite
-            game.fila.push(...pIds);
-            let { novosA, novosB, filaRestante } = puxarComBalanceamento(game.fila);
+            game.fila.push(...perdedores);
+            let { nA, nB, fR } = puxarComElite(game.fila);
             
-            game.timeA = [...baseA, ...novosA];
-            game.timeB = [...baseB, ...novosB];
-            game.fila = filaRestante;
-
-            game.scoreA = 0;
-            game.scoreB = 0;
+            game.timeA = [...baseA, ...nA];
+            game.timeB = [...baseB, ...nB];
+            game.fila = fR;
+            game.scoreA = 0; game.scoreB = 0;
             renderTudo();
         }
 
-        function puxarComBalanceamento(fila) {
-            let nA = [], nB = [], fR = [];
-            let eliteA = 0, eliteB = 0;
-
-            for (let id of fila) {
+        function puxarComElite(f) {
+            let nA = [], nB = [], fR = [], eA = 0, eB = 0;
+            for(let id of f) {
                 let isE = ELITE_PLAYERS.includes(game.ranking[id].nome);
-                if (nA.length < 2) {
-                    if (isE && eliteA >= 2) { fR.push(id); continue; }
-                    nA.push(id); if(isE) eliteA++;
-                } else if (nB.length < 2) {
-                    if (isE && eliteB >= 2) { fR.push(id); continue; }
-                    nB.push(id); if(isE) eliteB++;
-                } else {
-                    fR.push(id);
-                }
+                if(nA.length < 2) {
+                    if(isE && eA >= 2) { fR.push(id); continue; }
+                    nA.push(id); if(isE) eA++;
+                } else if(nB.length < 2) {
+                    if(isE && eB >= 2) { fR.push(id); continue; }
+                    nB.push(id); if(isE) eB++;
+                } else fR.push(id);
             }
-            return { novosA: nA, novosB: nB, filaRestante: fR };
+            return { nA, nB, fR };
         }
 
         function getScore(id) {
-            const p = game.ranking[id];
-            const w = game.config.weights;
-            if (!p) return 0;
-            
-            let total = 0;
-            if (p.estrela) {
-                total += (p.ataques || 0) * w.atqE;
-                total += (p.bloqueios || 0) * w.blqE;
-                total += (p.aces || 0) * w.aceE;
-                total += (p.vitorias || 0) * w.vitE;
-            } else {
-                total += (p.ataques || 0) * w.atqG;
-                total += (p.bloqueios || 0) * w.blqG;
-                total += (p.aces || 0) * w.aceG;
-                total += (p.vitorias || 0) * w.vitG;
-            }
-            return total;
+            const p = game.ranking[id]; const w = game.config.weights;
+            return p.estrela ? (p.ataques * w.atqE + p.vitorias * w.vitE) : (p.ataques * w.atqG + p.vitorias * w.vitG);
         }
 
         function renderTudo() {
-            renderQuadra();
-            renderRanking();
-            renderFila();
-            atualizarPlacar();
-        }
-
-        function renderRanking() {
-            const list = document.getElementById('listaRanking');
-            list.innerHTML = '';
-            
+            const r = document.getElementById('listaRanking'); r.innerHTML = '';
             Object.keys(game.ranking).forEach(id => {
                 const p = game.ranking[id];
                 const isE = ELITE_PLAYERS.includes(p.nome);
-                const eliteIcon = isE ? "💎 " : "";
-                const starIcon = p.estrela ? "⭐ " : "";
-                
-                list.innerHTML += `
-                    <div class="flex justify-between items-center bg-slate-800 p-3 rounded-xl border border-slate-700 ${p.estrela ? 'is-estrela' : ''} ${isE ? 'is-elite' : ''}">
-                        <span class="text-xs font-bold">${eliteIcon}${starIcon}${p.nome}</span>
-                        <div class="flex gap-2">
-                            <span class="text-[10px] text-emerald-400 font-black">${getScore(id).toFixed(1)}</span>
-                            <button onclick="solicitarBloqueio('${id}')" class="text-[10px] opacity-30">🚫</button>
-                        </div>
-                    </div>
-                `;
+                r.innerHTML += `
+                    <div class="flex justify-between items-center bg-slate-800 p-3 rounded-xl border border-slate-700 ${p.estrela?'is-estrela':''} ${isE?'is-elite':''}">
+                        <span class="text-xs font-bold">${isE?'💎':''} ${p.estrela?'⭐':''} ${p.nome}</span>
+                        <span class="text-[10px] text-emerald-400 font-black">${getScore(id).toFixed(1)}</span>
+                    </div>`;
             });
+            const qA = document.getElementById('quadraA'); qA.innerHTML = '';
+            game.timeA.forEach(id => qA.innerHTML += card(id));
+            const qB = document.getElementById('quadraB'); qB.innerHTML = '';
+            game.timeB.forEach(id => qB.innerHTML += card(id));
+            const f = document.getElementById('listaFila'); f.innerHTML = '';
+            game.fila.forEach(id => f.innerHTML += `<div class="bg-slate-800 p-2 rounded-lg text-[10px]">${game.ranking[id].nome}</div>`);
+            atualizarPlacar();
         }
 
-        function solicitarBloqueio(id) {
-            if (document.body.classList.contains('is-admin')) {
-                game.ranking[id].bloqueado = !game.ranking[id].bloqueado;
-                alert("Status de bloqueio alterado.");
-            } else {
-                game.solicitacoes.push({ id, nome: game.ranking[id].nome });
-                document.getElementById('admin-notif-bell').classList.remove('hidden');
-                alert("Solicitação de bloqueio enviada ao admin.");
-            }
-            salvarDados();
-        }
-
-        function abrirHistorico() {
-            const modal = document.getElementById('modalHistorico');
-            const cont = document.getElementById('conteudoHistorico');
-            cont.innerHTML = '';
-            
-            [...game.matchLog].reverse().forEach(log => {
-                cont.innerHTML += `
-                    <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
-                        <div class="flex justify-between font-black text-xs mb-2">
-                            <span class="text-blue-400">${log.placar}</span>
-                            <span class="text-slate-500">${log.data.split(',')[0]}</span>
-                        </div>
-                        <p class="text-[9px] text-slate-400">Time A: ${log.timeA.join(', ')}</p>
-                        <p class="text-[9px] text-slate-400">Time B: ${log.timeB.join(', ')}</p>
-                    </div>
-                `;
-            });
-            modal.classList.remove('hidden');
-        }
-
-        function fecharModais() {
-            document.querySelectorAll('.modal-global').forEach(m => m.classList.add('hidden'));
-        }
-
-        function abrirConfig() {
-            const w = game.config.weights;
-            document.getElementById('cPoints').value = game.config.cPoints;
-            document.getElementById('wAtqG').value = w.atqG;
-            document.getElementById('wAtqE').value = w.atqE;
-            document.getElementById('wBlqG').value = w.blqG;
-            document.getElementById('wBlqE').value = w.blqE;
-            document.getElementById('wAceG').value = w.aceG;
-            document.getElementById('wAceE').value = w.aceE;
-            document.getElementById('wVitG').value = w.vitG;
-            document.getElementById('wVitE').value = w.vitE;
-            document.getElementById('modalConfig').classList.remove('hidden');
-        }
-
-        function salvarConfig() {
-            game.config.cPoints = document.getElementById('cPoints').value;
-            game.config.cDesempate = document.getElementById('cDesempate').value;
-            game.config.weights = {
-                atqG: parseFloat(document.getElementById('wAtqG').value),
-                atqE: parseFloat(document.getElementById('wAtqE').value),
-                blqG: parseFloat(document.getElementById('wBlqG').value),
-                blqE: parseFloat(document.getElementById('wBlqE').value),
-                aceG: parseFloat(document.getElementById('wAceG').value),
-                aceE: parseFloat(document.getElementById('wAceE').value),
-                vitG: parseFloat(document.getElementById('wVitG').value),
-                vitE: parseFloat(document.getElementById('wVitE').value),
-            };
-            fecharModais();
-            salvarDados();
-        }
-
-        function salvarDados() { localStorage.setItem('voleiHubData', JSON.stringify(game)); }
-        function carregarDados() { 
-            const d = localStorage.getItem('voleiHubData'); 
-            if(d) game = JSON.parse(d); 
-        }
-        function atualizarPlacar() {
-            document.getElementById('scoreA').innerText = game.scoreA.toString().padStart(2, '0');
-            document.getElementById('scoreB').innerText = game.scoreB.toString().padStart(2, '0');
-        }
-
-        // Funções auxiliares de renderização da quadra e fila omitidas aqui para brevidade, 
-        // mas devem manter a lógica que você já tinha no seu arquivo anterior.
-        function renderQuadra() {
-            const tA = document.getElementById('timeA');
-            const tB = document.getElementById('timeB');
-            tA.innerHTML = ''; tB.innerHTML = '';
-            game.timeA.forEach(id => tA.innerHTML += cardJogador(id, 'A'));
-            game.timeB.forEach(id => tB.innerHTML += cardJogador(id, 'B'));
-        }
-
-        function renderFila() {
-            const f = document.getElementById('listaFila');
-            f.innerHTML = '';
-            game.fila.forEach(id => f.innerHTML += `<div class="bg-slate-800 p-2 rounded-lg text-xs">${game.ranking[id].nome}</div>`);
-        }
-
-        function cardJogador(id, lado) {
+        function card(id) {
             const p = game.ranking[id];
-            const isE = ELITE_PLAYERS.includes(p.nome);
-            return `
-                <div onclick="acao('${id}', '${lado}')" class="jogador-card bg-slate-800 p-3 rounded-xl text-center ${p.estrela ? 'is-estrela' : ''} ${isE ? 'is-elite' : ''}">
-                    <div class="text-[10px] font-black">${isE ? '💎' : ''} ${p.nome}</div>
-                </div>
-            `;
+            return `<div class="jogador-card bg-slate-800 p-3 rounded-xl text-center text-[10px] font-black">${p.nome}</div>`;
         }
 
-        function acao(id, lado) {
-            // Aqui você integra com seu sistema de Ataque/Bloqueio/Ace
-            // Exemplo de som ao clicar:
-            // narrar("Ataque");
-            // game.ranking[id].ataques = (game.ranking[id].ataques || 0) + 1;
-            // registrarPontoSimples(lado);
+        function atualizarPlacar() {
+            document.getElementById('scoreA').innerText = game.scoreA.toString().padStart(2,'0');
+            document.getElementById('scoreB').innerText = game.scoreB.toString().padStart(2,'0');
         }
 
+        function salvar() { localStorage.setItem('voleiHubSeed', JSON.stringify(game)); }
+        function abrirHistorico() {
+            const c = document.getElementById('conteudoHistorico'); c.innerHTML = '';
+            [...game.matchLog].reverse().forEach(l => {
+                c.innerHTML += `<div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-[10px]">
+                    <div class="text-blue-400 font-black mb-1">${l.placar} - ${l.data}</div>
+                    <div class="opacity-50">Time A: ${l.timeA.join(', ')}</div>
+                    <div class="opacity-50">Time B: ${l.timeB.join(', ')}</div>
+                </div>`;
+            });
+            document.getElementById('modalHistorico').classList.remove('hidden');
+        }
+        function abrirConfig() { document.getElementById('modalConfig').classList.remove('hidden'); }
+        function fecharModais() { document.querySelectorAll('.modal-global').forEach(m => m.classList.add('hidden')); }
+        function salvarConfig() {
+            game.config.cPoints = document.getElementById('cPoints').value || 12;
+            game.config.cDesempate = document.getElementById('cDesempate').value;
+            salvar(); fecharModais();
+        }
     </script>
 </body>
 </html>
