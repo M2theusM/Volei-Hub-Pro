@@ -395,12 +395,12 @@
         const auth = getAuth(app);
         const gameRef = ref(db, 'partida/v9_5'); // Atualizado para v9.5
 
-        const INITIAL_GERAL = ["DANIELE", "EDINHO", "JUNIOR", "NINO", "LUIZ EDUARDO", "MAICON", "MATEUS BRAZ", "RHUANA", "ROBSON", "SAMUEL", "YURI"];
+        const INITIAL_GERAL = ["DANIELE", "EDINHO", "JUNIOR", "NINO", "LUIZ EDUARDO", "MAICON", "MATEUS BRAZ", "RHUANA", "ROBSON", "SAMUEL"];
         const INITIAL_ESTRELA = ["PATY", "HEMILY", "KEMILLY", "YURI"];
         const INITIAL_ELITE = ["MATHEUS MATOS", "ODAIR", "RAFAEL", "LUCAS GABRIEL", "MARCIANO", "JANIR"];
         
         const PHRASES = ["", "Na conta! Fez 1 ponto.", "Dobradinha! 2 pontos nessa partida", "Pegando fogo! 🔥 Terceiro ponto nesse jogo.", "Insuportável! 4 pontos e contando...", "Mão de ferro! 👊 5 pontos feitos", "Dono da quadra! Fez metade do set sozinho!", "Modo God ativado! ⚡ 7 pontos na partida.", "Chamem o SAMU! Já são 8 pontos.", "Lendário! 9 pontos na partida.", "10 pontos feitos! Fechem as portas e apaguem as luzes! 🏆"];
-        const DEFAULT_RESTRICTIONS = ["RAFAEL", "YURI"];
+        const DEFAULT_RESTRICTIONS = [["RAFAEL", "YURI"]];
 
         let isAdmin = false;
 
