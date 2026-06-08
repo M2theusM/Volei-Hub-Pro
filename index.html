@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V2.0.0</title>
+    <title>Vôlei Hub PRO - V2.0.2</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -982,12 +982,13 @@
             const f = filaTab === 'geral' ? game.esperaGeral : game.esperaEstrela;
             let countLib = 0;
             document.getElementById('esperaContainer').innerHTML = f.length ? f.map((p, i) => {
-                let dest = "";
-                if(!p.bloqueado && filaTab === 'geral') { countLib++; if(countLib<=3) dest="is-proximo"; }
-                return `<div data-id="${p.id}" class="bg-slate-800 p-3 rounded-xl flex justify-between items-center border border-slate-700 ${p.bloqueado ? 'is-bloqueado' : ''} ${dest}">
-                ${isAdmin ? '<div class="drag-handle hover:text-white mr-2">⠿</div>' : ''}
-                <div onclick="window.abrirEscalacao('${filaTab}', ${i})" class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2 cursor-pointer">${p.estrela ? '⭐ ' : ''}${p.elite ? '💎 ' : ''}${p.nome}</div>
-                </div>`;
+            let dest = "";
+            if(!p.bloqueado && filaTab === 'geral') { countLib++; if(countLib<=3) dest="is-proximo"; }
+            // Ícone drag-handle agora posicionado antes do nome (esquerda)
+            return `<div data-id="${p.id}" class="bg-slate-800 p-3 rounded-xl flex items-center border border-slate-700 ${p.bloqueado ? 'is-bloqueado' : ''} ${dest}">
+            ${isAdmin ? '<div class="drag-handle hover:text-white mr-3 cursor-grab">⠿</div>' : ''}
+            <div onclick="window.abrirEscalacao('${filaTab}', ${i})" class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2 cursor-pointer">${p.estrela ? '⭐ ' : ''}${p.elite ? '💎 ' : ''}${p.nome}</div>
+            </div>`;
             }).join('') : '<div class="text-center text-slate-600 text-[10px] py-4 italic">Fila vazia...</div>';
 
             const todos = [...game.timeA, ...game.timeB];
@@ -1508,40 +1509,40 @@
             }).join('');
         }
 
-        window.abrirAuditModal = (n) => {
+    window.abrirAuditModal = (n) => {
     const s = game.ranking[n]; 
     if(!s) return; 
 
-    // Calcula parceiros mais frequentes baseado no histórico
+    // Calcula parceiros mais frequentes
     let parceiros = {};
     game.historicoPartidas.forEach(p => {
         if(p.timeA.includes(n)) p.timeA.forEach(c => { if(c!==n) parceiros[c] = (parceiros[c]||0) + 1; });
         if(p.timeB.includes(n)) p.timeB.forEach(c => { if(c!==n) parceiros[c] = (parceiros[c]||0) + 1; });
     });
-    const melhorParceiro = Object.keys(parceiros).sort((a,b) => parceiros[b]-parceiros[a])[0] || "Nenhum";
+    const melhorParceiro = Object.keys(parceiros).sort((a,b) => parceiros[b]-parceiros[a])[0] || "---";
 
-    const w = game.weights;
     document.getElementById('auditNome').innerText = n;
     document.getElementById('auditContent').innerHTML = `
         <div class="grid grid-cols-2 gap-2 mb-4">
-            <div class="bg-slate-900 p-2 rounded text-center"><div class="text-[8px] uppercase">Quadra</div><div class="font-black text-blue-400">${s.v + s.d} sets</div></div>
-            <div class="bg-slate-900 p-2 rounded text-center"><div class="text-[8px] uppercase">Melhor Dupla</div><div class="font-black text-orange-400 truncate">${melhorParceiro}</div></div>
+            <div class="bg-slate-900 p-2 rounded text-center"><div class="text-[8px] uppercase text-slate-500">Sets Jogados</div><div class="font-black text-blue-400">${s.v + s.d}</div></div>
+            <div class="bg-slate-900 p-2 rounded text-center"><div class="text-[8px] uppercase text-slate-500">Melhor Dupla</div><div class="font-black text-orange-400 truncate text-[10px]">${melhorParceiro}</div></div>
         </div>
-        <div class="space-y-1 text-[11px]">
+        <div class="space-y-2 text-[11px] bg-slate-900/50 p-3 rounded-xl border border-slate-700">
             <div class="flex justify-between"><span>Vitórias:</span> <b>${s.v}</b></div>
-            <div class="flex justify-between"><span>Score Total:</span> <b>${getScore(n)}</b></div>
+            <div class="flex justify-between"><span>Score Geral:</span> <b>${getScore(n)}</b></div>
         </div>
         <div class="mt-4 pt-4 border-t border-slate-700">
             <p class="text-[8px] font-black uppercase text-slate-500 mb-2">Medalhas Hall da Fama</p>
-            <div id="insigniasContainer" class="flex gap-2">
-                ${s.v > 50 ? '<span title="Vezes como melhor jogador: X" class="text-2xl cursor-help">🥇</span>' : ''}
-                ${s.ptsBloqueio > 20 ? '<span title="Vezes como melhor bloqueador: Y" class="text-2xl cursor-help">🚫</span>' : ''}
+            <div class="flex gap-2 text-2xl">
+                ${s.v > 20 ? '<span title="Veterano: Mais de 20 vitórias">🥇</span>' : ''}
+                ${s.ptsBloqueio > 10 ? '<span title="Paredão: Mais de 10 bloqueios">🚫</span>' : ''}
+                ${s.ptsAtaque > 30 ? '<span title="Matador: Mais de 30 ataques">💥</span>' : ''}
             </div>
         </div>
     `;
+    document.getElementById('auditTotal').innerText = getScore(n);
     document.getElementById('modalAudit').classList.remove('hidden');
 };
-
         window.abrirWeights = () => { 
             document.getElementById('modalConfigMenu').classList.add('hidden');
             document.getElementById('wAtqG').value = game.weights.atqG; document.getElementById('wBlqG').value = game.weights.blqG; document.getElementById('wAceG').value = game.weights.aceG; document.getElementById('wAtqE').value = game.weights.atqE; document.getElementById('wBlqE').value = game.weights.blqE; document.getElementById('wAceE').value = game.weights.aceE; document.getElementById('wErr').value = game.weights.err; document.getElementById('wVit').value = game.weights.vit; 
@@ -1668,15 +1669,14 @@
 
         function estaoBloqueados(p1, p2) { return game.restricoes.some(d => (d[0]==p1.id && d[1]==p2.id) || (d[1]==p1.id && d[0]==p2.id)); }
 
-        // Script de Proteção de Identidade
         window.addEventListener('load', () => {
-        // Se não for admin e não tiver nome salvo, força a tela
-        if (!isAdmin && !localStorage.getItem('voleihub_meunome')) {
+        // Se não for admin e não tiver nome salvo no LocalStorage
+        if (!document.body.classList.contains('is-admin') && !localStorage.getItem('voleihub_meunome')) {        
         setTimeout(() => {
             window.acaoMeuPerfil();
-        }, 500);
-    }
-});
-    </script>
+                }, 800);
+            }
+        });
+</script>
 </body>
 </html>
