@@ -803,7 +803,8 @@
                     ...data, 
                     timeA: data.timeA || [], timeB: data.timeB || [], 
                     esperaGeral: data.esperaGeral || [], esperaEstrela: data.esperaEstrela || [], 
-                    ranking: data.ranking || {}, restricoes: data.restricoes || [], 
+                    ranking: data.ranking || {}, restricoes: data.restricoes || [],
+                    historicoPartidas: data.historicoPartidas || [],
                     systemMsg: data.systemMsg || { text:"AGUARDANDO", sub:"...", ts: 0 }, 
                     matchLog: data.matchLog || [], 
                     lastAnim: data.lastAnim || { ts: 0 }, 
@@ -814,8 +815,7 @@
                     requests: data.requests || [], deniedRequests: data.deniedRequests || [], 
                     currentMatchStats: data.currentMatchStats || {},
                     soundTrigger: data.soundTrigger || 0,
-                    weights: { ...game.weights, ...(data.weights || {}) } 
-                    historicoPartidas: data.historicoPartidas || [],
+                    weights: { ...game.weights, ...(data.weights || {}) }                    
                 };
                 ensureRankingConsistency();
                 render();
