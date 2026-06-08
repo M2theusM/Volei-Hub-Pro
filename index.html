@@ -985,8 +985,8 @@
                 let dest = "";
                 if(!p.bloqueado && filaTab === 'geral') { countLib++; if(countLib<=3) dest="is-proximo"; }
                 return `<div data-id="${p.id}" class="bg-slate-800 p-3 rounded-xl flex justify-between items-center border border-slate-700 ${p.bloqueado ? 'is-bloqueado' : ''} ${dest}">
-                    <div onclick="window.abrirEscalacao('${filaTab}', ${i})" class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2 cursor-pointer">${p.estrela ? '⭐ ' : ''}${p.elite ? '💎 ' : ''}${p.nome}</div>
-                    ${isAdmin ? '<div class="drag-handle hover:text-white">⠿</div>' : ''}
+                ${isAdmin ? '<div class="drag-handle hover:text-white mr-2">⠿</div>' : ''}
+                <div onclick="window.abrirEscalacao('${filaTab}', ${i})" class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2 cursor-pointer">${p.estrela ? '⭐ ' : ''}${p.elite ? '💎 ' : ''}${p.nome}</div>
                 </div>`;
             }).join('') : '<div class="text-center text-slate-600 text-[10px] py-4 italic">Fila vazia...</div>';
 
@@ -1509,33 +1509,38 @@
         }
 
         window.abrirAuditModal = (n) => {
-            const s = game.ranking[n]; 
-            if(!s) return; 
-            
-            const w = game.weights;
-            const atqW = s.estrela ? w.atqE : w.atqG; const blqW = s.estrela ? w.blqE : w.blqG; const aceW = s.estrela ? w.aceE : w.aceG;
-            document.getElementById('auditNome').innerText = n;
-            document.getElementById('auditLosses').innerText = `Derrotas: ${s.d}`;
-            document.getElementById('auditMatches').innerText = `Partidas: ${s.v + s.d}`;
-            document.getElementById('auditContent').innerHTML = `
-                <div class="flex justify-between"><span>Vitórias (x${w.vit}):</span> <b class="text-white">${s.v}</b></div>
-                <div class="flex justify-between"><span>Ataques (x${atqW}):</span> <b class="text-white">${s.ptsAtaque}</b></div>
-                <div class="flex justify-between"><span>Bloqueios (x${blqW}):</span> <b class="text-white">${s.ptsBloqueio}</b></div>
-                <div class="flex justify-between"><span>Aces (x${aceW}):</span> <b class="text-white">${s.ptsAce}</b></div>
-                <div class="flex justify-between"><span>Erro Adv. (x${w.err}):</span> <b class="text-white">${s.ptsErroAdversario}</b></div>
-                <div class="flex justify-between text-yellow-500"><span>Acerto Time (x${w.wTeam}):</span> <b>${s.ptsAcertoTime}</b></div>
-            `;
-            document.getElementById('auditTotal').innerText = getScore(n);
-            
-            const btnDeslogar = document.getElementById('btnDeslogar');
-            if (!isAdmin && n === meuNome) {
-                btnDeslogar.classList.remove('hidden');
-            } else {
-                btnDeslogar.classList.add('hidden');
-            }
+    const s = game.ranking[n]; 
+    if(!s) return; 
 
-            document.getElementById('modalAudit').classList.remove('hidden');
-        };
+    // Calcula parceiros mais frequentes baseado no histórico
+    let parceiros = {};
+    game.historicoPartidas.forEach(p => {
+        if(p.timeA.includes(n)) p.timeA.forEach(c => { if(c!==n) parceiros[c] = (parceiros[c]||0) + 1; });
+        if(p.timeB.includes(n)) p.timeB.forEach(c => { if(c!==n) parceiros[c] = (parceiros[c]||0) + 1; });
+    });
+    const melhorParceiro = Object.keys(parceiros).sort((a,b) => parceiros[b]-parceiros[a])[0] || "Nenhum";
+
+    const w = game.weights;
+    document.getElementById('auditNome').innerText = n;
+    document.getElementById('auditContent').innerHTML = `
+        <div class="grid grid-cols-2 gap-2 mb-4">
+            <div class="bg-slate-900 p-2 rounded text-center"><div class="text-[8px] uppercase">Quadra</div><div class="font-black text-blue-400">${s.v + s.d} sets</div></div>
+            <div class="bg-slate-900 p-2 rounded text-center"><div class="text-[8px] uppercase">Melhor Dupla</div><div class="font-black text-orange-400 truncate">${melhorParceiro}</div></div>
+        </div>
+        <div class="space-y-1 text-[11px]">
+            <div class="flex justify-between"><span>Vitórias:</span> <b>${s.v}</b></div>
+            <div class="flex justify-between"><span>Score Total:</span> <b>${getScore(n)}</b></div>
+        </div>
+        <div class="mt-4 pt-4 border-t border-slate-700">
+            <p class="text-[8px] font-black uppercase text-slate-500 mb-2">Medalhas Hall da Fama</p>
+            <div id="insigniasContainer" class="flex gap-2">
+                ${s.v > 50 ? '<span title="Vezes como melhor jogador: X" class="text-2xl cursor-help">🥇</span>' : ''}
+                ${s.ptsBloqueio > 20 ? '<span title="Vezes como melhor bloqueador: Y" class="text-2xl cursor-help">🚫</span>' : ''}
+            </div>
+        </div>
+    `;
+    document.getElementById('modalAudit').classList.remove('hidden');
+};
 
         window.abrirWeights = () => { 
             document.getElementById('modalConfigMenu').classList.add('hidden');
@@ -1662,6 +1667,16 @@
         }
 
         function estaoBloqueados(p1, p2) { return game.restricoes.some(d => (d[0]==p1.id && d[1]==p2.id) || (d[1]==p1.id && d[0]==p2.id)); }
+
+        // Script de Proteção de Identidade
+        window.addEventListener('load', () => {
+        // Se não for admin e não tiver nome salvo, força a tela
+        if (!isAdmin && !localStorage.getItem('voleihub_meunome')) {
+        setTimeout(() => {
+            window.acaoMeuPerfil();
+        }, 500);
+    }
+});
     </script>
 </body>
 </html>
