@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V2.0.5</title>
+    <title>Vôlei Hub PRO - V2.0.6</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -56,6 +56,12 @@
         .drag-handle { cursor: grab; padding: 10px; color: #64748b; font-size: 20px; touch-action: none; }
         #admin-notif-bell { position: relative; }
         #admin-notif-dot { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: red; border-radius: 50%; border: 1px solid #1e293b; }
+
+        /* Oculta Ranking e Hall da Fama para o Admin */
+        body.is-admin #rankingSection,
+        body.is-admin #hallFamaSection {
+    display: none !important;
+}
     </style>
 </head>
 <body class="bg-slate-900 text-white font-sans overflow-x-hidden pb-32">
@@ -119,14 +125,19 @@
             </div>
         </div>
 
-        <section class="bg-slate-800/50 rounded-2xl border border-slate-700 overflow-hidden shadow-lg">
-            <div class="p-3 bg-slate-800/80 border-b border-slate-700 flex justify-between items-center">
-                <div class="flex gap-2">
-                    <button onclick="window.setFilaTab('geral')" id="tabGeral" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg transition">Geral <span id="countGeral" class="ml-1 opacity-50">0</span></button>
-                    <button onclick="window.setFilaTab('estrela')" id="tabEstrela" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg transition">Estrelas ⭐ <span id="countEstrela" class="ml-1 opacity-50">0</span></button>
-                </div>
-                <div id="statusConn" class="text-[8px] text-emerald-500 font-bold uppercase animate-pulse">● Online</div>
-            </div>
+        <div class="p-3 bg-slate-800/80 border-b border-slate-700 flex justify-between items-center">
+    <div class="flex gap-2">
+        <button onclick="window.setFilaTab('geral')" id="tabGeral" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg transition">Geral <span id="countGeral" class="ml-1 opacity-50">0</span></button>
+        <button onclick="window.setFilaTab('estrela')" id="tabEstrela" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg transition">Estrelas ⭐ <span id="countEstrela" class="ml-1 opacity-50">0</span></button>
+    </div>
+    
+    <div class="flex gap-2 items-center">
+        <button onclick="window.toggleFilaEspera()" class="text-[9px] bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded border border-slate-600 font-bold uppercase transition">
+            👁️ Ocultar
+        </button>
+        <div id="statusConn" class="text-[8px] text-emerald-500 font-bold uppercase animate-pulse">● Online</div>
+    </div>
+</div>
             <div id="esperaContainer" class="p-4 space-y-2 bg-slate-900/50"></div>
         </section>
 
@@ -269,7 +280,7 @@
                 <button onclick="window.abrirBloqueioDuplas()" class="w-full bg-slate-700 text-red-400 p-3 rounded-xl font-black uppercase text-[10px] border border-slate-600 mb-6">🚫 Bloqueio Duplas</button>
 
                 <div class="border-t border-slate-600 pt-6 space-y-2">
-                    <button onclick="window.iniciarNovoDia()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white p-3 rounded-xl font-black uppercase text-[10px] border border-emerald-500 shadow-lg">☀️ Encerrar Hoje / Novo Dia</button>
+                    <button id="btnToggleDia" onclick="window.toggleStatusDia()" class="w-full p-3 rounded-xl font-black uppercase text-[10px] border shadow-lg mt-4"></button>
                     <button onclick="window.forcarBalanceamentoManual()" class="w-full bg-purple-600 hover:bg-purple-500 text-white p-3 rounded-xl font-black uppercase text-[10px] border border-purple-500 shadow-lg">🤖 Forçar Balanceamento (IA)</button>
                     <button onclick="window.limparSistema()" class="w-full text-red-600 hover:text-red-400 text-[10px] font-black uppercase py-2 mt-4">⚠️ Resetar Sistema Completo</button>
                 </div>
@@ -294,9 +305,11 @@
             </div>
             
             <div class="mt-6 flex flex-col gap-2">
-            <button onclick="window.deslogarIdentidade()" class="w-full bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600 text-white">Sair (Deslogar)</button>
-            <button onclick="window.bloquearEDeslogar()" class="w-full bg-red-900/50 text-red-400 border border-red-800 py-3 rounded-xl uppercase text-xs font-black hover:bg-red-900/80">Bloquear e Sair</button>
-            </div>
+    <button onclick="window.deslogarIdentidade()" class="w-full bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600 text-white">Deslogar</button>
+    <button onclick="window.bloquearEDeslogar()" class="w-full bg-red-900/50 text-red-400 border border-red-800 py-3 rounded-xl uppercase text-xs font-black hover:bg-red-900/80">Sair e bloquear jogador</button>
+    
+    <button onclick="window.fecharModais()" class="w-full bg-transparent border border-slate-600 text-slate-400 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-800 mt-2">Fechar</button>
+</div>
         </div>
     </div>
 
@@ -1688,6 +1701,22 @@
         window.definirSacadorManual = () => { game.saqueLado = modalCtx.lado; if(modalCtx.lado === 'A') { game.idxA = modalCtx.idx; game.jaSacouA = true; } else { game.idxB = modalCtx.idx; game.jaSacouB = true; } window.fecharModais(); salvarState(); };
         window.removerParaFilaManual = () => { salvarState(true); const t = modalCtx.lado==='A'?game.timeA:game.timeB; const p = t.splice(modalCtx.idx, 1)[0]; (p.estrela?game.esperaEstrela:game.esperaGeral).push(p); window.fecharModais(); salvarState(false); };
         window.abrirPontoTecnico = (l, i) => { modalCtx = { lado: l, idx: i }; const p = (l==='A'?game.timeA:game.timeB)[i]; document.getElementById('modalNomeTec').innerText = p.nome; if(isAdmin) { const w = game.weights; document.getElementById('labelAtq').innerText = `+${p.estrela?w.atqE:w.atqG}`; document.getElementById('labelBlq').innerText = `+${p.estrela?w.blqE:w.blqG}`; document.getElementById('labelAce').innerText = `+${p.estrela?w.aceE:w.aceG}`; const isSacador = (game.saqueLado === l && (l==='A'?game.idxA:game.idxB)===i); const btn = document.getElementById('btnAceTec'); if(!isSacador) btn.classList.add('opacity-50','pointer-events-none'); else btn.classList.remove('opacity-50','pointer-events-none'); document.getElementById('playerViewMsg').classList.add('hidden'); } else { document.getElementById('playerViewMsg').classList.remove('hidden'); } document.getElementById('modalPontoTec').classList.remove('hidden'); };
+
+        function salvarSnapshotDoDia() {
+    const dataHoje = new Date().toLocaleDateString('pt-BR');
+    
+    // Recupera os dias salvos ou cria um novo objeto
+    let historicoDias = JSON.parse(localStorage.getItem('voleihub_dias')) || {};
+    
+    // Salva o estado exato de hoje
+    historicoDias[dataHoje] = {
+        historicoPartidas: [...game.historico],
+        rankingFinal: [...game.ranking],
+        hallFamaFinal: extrairDadosHallDaFama() 
+    };
+    
+    localStorage.setItem('voleihub_dias', JSON.stringify(historicoDias));
+}
         
         function getScore(n) { 
             const s = game.ranking[n]; 
@@ -1715,6 +1744,60 @@
             }
         }, 1000); // 1 segundo de delay garante que tudo esteja pronto
     }
+            // Variável global para saber se o dia está rolando
+let diaIniciado = localStorage.getItem('voleihub_diaIniciado') === 'true';
+
+window.atualizarInterfaceDia = function() {
+    const btn = document.getElementById('btnToggleDia');
+    const hallFama = document.getElementById('hallFamaSection');
+    
+    if (btn) {
+        if (diaIniciado) {
+            // Dia em andamento: Botão de Encerrar (Vermelho)
+            btn.textContent = "🛑 Encerrar Dia Atual";
+            btn.className = "w-full bg-red-600 hover:bg-red-500 text-white p-3 rounded-xl font-black uppercase text-[10px] border border-red-500 shadow-lg mt-4";
+            
+            // Oculta o Hall da Fama
+            if(hallFama) hallFama.classList.add('hidden');
+        } else {
+            // Dia encerrado: Botão de Iniciar (Verde)
+            btn.textContent = "▶️ Iniciar Novo Dia";
+            btn.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white p-3 rounded-xl font-black uppercase text-[10px] border border-emerald-500 shadow-lg mt-4";
+            
+            // Mostra o Hall da Fama (desde que não seja admin, o CSS do passo 1 já cuida disso)
+            if(hallFama) hallFama.classList.remove('hidden');
+        }
+    }
+};
+window.toggleFilaEspera = function() {
+    const container = document.getElementById('esperaContainer');
+    const btn = event.currentTarget; // Pega o botão clicado
+    
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        btn.innerHTML = "👁️ Ocultar";
+    } else {
+        container.style.display = 'none';
+        btn.innerHTML = "👁️ Exibir";
+    }
+};
+            
+window.toggleStatusDia = function() {
+    if (diaIniciado) {
+        // Se estava iniciado, vai encerrar
+        if(confirm("Tem certeza que deseja encerrar o dia atual? O Hall da Fama será gerado.")) {
+            diaIniciado = false;
+            window.iniciarNovoDia(); // Chama sua função existente de encerramento
+        }
+    } else {
+        // Se estava encerrado, vai iniciar
+        diaIniciado = true;
+    }
+    
+    localStorage.setItem('voleihub_diaIniciado', diaIniciado);
+    window.atualizarInterfaceDia();
+};
+
 });
 </script>
 </body>
