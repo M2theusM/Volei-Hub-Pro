@@ -293,8 +293,10 @@
                 <span id="auditTotal" class="text-3xl font-black text-orange-500">0</span>
             </div>
             
-            <button id="btnDeslogar" onclick="window.deslogarIdentidade()" class="w-full mt-6 bg-red-900/30 text-red-500 py-3 rounded-xl uppercase text-xs font-black hover:bg-red-900/50 hidden border border-red-900/50">Sair / Trocar de Conta</button>
-            <button onclick="window.fecharModais()" class="w-full mt-2 bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600">Voltar</button>
+            <div class="mt-6 flex flex-col gap-2">
+            <button onclick="window.deslogarIdentidade()" class="w-full bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600 text-white">Sair (Deslogar)</button>
+            <button onclick="window.bloquearEDeslogar()" class="w-full bg-red-900/50 text-red-400 border border-red-800 py-3 rounded-xl uppercase text-xs font-black hover:bg-red-900/80">Bloquear e Sair</button>
+            </div>
         </div>
     </div>
 
@@ -460,7 +462,18 @@
                 window.speechSynthesis.speak(unlockMsg);
             }
         }, { once: true });
-
+        window.bloquearEDeslogar = () => {
+    // Busca o jogador em todas as filas
+    const todasFilas = [...(game.esperaGeral || []), ...(game.esperaEstrela || [])];
+    const jogador = todasFilas.find(p => p.nome === meuNome);
+    
+    if (jogador) {
+        jogador.bloqueado = true;
+        salvarState(); // Salva a alteração no Firebase
+        alert("Você foi bloqueado na fila.");
+    }
+    window.deslogarIdentidade();
+};
         function tocarApitoRealista() {
             if (!audioCtx) {
                 try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
@@ -654,7 +667,13 @@
             if (meuNome) {
                 window.abrirAuditModal(meuNome);
             } else {
-                const all = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela].sort((a,b)=>a.nome.localeCompare(b.nome)); 
+                // Protege contra arrays nulos
+            const all = [
+            ...(game.timeA || []), 
+            ...(game.timeB || []), 
+            ...(game.esperaGeral || []), 
+            ...(game.esperaEstrela || [])
+            ].sort((a,b) => a.nome.localeCompare(b.nome));
                 
                 const opt = `<option value="" disabled selected>- Selecione seu nome -</option>` + all.map(p => {
                     const status = p.bloqueado ? ' (Bloqueado)' : '';
@@ -944,8 +963,9 @@
             if(game.lastAnim && game.lastAnim.ts > lastAnimTs) { lastAnimTs = game.lastAnim.ts; doEmojiExplosion(game.lastAnim.type); }
             if(game.publicRanking) document.body.classList.add('show-public'); else document.body.classList.remove('show-public');
 
-            document.getElementById('msg-title').innerText = game.systemMsg.text;
-            document.getElementById('msg-sub').innerText = game.systemMsg.sub;
+            const msg = game.systemMsg || { text: "---", sub: "---", streak: false };
+            document.getElementById('msg-title').innerText = msg.text;
+            document.getElementById('msg-sub').innerText = msg.sub;
             const streakEl = document.getElementById('msg-streak');
             if(game.systemMsg.streak) streakEl.classList.remove('hidden'); else streakEl.classList.add('hidden');
 
