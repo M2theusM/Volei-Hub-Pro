@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V2.0.4</title>
+    <title>Vôlei Hub PRO - V2.0.5</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -741,6 +741,7 @@
                     
                     if (p && p.bloqueado) {
                         p.bloqueado = false;
+                        p.unlockedAt = Date.now();
                         
                         list.splice(list.indexOf(p), 1);
                         let novaPos = 0;
@@ -1177,6 +1178,7 @@
             if(!game.historicoPartidas) game.historicoPartidas = [];
             const matchSnapshot = {
                 id: Date.now(),
+                timestamp: Date.now(),
                 vencedor: venceu,
                 scoreA: game.scoreA,
                 scoreB: game.scoreB,
@@ -1514,36 +1516,43 @@
     const s = game.ranking[n]; 
     if(!s) return; 
 
-    // Calcula parceiros mais frequentes
+    // 1. Busca histórico de partidas do jogador
+    const historicoDoJogador = game.historicoPartidas.filter(p => p.timeA.includes(n) || p.timeB.includes(n));
+    
+    // 2. Tempo em quadra (Estimativa de 10 min por partida confirmada no histórico)
+    const duracaoMediaPartida = 10 * 60 * 1000; // 10 minutos em milissegundos
+    const tempoEmQuadraMs = historicoDoJogador.length * duracaoMediaPartida;
+
+    // 3. Tempo total desde que foi desbloqueado (até agora)
+    // Se não tiver unlockedAt, assumimos que entrou agora ou usa uma margem padrão
+    const inicioEspera = s.unlockedAt || (Date.now() - (60 * 60 * 1000)); 
+    const tempoTotalDecorridoMs = Date.now() - inicioEspera;
+
+    // 4. Tempo em espera é o tempo total menos o que ele passou jogando
+    // Não deixamos o resultado ficar negativo
+    let tempoEmEsperaMs = tempoTotalDecorridoMs - tempoEmQuadraMs;
+    if (tempoEmEsperaMs < 0) tempoEmEsperaMs = 0;
+
+    // Conversão para minutos
+    const tempoQuadraMin = Math.floor(tempoEmQuadraMs / 60000);
+    const tempoEsperaMin = Math.floor(tempoEmEsperaMs / 60000);
+
+    // Calcular parceiros (lógica mantida)
     let parceiros = {};
-    (game.historicoPartidas || []).forEach(p => {
-        if(p.timeA.includes(n)) p.timeA.forEach(c => { if(c!==n) parceiros[c] = (parceiros[c]||0) + 1; });
-        if(p.timeB.includes(n)) p.timeB.forEach(c => { if(c!==n) parceiros[c] = (parceiros[c]||0) + 1; });
+    historicoDoJogador.forEach(p => {
+        [...p.timeA, ...p.timeB].forEach(c => { if(c!==n) parceiros[c] = (parceiros[c]||0) + 1; });
     });
     const melhorParceiro = Object.keys(parceiros).sort((a,b) => parceiros[b]-parceiros[a])[0] || "---";
-
-    // Lógica para estimativa de tempo (Sets jogados * 10min aprox)
-    const tempoQuadra = (s.v + s.d) * 10; 
-    const tempoEspera = Math.max(0, 60 - tempoQuadra); // Simulação simples de tempo
 
     document.getElementById('auditNome').innerText = n;
     document.getElementById('auditContent').innerHTML = `
         <div class="grid grid-cols-2 gap-2 mb-4">
-            <div class="bg-slate-900 p-2 rounded text-center"><div class="text-[8px] uppercase text-slate-500">Quadra</div><div class="font-black text-blue-400">${tempoQuadra} min</div></div>
-            <div class="bg-slate-900 p-2 rounded text-center"><div class="text-[8px] uppercase text-slate-500">Em Espera</div><div class="font-black text-yellow-400">${tempoEspera} min</div></div>
+            <div class="bg-slate-900 p-2 rounded text-center"><div class="text-[8px] uppercase text-slate-500">Na Quadra</div><div class="font-black text-blue-400">${tempoQuadraMin} min</div></div>
+            <div class="bg-slate-900 p-2 rounded text-center"><div class="text-[8px] uppercase text-slate-500">Em Espera</div><div class="font-black text-yellow-400">${tempoEsperaMin} min</div></div>
         </div>
         <div class="space-y-2 text-[11px] bg-slate-900/50 p-3 rounded-xl border border-slate-700">
             <div class="flex justify-between"><span>Melhor Dupla:</span> <b class="text-orange-400">${melhorParceiro}</b></div>
             <div class="flex justify-between"><span>Vitórias:</span> <b>${s.v}</b></div>
-            <div class="flex justify-between"><span>Score Geral:</span> <b>${getScore(n)}</b></div>
-        </div>
-        <div class="mt-4 pt-4 border-t border-slate-700">
-            <p class="text-[8px] font-black uppercase text-slate-500 mb-2">Medalhas Hall da Fama</p>
-            <div class="flex gap-2 text-2xl">
-                ${s.v > 20 ? '<span title="Veterano: Mais de 20 vitórias">🥇</span>' : ''}
-                ${s.ptsBloqueio > 10 ? '<span title="Paredão: Mais de 10 bloqueios">🚫</span>' : ''}
-                ${s.ptsAtaque > 30 ? '<span title="Matador: Mais de 30 ataques">💥</span>' : ''}
-            </div>
         </div>
     `;
     document.getElementById('auditTotal').innerText = getScore(n);
