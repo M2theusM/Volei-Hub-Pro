@@ -237,9 +237,10 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="text-[9px] uppercase font-bold text-slate-500">Jogadores/Time</label><input type="number" id="cSize" class="config-input"></div>
-                    <div><label class="text-[9px] uppercase font-bold text-slate-500">Max Estrelas</label><input type="number" id="cStars" class="config-input"></div>
+                <div class="grid grid-cols-3 gap-2">
+                <div><label class="text-[8px] uppercase font-bold text-slate-500">Jogs/Time</label><input type="number" id="cSize" class="config-input"></div>
+                <div><label class="text-[8px] uppercase font-bold text-slate-500">Max Estrelas</label><input type="number" id="cStars" class="config-input"></div>
+                <div><label class="text-[8px] uppercase font-bold text-slate-500">Max Diamantes</label><input type="number" id="cElites" class="config-input"></div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="text-[9px] uppercase font-bold text-slate-500">Pontos/Set</label><input type="number" id="cPoints" class="config-input"></div>
@@ -504,7 +505,7 @@
             saqueLado: 'A', idxA: 0, idxB: 0, jaSacouA: false, jaSacouB: false,
             timeA: [], timeB: [], esperaGeral: [], esperaEstrela: [],
             ranking: {}, restricoes: [],
-            config: { size: 4, stars: 1, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' },
+            config: { size: 4, stars: 1, elites: 2, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' },
             weights: { atqG: 1.0, blqG: 1.25, aceG: 1.5, atqE: 1.5, blqE: 2.0, aceE: 2.0, err: 0.10, vit: 3.0, wTeam: 0.25 },
             systemMsg: { text: "AGUARDANDO", sub: "...", streak: false, ts: 0 },
             matchLog: [], lastAnim: { type: '', ts: 0 }, endGameAnim: { active: false, ts: 0 },
@@ -1138,7 +1139,8 @@
 
                     let p = null; 
                     const precisaStar = targetTeam.filter(x => x.estrela).length < game.config.stars; 
-                    const podeElite = targetTeam.filter(x => x.elite).length < 2;
+                    const maxElites = game.config.elites !== undefined ? game.config.elites : 2;
+                    const podeElite = targetTeam.filter(x => x.elite).length < maxElites;
 
                     const isValid = (x) => {
                         if (x.bloqueado) return false;
@@ -1181,7 +1183,8 @@
                 const isComboValid = (baseTeam, combo) => {
                     const fullTeam = [...baseTeam, ...combo];
                     if (fullTeam.filter(x => x.estrela).length > game.config.stars) return false;
-                    if (fullTeam.filter(x => x.elite).length > 2) return false;
+                    const maxElites = game.config.elites !== undefined ? game.config.elites : 2;
+                    if (fullTeam.filter(x => x.elite).length > maxElites) return false;
                     for(let i=0; i<fullTeam.length; i++) {
                         for(let j=i+1; j<fullTeam.length; j++) {
                             if(estaoBloqueados(fullTeam[i], fullTeam[j])) return false;
@@ -1242,6 +1245,7 @@
             
             document.getElementById('cSize').value = tempConfig.size;
             document.getElementById('cStars').value = tempConfig.stars;
+            document.getElementById('cElites').value = tempConfig.elites !== undefined ? tempConfig.elites : 2; // Adicione esta linha
             document.getElementById('cPoints').value = tempConfig.points;
             document.getElementById('cMax').value = tempConfig.maxWins;
             document.getElementById('cReaction').value = tempConfig.reaction;
@@ -1289,6 +1293,7 @@
         window.salvarConfigEClose = () => {
             game.config.size = parseInt(document.getElementById('cSize').value);
             game.config.stars = parseInt(document.getElementById('cStars').value);
+            game.config.elites = parseInt(document.getElementById('cElites').value); // Adicione esta linha
             game.config.points = parseInt(document.getElementById('cPoints').value);
             game.config.maxWins = parseInt(document.getElementById('cMax').value);
             game.config.reaction = document.getElementById('cReaction').value;
