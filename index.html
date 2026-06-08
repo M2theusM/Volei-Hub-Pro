@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V1.2.0</title>
+    <title>Vôlei Hub PRO - V2.0.0</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -198,6 +198,7 @@
             <button onclick="window.fecharModais()" class="w-full bg-slate-700 py-3 rounded-xl font-bold uppercase text-xs">Fechar</button>
         </div>
     </div>
+
     <div id="modalIdentificacao" class="modal-global hidden">
         <div class="bg-slate-800 w-full max-w-sm rounded-3xl p-6 border border-blue-500 shadow-2xl">
             <h2 class="text-xl font-black text-blue-400 uppercase mb-4 italic">Quem é você?</h2>
@@ -221,6 +222,7 @@
             <button onclick="window.fecharModais()" class="w-full mt-6 text-slate-500 text-[10px] font-bold uppercase py-2">Cancelar</button>
         </div>
     </div>
+
     <div id="modalConfigMenu" class="modal-global hidden">
         <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-slate-700 overflow-y-auto max-h-[90vh]">
             <h2 class="text-xl font-black text-orange-500 uppercase mb-6 italic">Configurações</h2>
@@ -238,31 +240,41 @@
                 </div>
 
                 <div class="grid grid-cols-3 gap-2">
-                <div><label class="text-[8px] uppercase font-bold text-slate-500">Jogs/Time</label><input type="number" id="cSize" class="config-input"></div>
-                <div><label class="text-[8px] uppercase font-bold text-slate-500">Max Estrelas</label><input type="number" id="cStars" class="config-input"></div>
-                <div><label class="text-[8px] uppercase font-bold text-slate-500">Max Diamantes</label><input type="number" id="cElites" class="config-input"></div>
+                    <div><label class="text-[8px] uppercase font-bold text-slate-500">Jogs/Time</label><input type="number" id="cSize" class="config-input"></div>
+                    <div><label class="text-[8px] uppercase font-bold text-slate-500">Max Estrelas</label><input type="number" id="cStars" class="config-input"></div>
+                    <div><label class="text-[8px] uppercase font-bold text-slate-500">Max Diamantes</label><input type="number" id="cElites" class="config-input"></div>
                 </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="text-[9px] uppercase font-bold text-slate-500">Pontos/Set</label><input type="number" id="cPoints" class="config-input"></div>
                     <div><label class="text-[9px] uppercase font-bold text-slate-500">Max Vitórias</label><input type="number" id="cMax" class="config-input"></div>
                 </div>
+
                 <div><label class="text-[9px] uppercase font-bold text-slate-500">Ao atingir limite:</label>
                     <select id="cReaction" class="config-input">
                         <option value="dividir">Dividir Vencedores</option>
                         <option value="sairDois">Sair Ambos</option>
                     </select>
                 </div>
+                
                 <div><label class="text-[9px] uppercase font-bold text-slate-500">Desempate</label>
                     <select id="cDesempate" class="config-input">
                         <option value="3direto">3 Pontos direto</option>
                         <option value="2vantagem">2 Pontos vantagem</option>
                         <option value="sem">Sem Desempate</option>
                     </select>
-                </div>                
-                <button onclick="window.abrirWeights()" class="w-full bg-slate-700 text-blue-400 p-3 rounded-xl font-black uppercase text-[10px] border border-slate-600">📊 Pesos do Score</button>
-                <button onclick="window.abrirBloqueioDuplas()" class="w-full bg-slate-700 text-red-400 p-3 rounded-xl font-black uppercase text-[10px] border border-slate-600">🚫 Bloqueio Duplas</button>
-                <button onclick="window.limparSistema()" class="w-full text-red-600 text-[10px] font-black uppercase py-2">⚠️ Resetar Sistema</button>
+                </div>
+
+                <button onclick="window.abrirWeights()" class="w-full bg-slate-700 text-blue-400 p-3 rounded-xl font-black uppercase text-[10px] border border-slate-600 mb-2">📊 Pesos do Score</button>
+                <button onclick="window.abrirBloqueioDuplas()" class="w-full bg-slate-700 text-red-400 p-3 rounded-xl font-black uppercase text-[10px] border border-slate-600 mb-6">🚫 Bloqueio Duplas</button>
+
+                <div class="border-t border-slate-600 pt-6 space-y-2">
+                    <button onclick="window.iniciarNovoDia()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white p-3 rounded-xl font-black uppercase text-[10px] border border-emerald-500 shadow-lg">☀️ Encerrar Hoje / Novo Dia</button>
+                    <button onclick="window.forcarBalanceamentoManual()" class="w-full bg-purple-600 hover:bg-purple-500 text-white p-3 rounded-xl font-black uppercase text-[10px] border border-purple-500 shadow-lg">🤖 Forçar Balanceamento (IA)</button>
+                    <button onclick="window.limparSistema()" class="w-full text-red-600 hover:text-red-400 text-[10px] font-black uppercase py-2 mt-4">⚠️ Resetar Sistema Completo</button>
+                </div>
             </div>
+
             <button onclick="window.salvarConfigEClose()" class="w-full bg-orange-600 p-4 rounded-xl font-black uppercase italic shadow-lg">Salvar Config</button>
             <button onclick="window.fecharModais()" class="w-full py-4 text-slate-500 text-[10px] font-bold uppercase">Fechar</button>
         </div>
@@ -354,6 +366,7 @@
             <button onclick="document.getElementById('modalRestricao').classList.add('hidden')" class="w-full bg-slate-700 py-3 rounded-xl font-bold uppercase text-xs">Voltar</button>
         </div>
     </div>
+    
     <div id="modalHistorico" class="modal-global hidden">
         <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-slate-600 overflow-y-auto max-h-[90vh]">
             <div class="flex justify-between items-center mb-6">
@@ -405,7 +418,6 @@
 
         let isAdmin = false;
 
-        // Fica escutando para ver se você está logado
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 isAdmin = true;
@@ -414,10 +426,9 @@
                 isAdmin = false;
                 document.body.classList.remove('is-admin');
             }
-            render(); // Atualiza a tela escondendo/mostrando os botões
+            render(); 
         });
 
-        // Função secreta para você logar
         window.fazerLoginAdmin = () => {
             const email = prompt("E-mail do Administrador:");
             if (!email) return;
@@ -429,7 +440,6 @@
                 .catch((error) => { alert("Erro de acesso: Usuário ou senha incorretos."); });
         };
 
-        // Escuta a URL. Se você acessar com "?login=admin", ele pede a senha.
         const params = new URLSearchParams(window.location.search);
         if (params.get('login') === 'admin') {
             setTimeout(window.fazerLoginAdmin, 800); 
@@ -445,7 +455,6 @@
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
-            // NOVO: Desbloqueia o motor de voz no celular dos visitantes no 1º toque na tela
             if ('speechSynthesis' in window) {
                 const unlockMsg = new SpeechSynthesisUtterance('');
                 window.speechSynthesis.speak(unlockMsg);
@@ -461,22 +470,20 @@
 
             const now = audioCtx.currentTime;
             
-            // Cria dois osciladores para gerar o efeito de "batimento" (trinado)
             const osc1 = audioCtx.createOscillator();
             const osc2 = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
 
-            osc1.type = 'triangle'; // Triangulo soa mais "cheio" que sine
+            osc1.type = 'triangle'; 
             osc2.type = 'triangle';
 
             osc1.frequency.setValueAtTime(2000, now);
-            osc2.frequency.setValueAtTime(2150, now); // 150Hz de diferença cria o trinado
+            osc2.frequency.setValueAtTime(2150, now); 
 
-            // Envelope de volume (1.2 segundos total)
             gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(0.8, now + 0.1); // Ataque rápido
-            gainNode.gain.setValueAtTime(0.8, now + 1.0); // Sustain
-            gainNode.gain.linearRampToValueAtTime(0, now + 1.2); // Release rápido
+            gainNode.gain.linearRampToValueAtTime(0.8, now + 0.1); 
+            gainNode.gain.setValueAtTime(0.8, now + 1.0); 
+            gainNode.gain.linearRampToValueAtTime(0, now + 1.2); 
 
             osc1.connect(gainNode);
             osc2.connect(gainNode);
@@ -489,31 +496,153 @@
         // --- MOTOR DE VOZ SINTÉTICA (NARRADOR) ---
         function narrarPonto(texto) {
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); // Cancela a fala anterior para não "encavalar"
+                window.speechSynthesis.cancel();
                 const msg = new SpeechSynthesisUtterance(texto);
-                msg.lang = 'pt-BR'; // Idioma
-                msg.rate = 1;     // Velocidade um pouco mais rápida e dinâmica (1 é o padrão)
-                msg.pitch = 1.1;    // Tom de voz levemente mais alto para destacar
+                msg.lang = 'pt-BR'; 
+                msg.rate = 1;     
+                msg.pitch = 1.1;    
                 window.speechSynthesis.speak(msg);
             }
         }
 
-        let game = {
-            partidaAtiva: true, 
-            setupLocked: true, 
-            scoreA: 0, scoreB: 0, winsConsecA: 0, winsConsecB: 0,
-            saqueLado: 'A', idxA: 0, idxB: 0, jaSacouA: false, jaSacouB: false,
-            timeA: [], timeB: [], esperaGeral: [], esperaEstrela: [],
-            ranking: {}, restricoes: [],
+        let game = JSON.parse(localStorage.getItem('voleiHubGame')) || {
+            jogadores: [], timeA: [], timeB: [], placar: { A: 0, B: 0 }, vitoriasTime: { A: 0, B: 0 }, vitoriasConsecutivas: 0,
+            historicoPartidas: [], historicoDias: [], ranking: {}, saqueLado: null, idxA: null, idxB: null,
+            weights: { atqG: 1, blqG: 1, aceG: 1.5, atqE: 1.5, blqE: 1.5, aceE: 2, err: -0.5, vit: 3, team: 0.5 },
             config: { size: 4, stars: 1, elites: 2, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' },
-            weights: { atqG: 1.0, blqG: 1.25, aceG: 1.5, atqE: 1.5, blqE: 2.0, aceE: 2.0, err: 0.10, vit: 3.0, wTeam: 0.25 },
-            systemMsg: { text: "AGUARDANDO", sub: "...", streak: false, ts: 0 },
-            matchLog: [], lastAnim: { type: '', ts: 0 }, endGameAnim: { active: false, ts: 0 },
-            nextGameReason: 'default', publicRanking: false,
-            requests: [], deniedRequests: [],
-            currentMatchStats: {},
-            lastScorerId: null, currentStreak: 0,
-            soundTrigger: 0 
+            bloqueios: {} 
+        };
+
+        // ====== IA DE AUTO-BALANCEAMENTO ======
+        window.forcarBalanceamentoManual = () => {
+            const todos = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela];
+            
+            let avaliaveis = [];
+            todos.forEach(p => {
+                let r = game.ranking[p.nome];
+                if (!r) return;
+                let setsJogados = r.v + r.d;
+                if (setsJogados >= 2) {
+                    let impactoAtaque = (r.ptsAtaque || 0) * 2;
+                    let impactoDefesa = ((r.ptsBloqueio || 0) + (r.ptsAce || 0)) * 1.5;
+                    let taxaVitoria = (r.v || 0) * 5; 
+                    let pontuacaoMedia = (impactoAtaque + impactoDefesa + taxaVitoria) / setsJogados;
+                    avaliaveis.push({ p, score: pontuacaoMedia });
+                }
+            });
+
+            if (avaliaveis.length < 5) {
+                alert("Poucos jogadores com dados suficientes (mín 2 sets) para a IA balancear.");
+                return;
+            }
+
+            avaliaveis.sort((a, b) => b.score - a.score);
+            let proporcao = Math.max(1, Math.floor(avaliaveis.length * 0.20));
+
+            // Só altera o status de quem jogou o suficiente para ser avaliado
+            avaliaveis.forEach(item => { 
+                item.p.elite = false; item.p.estrela = false; 
+                game.ranking[item.p.nome].elite = false; 
+                game.ranking[item.p.nome].estrela = false; 
+            });
+
+            // Promove os 20% Melhores para Elite
+            for(let i = 0; i < proporcao; i++) {
+                avaliaveis[i].p.elite = true;
+                game.ranking[avaliaveis[i].p.nome].elite = true;
+            }
+
+            // Rebaixa os 20% Piores para Estrela
+            for(let i = avaliaveis.length - 1; i >= Math.max(proporcao, avaliaveis.length - proporcao); i--) {
+                avaliaveis[i].p.estrela = true;
+                game.ranking[avaliaveis[i].p.nome].estrela = true;
+            }
+
+            // Reorganiza fisicamente as filas de espera
+            let novaGeral = [];
+            let novaEstrela = [];
+            [...game.esperaGeral, ...game.esperaEstrela].forEach(p => {
+                if(p.estrela) novaEstrela.push(p);
+                else novaGeral.push(p);
+            });
+            game.esperaGeral = novaGeral;
+            game.esperaEstrela = novaEstrela;
+
+            salvarState();
+            alert('Balanceamento IA Concluído! Filas e Rankings Atualizados.');
+        };
+
+        window.iniciarNovoDia = () => {
+            if(!confirm("Deseja encerrar o dia de hoje?\n\n- A quadra será liberada.\n- O Ranking SERÁ ACUMULADO (dados não perdidos).\n- O sistema rodará a IA para promover/rebaixar jogadores.")) return;
+            
+            let balanceou = false;
+            const todos = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela];
+            
+            let avaliaveis = [];
+            todos.forEach(p => {
+                let r = game.ranking[p.nome];
+                if (!r) return;
+                let setsJogados = r.v + r.d;
+                if (setsJogados >= 2) {
+                    let impactoAtaque = (r.ptsAtaque || 0) * 2;
+                    let impactoDefesa = ((r.ptsBloqueio || 0) + (r.ptsAce || 0)) * 1.5;
+                    let taxaVitoria = (r.v || 0) * 5; 
+                    let pontuacaoMedia = (impactoAtaque + impactoDefesa + taxaVitoria) / setsJogados;
+                    avaliaveis.push({ p, score: pontuacaoMedia });
+                }
+            });
+
+            if (avaliaveis.length >= 5) {
+                balanceou = true;
+                avaliaveis.sort((a, b) => b.score - a.score);
+                let proporcao = Math.max(1, Math.floor(avaliaveis.length * 0.20));
+
+                avaliaveis.forEach(item => { 
+                    item.p.elite = false; item.p.estrela = false; 
+                    game.ranking[item.p.nome].elite = false; 
+                    game.ranking[item.p.nome].estrela = false; 
+                });
+
+                for(let i = 0; i < proporcao; i++) {
+                    avaliaveis[i].p.elite = true;
+                    game.ranking[avaliaveis[i].p.nome].elite = true;
+                }
+
+                for(let i = avaliaveis.length - 1; i >= Math.max(proporcao, avaliaveis.length - proporcao); i--) {
+                    avaliaveis[i].p.estrela = true;
+                    game.ranking[avaliaveis[i].p.nome].estrela = true;
+                }
+            }
+
+            // Limpa a quadra
+            game.timeA = [];
+            game.timeB = [];
+            game.esperaGeral = [];
+            game.esperaEstrela = [];
+
+            // Coloca todos travados na fila correspondente (Força o check-in no dia seguinte)
+            todos.forEach(p => {
+                p.bloqueado = true; 
+                if (p.estrela) game.esperaEstrela.push(p);
+                else game.esperaGeral.push(p);
+            });
+
+            // Arquiva Histórico do Dia
+            if(!game.historicoDias) game.historicoDias = [];
+            if(game.historicoPartidas && game.historicoPartidas.length > 0) {
+                let dataStr = new Date().toLocaleDateString('pt-BR') + ' às ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                game.historicoDias.push({ data: dataStr, partidas: [...game.historicoPartidas] });
+            }
+
+            game.historicoPartidas = []; 
+            game.placar = { A: 0, B: 0 }; game.scoreA = 0; game.scoreB = 0;
+            game.winsConsecA = 0; game.winsConsecB = 0;
+            game.currentMatchStats = {};
+            
+            salvarState();
+            
+            alert(balanceou ? "☀️ Novo Dia Iniciado!\nDados arquivados, quadra livre e jogadores balanceados pela IA." : "☀️ Novo Dia Iniciado!\nDados arquivados e quadra livre. (Poucos dados para IA rodar hoje).");
+            window.fecharModais();
         };
 
         let tempConfig = {};
@@ -523,11 +652,10 @@
         // Funções de Identidade do Visitante
         window.acaoMeuPerfil = () => {
             if (meuNome) {
-                window.abrirAuditModal(meuNome); // Abre os stats diretos se já estiver logado
+                window.abrirAuditModal(meuNome);
             } else {
                 const all = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela].sort((a,b)=>a.nome.localeCompare(b.nome)); 
                 
-                // Adiciona o "(Bloqueado)" ao lado do nome se o jogador estiver bloqueado
                 const opt = `<option value="" disabled selected>- Selecione seu nome -</option>` + all.map(p => {
                     const status = p.bloqueado ? ' (Bloqueado)' : '';
                     return `<option value="${p.nome}">${p.nome}${status}</option>`;
@@ -537,11 +665,10 @@
                 document.getElementById('modalIdentificacao').classList.remove('hidden');
             }
         };
-        // Controle dinâmico do botão Liberar Identificação
+
         window.verificarBloqueioSelect = () => {
             const sel = document.getElementById('selMeuNome');
             const btnLib = document.getElementById('btnConfirmarLiberar');
-            // Se o texto da opção selecionada contiver "(Bloqueado)", o botão verde aparece!
             if(sel.options[sel.selectedIndex].text.includes('(Bloqueado)')) {
                 btnLib.classList.remove('hidden');
             } else {
@@ -595,29 +722,26 @@
                 
             document.getElementById('modalDetalhePartida').classList.remove('hidden');
         };
+        
         window.salvarIdentificacao = (liberar = false) => {
             const val = document.getElementById('selMeuNome').value;
             if (val) {
                 meuNome = val;
                 localStorage.setItem('voleihub_meunome', meuNome);
                 
-                // Se o usuário clicou no botão verde "Confirmar e Liberar"
                 if(liberar) {
                     let list = null;
                     let p = null;
                     
-                    // Encontra em qual fila o jogador está
                     if (game.esperaGeral.some(x => x.nome === val)) {
                         list = game.esperaGeral; p = list.find(x => x.nome === val);
                     } else if (game.esperaEstrela.some(x => x.nome === val)) {
                         list = game.esperaEstrela; p = list.find(x => x.nome === val);
                     }
                     
-                    // Se achou o jogador e ele estava bloqueado, libera e organiza a fila
                     if (p && p.bloqueado) {
                         p.bloqueado = false;
                         
-                        // Retira ele da posição atual e o coloca de forma justa no final da fila (respeitando novatos com 0 jogos)
                         list.splice(list.indexOf(p), 1);
                         let novaPos = 0;
                         for (let i = 0; i < list.length; i++) {
@@ -628,7 +752,7 @@
                         }
                         list.splice(novaPos, 0, p);
                         
-                        salvarState(); // Salva a liberação no banco de dados
+                        salvarState(); 
                     }
                 }
                 
@@ -643,10 +767,10 @@
             const n = document.getElementById('novoMeuNome').value.toUpperCase().trim(); 
             if(!n) return; 
             
-            adicionarLocal(n, false); // Adiciona na fila geral por padrão
+            adicionarLocal(n, false); 
             salvarState();
             
-            meuNome = n; // Já define como sendo o usuário atual
+            meuNome = n;
             localStorage.setItem('voleihub_meunome', meuNome);
             document.getElementById('novoMeuNome').value = '';
             
@@ -661,6 +785,7 @@
             window.fecharModais();
             render();
         };
+        
         let filaTab = 'geral';
         let rkTab = 'tudo';
         let modalCtx = { lado: '', idx: 0 };
@@ -699,7 +824,6 @@
         function ensureRankingConsistency() {
             const allPlayers = [...game.esperaGeral, ...game.esperaEstrela, ...game.timeA, ...game.timeB];
             allPlayers.forEach(p => { 
-                // Valida retroativamente quem já estava no banco de dados
                 if (typeof p.elite === 'undefined') {
                     p.elite = INITIAL_ELITE.includes(p.nome);
                 }
@@ -715,10 +839,9 @@
         function initGameData() {
             game.esperaGeral = []; game.esperaEstrela = [];
             
-            // Carrega os 3 grupos nas suas respectivas filas
             INITIAL_GERAL.forEach(n => adicionarLocal(n, false));
             INITIAL_ESTRELA.forEach(n => adicionarLocal(n, true));
-            INITIAL_ELITE.forEach(n => adicionarLocal(n, false)); // <-- AGORA OS ELITES ENTRAM NA FILA GERAL!
+            INITIAL_ELITE.forEach(n => adicionarLocal(n, false));
 
             const all = [...game.esperaGeral, ...game.esperaEstrela];
             game.restricoes = [];
@@ -732,8 +855,8 @@
             game.esperaEstrela.forEach(p => p.bloqueado = true);
             
             game.partidaAtiva = true; 
-            game.saqueLado = 'A'; // Padrão
-            game.jaSacouA = true; // Se A começa, A já "gastou" o saque do jogador 1
+            game.saqueLado = 'A'; 
+            game.jaSacouA = true; 
             game.jaSacouB = false;
 
             salvarState();
@@ -741,7 +864,7 @@
 
         function adicionarLocal(nome, isEstrela) {
             const id = Math.random().toString(36).substr(2, 9);
-            const isElite = INITIAL_ELITE.includes(nome); // <- Verifica se o novo nome é Elite
+            const isElite = INITIAL_ELITE.includes(nome); 
             const obj = { id, nome, estrela: isEstrela, elite: isElite, bloqueado: false };
             if(!game.ranking[nome]) game.ranking[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: isEstrela, elite: isElite };
             const lista = isEstrela ? game.esperaEstrela : game.esperaGeral;
@@ -769,13 +892,13 @@
                 game.publicRanking = false;
                 game.currentMatchStats = {};
                 game.requests = []; game.deniedRequests = [];
-                game.config = { size: 4, stars: 1, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' };
+                game.config = { size: 4, stars: 1, elites: 2, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' };
                 game.weights = { atqG: 1.0, blqG: 1.25, aceG: 1.5, atqE: 1.5, blqE: 2.0, aceE: 2.0, err: 0.10, vit: 3.0, wTeam: 0.25 };
                 
-                initGameData(); // Recria as listas com os jogadores padrão e salva no banco
+                initGameData(); 
                 
                 setSystemMessage("SISTEMA REINICIADO", "Configurações Padrão Restauradas", false);
-                window.fecharModais(); // Fecha o modal de configurações após o reset
+                window.fecharModais(); 
                 render();
             }
         };
@@ -787,7 +910,6 @@
         };
 
         function checkAndPlaySound() {
-            // A trava "if(isAdmin) return" foi removida para o Admin ouvir o próprio apito!
             if(game.soundTrigger > lastSoundTs) {
                 lastSoundTs = game.soundTrigger;
                 tocarApitoRealista();
@@ -804,7 +926,7 @@
 
         function render() {
             checkAndPlaySound();
-            // Sincroniza e reproduz a voz para todos os aparelhos
+            
             if(game.lastVoice && game.lastVoice.ts > lastVoiceTs) {
                 lastVoiceTs = game.lastVoice.ts;
                 narrarPonto(game.lastVoice.text);
@@ -831,9 +953,9 @@
             const infoPanel = document.getElementById('info-panel');
             const placarDiv = document.getElementById('placarDisplay');
             if (game.config.hideScoreboard) {
-                placarDiv.classList.add('hidden'); // Esconde se a opção estiver ativada
+                placarDiv.classList.add('hidden'); 
             } else {
-                placarDiv.classList.remove('hidden'); // Mostra normalmente
+                placarDiv.classList.remove('hidden'); 
             }
             infoPanel.classList.remove('hidden');
             
@@ -848,11 +970,11 @@
             
             const drawTeam = (l) => (l === 'A' ? game.timeA : game.timeB).map((p, i) => `
                 <div class="jogador-card bg-slate-800 p-3 rounded-xl border-l-4 ${l==='A'?'border-l-blue-500':'border-l-orange-500'} ${game.partidaAtiva && game.saqueLado===l && (l==='A'?game.idxA:game.idxB)===i?'sacando':''} ${p.estrela?'is-estrela':''}" onclick="window.abrirPontoTecnico('${l}', ${i})" data-id="${p.id}">
-                    <div class="uppercase font-black text-[10px] truncate"><span class="bola-saque mr-1">🏐</span> ${p.estrela?'⭐ ':''}${p.nome}</div>
+                    <div class="uppercase font-black text-[10px] truncate"><span class="bola-saque mr-1">🏐</span> ${p.estrela?'⭐ ':''}${p.elite?'💎 ':''}${p.nome}</div>
                 </div>`).join('');
             document.getElementById('areaA').innerHTML = drawTeam('A');
             document.getElementById('areaB').innerHTML = drawTeam('B');
-            // Calcula e exibe o Score Total de cada time em tempo real
+            
             const sumScore = (team) => team.reduce((acc, p) => acc + parseFloat(getScore(p.nome)), 0).toFixed(2);
             document.getElementById('labelTimeA').innerText = `TIME A - Score: ${sumScore(game.timeA)}`;
             document.getElementById('labelTimeB').innerText = `TIME B - Score: ${sumScore(game.timeB)}`;
@@ -877,9 +999,9 @@
             document.getElementById('tabEstrela').className = `text-[10px] font-black uppercase px-4 py-2 rounded-lg transition ${filaTab === 'estrela' ? 'tab-active shadow-lg' : 'bg-slate-700 hover:bg-slate-600'}`;
 
             const rk = Object.entries(game.ranking).map(([n, s]) => ({ n, ...s, score: parseFloat(getScore(n)) })).filter(x => x.score > 0 && (rkTab==='tudo'?true:rkTab==='estrela'?x.estrela:!x.estrela)).sort((a,b) => b.score - a.score);
-            document.getElementById('rankingContainer').innerHTML = rk.map((j, i) => `<div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 cursor-pointer mb-1 hover:bg-slate-800 transition" onclick="window.abrirAuditModal('${j.n}')"><div class="flex items-center gap-3"><span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span><div class="rank-name uppercase text-[10px] font-bold text-slate-300">${j.estrela?'⭐ ':''}${j.n}</div></div><div class="text-orange-500 font-black text-xs">${j.score}</div></div>`).join('');
+            document.getElementById('rankingContainer').innerHTML = rk.map((j, i) => `<div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 cursor-pointer mb-1 hover:bg-slate-800 transition" onclick="window.abrirAuditModal('${j.n}')"><div class="flex items-center gap-3"><span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span><div class="rank-name uppercase text-[10px] font-bold text-slate-300">${j.estrela?'⭐ ':''}${j.elite?'💎 ':''}${j.n}</div></div><div class="text-orange-500 font-black text-xs">${j.score}</div></div>`).join('');
             renderLeaders();
-            // Controle visual do botão de visitante vs admin
+            
             const visitorControls = document.getElementById('visitor-controls');
             if (visitorControls) {
                 if (!isAdmin) {
@@ -925,9 +1047,8 @@
             if(!isAdmin || !game.partidaAtiva) return;
             if(hist) salvarState(true);
             
-            // Registra o erro adversário normalmente
             if(isErro) {
-                game.lastVoice = { text: "Ponto por erro", ts: Date.now() }; // Salva voz no BD
+                game.lastVoice = { text: "Ponto por erro", ts: Date.now() }; 
                 
                 const beneficiados = lado === 'A' ? game.timeA : game.timeB;
                 beneficiados.forEach(p => game.ranking[p.nome].ptsErroAdversario++);
@@ -942,12 +1063,10 @@
             }
             if(lado === 'A') game.scoreA++; else game.scoreB++;
             
-            // --- NOVA LÓGICA DE MATCH POINT E AVISOS ---
             const limit = game.config.points;
             let alvoA = limit;
             let alvoB = limit;
 
-            // 1. Define o alvo dinâmico
             if (game.config.desempate === '3direto') {
                 if (game.scoreA >= limit - 1 && game.scoreB >= limit - 1) {
                     alvoA = (limit - 1) + 3;
@@ -958,15 +1077,12 @@
                 alvoB = Math.max(limit, game.scoreA + 2);
             }
 
-            // 2. Verifica se estão a 1 ponto de ganhar
             const aNoMatchPoint = (game.scoreA === alvoA - 1);
             const bNoMatchPoint = (game.scoreB === alvoB - 1);
             
-            // 3. Gatilhos exatos para o momento do empate
             const empate11 = (game.scoreA === limit - 1 && game.scoreB === limit - 1);
             const empateVantagem = (game.scoreA >= limit - 1 && game.scoreB >= limit - 1 && game.scoreA === game.scoreB);
 
-            // 4. Ordem de prioridade das mensagens na tela
             if (aNoMatchPoint && bNoMatchPoint) {
                 setSystemMessage("MATCH POINT!", "AMBOS JOGANDO PELO SET", false);
             } else if (aNoMatchPoint) {
@@ -978,18 +1094,18 @@
             } else if (game.config.desempate === '2vantagem' && empateVantagem) {
                 setSystemMessage("VAI A 2!", "Vantagem de 2 pontos necessária", false);
             }
-            // ------------------------------------
             
             verificarFimDeSet();
             salvarState(false);
         };
+        
         window.registrarAcaoJogador = (tipo) => {
             if(!isAdmin) return;
             salvarState(true);
             const p = (modalCtx.lado==='A'?game.timeA:game.timeB)[modalCtx.idx];
             
            if(tipo==='ataque') {
-                game.lastVoice = { text: "Ponto de Ataque", ts: Date.now() }; // Salva voz no BD
+                game.lastVoice = { text: "Ponto de Ataque", ts: Date.now() }; 
                 game.ranking[p.nome].ptsAtaque++;
                 const timeAtual = modalCtx.lado === 'A' ? game.timeA : game.timeB;
                 timeAtual.forEach(companheiro => {
@@ -999,11 +1115,11 @@
                 });
             }
             if(tipo==='bloqueio') {
-                game.lastVoice = { text: "Ponto de Bloqueio", ts: Date.now() }; // Salva voz no BD
+                game.lastVoice = { text: "Ponto de Bloqueio", ts: Date.now() }; 
                 game.ranking[p.nome].ptsBloqueio++; 
             }
             if(tipo==='saque') {
-                game.lastVoice = { text: "Ponto de saque", ts: Date.now() }; // Salva voz no BD
+                game.lastVoice = { text: "Ponto de saque", ts: Date.now() }; 
                 game.ranking[p.nome].ptsAce++; 
             }
             
@@ -1025,44 +1141,37 @@
         };
 
         function verificarFimDeSet() {
-    const limit = game.config.points; // Limite padrão do set (ex: 12)
-    let vencedor = null;
+            const limit = game.config.points; 
+            let vencedor = null;
 
-    if (game.config.desempate === '3direto') {
-        // Verifica se houve empate no ponto anterior ao limite (ex: 11 a 11)
-        if (game.scoreA >= limit - 1 && game.scoreB >= limit - 1) {
-            // Se houve o empate, o novo alvo passa a ser o ponto de empate + 3 (ex: 11 + 3 = 14)
-            const novoAlvo = (limit - 1) + 3; 
-            
-            if (game.scoreA >= novoAlvo) vencedor = 'A';
-            else if (game.scoreB >= novoAlvo) vencedor = 'B';
-        } else {
-            // Se não houve empate em 11x11, ganha quem chegar no limite normal (12)
-            if (game.scoreA >= limit) vencedor = 'A';
-            else if (game.scoreB >= limit) vencedor = 'B';
+            if (game.config.desempate === '3direto') {
+                if (game.scoreA >= limit - 1 && game.scoreB >= limit - 1) {
+                    const novoAlvo = (limit - 1) + 3; 
+                    
+                    if (game.scoreA >= novoAlvo) vencedor = 'A';
+                    else if (game.scoreB >= novoAlvo) vencedor = 'B';
+                } else {
+                    if (game.scoreA >= limit) vencedor = 'A';
+                    else if (game.scoreB >= limit) vencedor = 'B';
+                }
+            } 
+            else if (game.config.desempate === '2vantagem') {
+                if (game.scoreA >= limit && (game.scoreA - game.scoreB) >= 2) vencedor = 'A';
+                else if (game.scoreB >= limit && (game.scoreB - game.scoreA) >= 2) vencedor = 'B';
+            } 
+            else {
+                if (game.scoreA >= limit) vencedor = 'A';
+                else if (game.scoreB >= limit) vencedor = 'B';
+            }
+
+            if (vencedor === 'A') {
+                finalizarPartida('A'); 
+            } else if (vencedor === 'B') {
+                finalizarPartida('B'); 
+            }
         }
-    } 
-    else if (game.config.desempate === '2vantagem') {
-        // Regra de 2 pontos de vantagem
-        if (game.scoreA >= limit && (game.scoreA - game.scoreB) >= 2) vencedor = 'A';
-        else if (game.scoreB >= limit && (game.scoreB - game.scoreA) >= 2) vencedor = 'B';
-    } 
-    else {
-        // Sem desempate (ganha quem bater o limite primeiro)
-        if (game.scoreA >= limit) vencedor = 'A';
-        else if (game.scoreB >= limit) vencedor = 'B';
-    }
-
-    // Se houver um vencedor, chama a função para finalizar a partida
-    if (vencedor === 'A') {
-        finalizarPartida('A'); // Substitua pela sua função de encerrar partida
-    } else if (vencedor === 'B') {
-        finalizarPartida('B'); // Substitua pela sua função de encerrar partida
-    }
-}
 
         function finalizarPartida(venceu) {
-            // --- SALVAR HISTÓRICO DA PARTIDA ---
             if(!game.historicoPartidas) game.historicoPartidas = [];
             const matchSnapshot = {
                 id: Date.now(),
@@ -1071,12 +1180,11 @@
                 scoreB: game.scoreB,
                 timeA: game.timeA.map(p => p.nome),
                 timeB: game.timeB.map(p => p.nome),
-                log: [...game.matchLog] // Tira uma "foto" do log de pontos
+                log: [...game.matchLog] 
             };
-            game.historicoPartidas.unshift(matchSnapshot); // Coloca em primeiro (mais recente)
-            if(game.historicoPartidas.length > 30) game.historicoPartidas.pop(); // Guarda as últimas 30
-            game.matchLog = []; // Zera o log para a próxima partida
-            // -----------------------------------
+            game.historicoPartidas.unshift(matchSnapshot); 
+            if(game.historicoPartidas.length > 30) game.historicoPartidas.pop(); 
+            game.matchLog = []; 
 
             setSystemMessage(`VITÓRIA TIME ${venceu}!`, "Set Finalizado", false);
             showEndGameOverlay(); 
@@ -1092,14 +1200,12 @@
             if(game.config.maxWins > 0 && (game.winsConsecA >= game.config.maxWins || game.winsConsecB >= game.config.maxWins)) {
                 if(game.config.reaction === 'dividir') { 
                     game.nextGameReason = 'mixed'; 
-                    // Ordena os vencedores: Maior Score -> Menor Score
                     const pool = [...tV].sort((a,b) => parseFloat(getScore(b.nome)) - parseFloat(getScore(a.nome))); 
                     
                     if (pool.length >= 4) {
-                        game.timeA = [pool[0], pool[pool.length - 1]]; // Melhor e Pior
-                        game.timeB = [pool[1], pool[2]]; // 2º e 3º melhores
+                        game.timeA = [pool[0], pool[pool.length - 1]]; 
+                        game.timeB = [pool[1], pool[2]]; 
                         
-                        // Distribui os que sobrarem (caso o time tenha 5 ou mais)
                         for(let i = 3; i < pool.length - 1; i++) {
                             const sA = game.timeA.reduce((acc, p) => acc + parseFloat(getScore(p.nome)), 0);
                             const sB = game.timeB.reduce((acc, p) => acc + parseFloat(getScore(p.nome)), 0);
@@ -1121,11 +1227,9 @@
                 game.winsConsecA = 0; game.winsConsecB = 0;
             }
 
-            // GUARDA OS TIMES ORIGINAIS (As bases que sobraram na quadra)
             const originalA = [...game.timeA];
             const originalB = [...game.timeB];
 
-            // 1. Extração da Fila: Puxa exatamente as pessoas necessárias validando as regras
             const fillBothTeams = () => {
                 while (game.timeA.length < game.config.size || game.timeB.length < game.config.size) {
                     let targetTeam;
@@ -1167,9 +1271,6 @@
             };
             fillBothTeams();
 
-            // 2. OTIMIZADOR DE COMBINAÇÕES (SWAP)
-            // Analisa todas as formas possíveis de distribuir os jogadores novos entre os times A e B
-            // em busca da menor diferença matemática de Score, mantendo regras intactas.
             const addedA = game.timeA.slice(originalA.length);
             const addedB = game.timeB.slice(originalB.length);
             const allAdded = [...addedA, ...addedB];
@@ -1179,7 +1280,6 @@
                 let bestComboA = [];
                 let bestComboB = [];
 
-                // Verifica se a combinação gerada não viola nenhuma regra do jogo
                 const isComboValid = (baseTeam, combo) => {
                     const fullTeam = [...baseTeam, ...combo];
                     if (fullTeam.filter(x => x.estrela).length > game.config.stars) return false;
@@ -1193,7 +1293,6 @@
                     return true;
                 };
 
-                // Gerador matemático de combinações possíveis
                 const getCombos = (arr, k) => {
                     if (k === 0) return [[]];
                     if (arr.length === 0) return [];
@@ -1212,7 +1311,6 @@
                         const scoreB = originalB.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0) + comboB.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0);
                         const diff = Math.abs(scoreA - scoreB);
                         
-                        // Se essa troca deixar o jogo mais parelho, salva ela como a melhor opção
                         if (diff < bestDiff) {
                             bestDiff = diff;
                             bestComboA = comboA;
@@ -1221,7 +1319,6 @@
                     }
                 });
 
-                // Aplica a melhor combinação encontrada
                 if (bestDiff !== Infinity) {
                     game.timeA = [...originalA, ...bestComboA];
                     game.timeB = [...originalB, ...bestComboB];
@@ -1241,11 +1338,11 @@
         window.abrirConfig = () => {
             tempConfig = JSON.parse(JSON.stringify(game.config)); 
             tempConfig.publicRanking = game.publicRanking; 
-            tempConfig.hideScoreboard = game.config.hideScoreboard || false; // Nova Propriedade
+            tempConfig.hideScoreboard = game.config.hideScoreboard || false; 
             
             document.getElementById('cSize').value = tempConfig.size;
             document.getElementById('cStars').value = tempConfig.stars;
-            document.getElementById('cElites').value = tempConfig.elites !== undefined ? tempConfig.elites : 2; // Adicione esta linha
+            document.getElementById('cElites').value = tempConfig.elites !== undefined ? tempConfig.elites : 2; 
             document.getElementById('cPoints').value = tempConfig.points;
             document.getElementById('cMax').value = tempConfig.maxWins;
             document.getElementById('cReaction').value = tempConfig.reaction;
@@ -1260,14 +1357,12 @@
             updateToggleBtnUI();
         };
 
-        // Nova função para o botão do placar
         window.toggleScoreboardVis = () => {
             tempConfig.hideScoreboard = !tempConfig.hideScoreboard;
             updateToggleBtnUI();
         };
 
         function updateToggleBtnUI() {
-            // Controle do botão de Ranking
             const btnRk = document.getElementById('btnToggleRank');
             if(tempConfig.publicRanking) {
                 btnRk.innerText = "ATIVADO";
@@ -1277,7 +1372,6 @@
                 btnRk.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400";
             }
 
-            // Controle do botão de Esconder Placar
             const btnSb = document.getElementById('btnToggleScoreboard');
             if(btnSb) {
                 if(tempConfig.hideScoreboard) {
@@ -1293,13 +1387,12 @@
         window.salvarConfigEClose = () => {
             game.config.size = parseInt(document.getElementById('cSize').value);
             game.config.stars = parseInt(document.getElementById('cStars').value);
-            game.config.elites = parseInt(document.getElementById('cElites').value); // Adicione esta linha
+            game.config.elites = parseInt(document.getElementById('cElites').value); 
             game.config.points = parseInt(document.getElementById('cPoints').value);
             game.config.maxWins = parseInt(document.getElementById('cMax').value);
             game.config.reaction = document.getElementById('cReaction').value;
             game.config.desempate = document.getElementById('cDesempate').value;
             
-            // Salva as novas configurações
             game.publicRanking = tempConfig.publicRanking;
             game.config.hideScoreboard = tempConfig.hideScoreboard;
             
@@ -1311,7 +1404,6 @@
             const p = modalCtx.pFila;
             if(game.deniedRequests.includes(p.id)) { alert("Alteração Negada pelo Admin."); return; }
             
-            // CORREÇÃO: Criando o ID único da requisição que estava faltando
             const reqId = p.id + '_cat'; 
             
             if(!game.requests.some(r => r.reqId === reqId)) {
@@ -1333,7 +1425,6 @@
                     let tipoAcao = "";
                     let detalheAcao = "";
                     
-                    // Diferencia visualmente e em texto o tipo da solicitação
                     if (r.tipo === 'bloqueio') {
                         badgeCor = "bg-red-600";
                         tipoAcao = "AÇÃO: BLOQUEIO 🚫";
@@ -1368,16 +1459,13 @@
         window.responderSolicitacao = (idx, aprovado) => {
             const req = game.requests[idx];
             if(aprovado) {
-                // Encontra em qual fila o jogador está
                 const list = game.esperaGeral.some(x=>x.id===req.id) ? game.esperaGeral : game.esperaEstrela;
                 const p = list.find(x=>x.id===req.id);
                 
                 if(p) {
-                    // CORREÇÃO: Separa a lógica baseada no tipo da solicitação
                     if (req.tipo === 'bloqueio') {
-                        p.bloqueado = true; // Aplica apenas o bloqueio
+                        p.bloqueado = true; 
                     } else {
-                        // Aplica apenas a troca de categoria
                         list.splice(list.indexOf(p), 1);
                         p.estrela = !p.estrela;
                         (p.estrela ? game.esperaEstrela : game.esperaGeral).push(p);
@@ -1422,7 +1510,7 @@
 
         window.abrirAuditModal = (n) => {
             const s = game.ranking[n]; 
-            if(!s) return; // Segurança caso o nome não exista
+            if(!s) return; 
             
             const w = game.weights;
             const atqW = s.estrela ? w.atqE : w.atqG; const blqW = s.estrela ? w.blqE : w.blqG; const aceW = s.estrela ? w.aceE : w.aceG;
@@ -1439,7 +1527,6 @@
             `;
             document.getElementById('auditTotal').innerText = getScore(n);
             
-            // Lógica do botão de deslogar
             const btnDeslogar = document.getElementById('btnDeslogar');
             if (!isAdmin && n === meuNome) {
                 btnDeslogar.classList.remove('hidden');
@@ -1477,18 +1564,13 @@
         window.escalarParaTime = (lado) => { const t = lado==='A'?game.timeA:game.timeB; if(t.length<game.config.size) { const l = modalCtx.tabFila==='geral'?game.esperaGeral:game.esperaEstrela; const p = l.splice(modalCtx.idxFila, 1)[0]; p.bloqueado=false; t.push(p); window.fecharModais(); salvarState(); } else alert("Time Cheio!"); };
         function syncQuadra() { if(!isAdmin) return; const p = [...game.timeA, ...game.timeB]; const get = (id) => [...document.getElementById(id).children].map(e => p.find(x => x.id === e.dataset.id)).filter(x=>x); game.timeA = get('areaA'); game.timeB = get('areaB'); salvarState(); }
         function syncFila() { if(!isAdmin) return; const l = filaTab==='geral'?game.esperaGeral:game.esperaEstrela; const els = document.getElementById('esperaContainer').children; const novos = [...els].map(e => l.find(x => x.id === e.dataset.id)).filter(x=>x); if(filaTab==='geral') game.esperaGeral = novos; else game.esperaEstrela = novos; salvarState(); }
-        // --- 1. FUNÇÃO NOVA PARA MARCAR/DESMARCAR O ELITE ---
+        
         window.toggleElite = () => {
-            if(!isAdmin) return; // Apenas admin pode alterar
-            
-            // Inverte o status de elite do jogador selecionado
+            if(!isAdmin) return; 
             modalCtx.pFila.elite = !modalCtx.pFila.elite;
-            
-            // Salva no ranking também para o status não sumir ao recarregar a página
             if(game.ranking[modalCtx.pFila.nome]) {
                 game.ranking[modalCtx.pFila.nome].elite = modalCtx.pFila.elite;
             }
-            
             window.fecharModais();
             salvarState();
         };
@@ -1502,19 +1584,16 @@
             const btnElite = document.getElementById('btnToggleElite');
             if (btnElite) btnElite.innerText = modalCtx.pFila.elite ? "REMOVER MARCAÇÃO 💎" : "MARCAR COMO ELITE 💎";
 
-            // -> CONTROLE DO BOTÃO BLOQUEIO/LIBERAÇÃO <-
             const btn = document.getElementById('btnStatusBloqueio'); 
             btn.innerText = modalCtx.pFila.bloqueado ? "LIBERAR" : "BLOQUEAR"; 
             
             btn.onclick = () => { 
                 const estavaBloqueado = modalCtx.pFila.bloqueado; 
                 
-                // SE NÃO FOR ADMIN E TENTAR BLOQUEAR: Cria a solicitação
                 if (!isAdmin && !estavaBloqueado) {
                     const reqId = modalCtx.pFila.id + '_block'; 
                     
                     if(!game.requests.some(r => r.reqId === reqId)) {
-                        // Troque o push para incluir o solicitante:
                         game.requests.push({ reqId: reqId, id: modalCtx.pFila.id, nome: modalCtx.pFila.nome, tipo: 'bloqueio', acao: 'bloquear', solicitante: (meuNome || 'Visitante Anônimo') });
                         alert("Solicitação para BLOQUEAR enviada ao Admin!");
                         salvarState();
@@ -1525,10 +1604,8 @@
                     return;
                 }
 
-                // SE FOR ADMIN OU SE A AÇÃO FOR "LIBERAR": Aplica na hora
                 modalCtx.pFila.bloqueado = !estavaBloqueado; 
                 
-                // Se está liberando (estava bloqueado), faz a reordenação inteligente
                 if (estavaBloqueado) {
                     l.splice(modalCtx.idxFila, 1);
                     let novaPos = 0;
@@ -1545,7 +1622,6 @@
                 salvarState(); 
             }; 
 
-            // -> CONTROLE DO BOTÃO TROCAR CATEGORIA <-
             const btnTroca = document.getElementById('btnTrocarCategoria'); 
             if(game.requests.some(r => r.id === modalCtx.pFila.id && (!r.tipo || r.tipo === 'categoria'))) {
                 btnTroca.innerText = "SOLICITADO..."; 
