@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V2.0.6</title>
+    <title>Vôlei Hub PRO - V2.0.7</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -57,11 +57,12 @@
         #admin-notif-bell { position: relative; }
         #admin-notif-dot { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: red; border-radius: 50%; border: 1px solid #1e293b; }
 
-        /* Oculta Ranking e Hall da Fama para o Admin */
+        /* Regra de Negócio: No acesso admin NÃO mostrar ranking master nem o hall da fama */
         body.is-admin #rankingSection,
-        body.is-admin #hallFamaSection {
-    display: none !important;
-}
+        body.is-admin #hallFamaSection,
+        body.is-admin #btnVerHistoricoPublico {
+            display: none !important;
+        }
     </style>
 </head>
 <body class="bg-slate-900 text-white font-sans overflow-x-hidden pb-32">
@@ -125,19 +126,18 @@
             </div>
         </div>
 
-        <div class="p-3 bg-slate-800/80 border-b border-slate-700 flex justify-between items-center">
-    <div class="flex gap-2">
-        <button onclick="window.setFilaTab('geral')" id="tabGeral" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg transition">Geral <span id="countGeral" class="ml-1 opacity-50">0</span></button>
-        <button onclick="window.setFilaTab('estrela')" id="tabEstrela" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg transition">Estrelas ⭐ <span id="countEstrela" class="ml-1 opacity-50">0</span></button>
-    </div>
-    
-    <div class="flex gap-2 items-center">
-        <button onclick="window.toggleFilaEspera()" class="text-[9px] bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded border border-slate-600 font-bold uppercase transition">
-            👁️ Ocultar
-        </button>
-        <div id="statusConn" class="text-[8px] text-emerald-500 font-bold uppercase animate-pulse">● Online</div>
-    </div>
-</div>
+        <section class="bg-slate-800/50 rounded-2xl border border-slate-700 overflow-hidden shadow-lg">
+            <div class="p-3 bg-slate-800/80 border-b border-slate-700 flex justify-between items-center">
+                <div class="flex gap-2">
+                    <button onclick="window.setFilaTab('geral')" id="tabGeral" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg transition">Geral <span id="countGeral" class="ml-1 opacity-50">0</span></button>
+                    <button onclick="window.setFilaTab('estrela')" id="tabEstrela" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg transition">Estrelas ⭐ <span id="countEstrela" class="ml-1 opacity-50">0</span></button>
+                </div>
+                <div class="flex gap-2 items-center">
+                    <!-- Acesso de visitante: Botão para exibir ou ocultar a fila de espera -->
+                    <button id="btnToggleFila" onclick="window.toggleVisibilidadeFila()" class="text-[9px] bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded border border-slate-600 font-bold uppercase transition">Ocultar Fila</button>
+                    <div id="statusConn" class="text-[8px] text-emerald-500 font-bold uppercase animate-pulse">● Online</div>
+                </div>
+            </div>
             <div id="esperaContainer" class="p-4 space-y-2 bg-slate-900/50"></div>
         </section>
 
@@ -145,10 +145,18 @@
             <input id="novoNome" type="text" placeholder="NOME DO JOGADOR..." class="bg-slate-800 flex-1 p-4 rounded-2xl outline-none border border-slate-700 focus:border-orange-500 text-sm font-bold uppercase placeholder-slate-600">
             <button onclick="window.adicionarNovoJogador()" class="bg-blue-600 hover:bg-blue-500 px-6 rounded-2xl font-black text-sm uppercase transition shadow-lg">Add</button>
         </div>
+
         <button onclick="window.abrirHistoricoModal()" class="w-full bg-slate-800/80 text-slate-300 font-black uppercase py-4 rounded-2xl mb-4 shadow-lg border border-slate-700 hover:bg-slate-700 transition flex justify-between items-center px-4 admin-section">
             <span class="flex items-center gap-2"><span class="text-lg">📅</span> Histórico de Partidas</span>
             <span class="text-orange-500 text-xs">Visualizar ❯</span>
         </button>
+
+        <!-- Botão de histórico visível para visitantes já que a seção admin oculta o container nativo -->
+        <button id="btnVerHistoricoPublico" onclick="window.abrirHistoricoModal()" class="w-full bg-slate-800/50 text-slate-400 font-black uppercase py-3 rounded-2xl shadow border border-slate-800 hover:bg-slate-800 transition flex justify-between items-center px-4">
+            <span class="flex items-center gap-2 text-xs">📅 Histórico de Dias Anteriores</span>
+            <span class="text-orange-500 text-xs">Abrir ❯</span>
+        </button>
+
         <section id="rankingSection" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl admin-section">
             <div class="p-4 bg-slate-800/60 border-b border-slate-800 text-center">
                 <h2 class="text-xs font-black uppercase text-orange-500 italic mb-3 tracking-widest">🏆 Ranking Master</h2>
@@ -280,7 +288,8 @@
                 <button onclick="window.abrirBloqueioDuplas()" class="w-full bg-slate-700 text-red-400 p-3 rounded-xl font-black uppercase text-[10px] border border-slate-600 mb-6">🚫 Bloqueio Duplas</button>
 
                 <div class="border-t border-slate-600 pt-6 space-y-2">
-                    <button id="btnToggleDia" onclick="window.toggleStatusDia()" class="w-full p-3 rounded-xl font-black uppercase text-[10px] border shadow-lg mt-4"></button>
+                    <!-- Regra de Negócio: Botão Dinâmico de Iniciar (Verde) / Encerrar (Vermelho) -->
+                    <button id="btnControleDia" onclick="window.toggleEstadoDia()" class="w-full p-3 rounded-xl font-black uppercase text-[10px] shadow-lg transition"></button>
                     <button onclick="window.forcarBalanceamentoManual()" class="w-full bg-purple-600 hover:bg-purple-500 text-white p-3 rounded-xl font-black uppercase text-[10px] border border-purple-500 shadow-lg">🤖 Forçar Balanceamento (IA)</button>
                     <button onclick="window.limparSistema()" class="w-full text-red-600 hover:text-red-400 text-[10px] font-black uppercase py-2 mt-4">⚠️ Resetar Sistema Completo</button>
                 </div>
@@ -305,11 +314,11 @@
             </div>
             
             <div class="mt-6 flex flex-col gap-2">
-    <button onclick="window.deslogarIdentidade()" class="w-full bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600 text-white">Deslogar</button>
-    <button onclick="window.bloquearEDeslogar()" class="w-full bg-red-900/50 text-red-400 border border-red-800 py-3 rounded-xl uppercase text-xs font-black hover:bg-red-900/80">Sair e bloquear jogador</button>
-    
-    <button onclick="window.fecharModais()" class="w-full bg-transparent border border-slate-600 text-slate-400 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-800 mt-2">Fechar</button>
-</div>
+                <button onclick="window.deslogarIdentidade()" class="w-full bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600 text-white">Sair (Deslogar)</button>
+                <button onclick="window.bloquearEDeslogar()" class="w-full bg-red-900/50 text-red-400 border border-red-800 py-3 rounded-xl uppercase text-xs font-black hover:bg-red-900/80">Bloquear e Sair</button>
+                <!-- Regra de Negócio: Opção de simplesmente fechar o modal -->
+                <button onclick="window.fecharModais()" class="w-full bg-slate-800 text-slate-400 border border-slate-700 py-2 rounded-xl uppercase text-[10px] font-bold hover:bg-slate-700 transition">Simplesmente Fechar</button>
+            </div>
         </div>
     </div>
 
@@ -382,13 +391,35 @@
         </div>
     </div>
     
+    <!-- Modificado: Modal de histórico com seletor de dia e exibição retroativa de ranking/hall da fama -->
     <div id="modalHistorico" class="modal-global hidden">
         <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-slate-600 overflow-y-auto max-h-[90vh]">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-black text-white uppercase italic">Histórico de Partidas</h2>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-black text-white uppercase italic">Histórico</h2>
                 <button onclick="document.getElementById('modalHistorico').classList.add('hidden')" class="text-slate-400 text-3xl font-light hover:text-white transition">&times;</button>
             </div>
-            <div id="listaHistoricoContainer" class="space-y-3"></div>
+            
+            <div class="mb-4">
+                <label class="text-[10px] font-black uppercase text-slate-400 block mb-1">Selecionar Dia:</label>
+                <select id="selHistoricoDia" onchange="window.carregarDadosDiaHistorico()" class="config-input h-10 text-xs w-full"></select>
+            </div>
+
+            <div id="conteudoHistoricoDia" class="space-y-6">
+                <div>
+                    <h3 class="text-xs font-black uppercase text-blue-400 mb-2 border-b border-slate-700 pb-1">📋 Partidas Realizadas</h3>
+                    <div id="listaHistoricoContainer" class="space-y-3"></div>
+                </div>
+                
+                <div>
+                    <h3 class="text-xs font-black uppercase text-orange-400 mb-2 border-b border-slate-700 pb-1">🏆 Ranking Fechado</h3>
+                    <div id="rankingHistoricoContainer" class="space-y-1 text-xs"></div>
+                </div>
+
+                <div>
+                    <h3 class="text-xs font-black uppercase text-purple-400 mb-2 border-b border-slate-700 pb-1">⚡ Hall da Fama Deste Dia</h3>
+                    <div id="hallHistoricoContainer" class="space-y-2"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -422,13 +453,13 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const auth = getAuth(app);
-        const gameRef = ref(db, 'partida/v9_5'); // Atualizado para v9.5
+        const gameRef = ref(db, 'partida/v9_5');
 
         const INITIAL_GERAL = ["ALOISIO", "CALEB", "DANIELE", "ITALO", "LUIZ EDUARDO", "MATEUS BRAZ", "MURILO", "SAMUEL", "WENDEL", "YURI", "PATY", "DANIELE", "HEMILY", "KEMILLY", "RHUANA", "SARA"];
         const INITIAL_ESTRELA = [];
         const INITIAL_ELITE = ["MATHEUS MATOS", "DANILO", "EDINEI", "JANIR", "LUCAS GABRIEL", "MAICON", "ODAIR"];
         
-        const PHRASES = ["", "Na conta! Fez 1 ponto.", "Dobradinha! 2 pontos nessa partida", "Pegando fogo! 🔥 Terceiro ponto nesse jogo.", "Insuportável! 4 pontos e contando...", "Mão de ferro! 👊 5 pontos feitos", "Dono da quadra! Fez metade do set sozinho!", "Modo God ativado! ⚡ 7 pontos na partida.", "Chamem o SAMU! Já são 8 pontos.", "Lendário! 9 pontos na partida.", "10 pontos feitos! Fechem as portas e apaguem as luzes! 🏆"];
+        const PHRASES = ["", "Na conta! Fez 1 ponto.", "Dobradinha! 2 pontos nessa partida", "Pegando fogo! 🔥 Terceiro ponto nesse jogo.", "Insuportável! 4 pontos e contando...", "Mão de ferro! 👊 5 pontos feitos", "Dono da quadra! Fez metade do set sozinho!", "Modo God ativado! ⚡ 7 pontos na partida.", "Chamem o SAMU! Já são 8 pontos.", "Lendário! 9 pontos na partida.", "10 pontos feitos! Fechem as portas e apaguem as lights! 🏆"];
         const DEFAULT_RESTRICTIONS = [];
 
         let isAdmin = false;
@@ -460,7 +491,6 @@
             setTimeout(window.fazerLoginAdmin, 800); 
         }
 
-        // --- MOTOR DE ÁUDIO SINTÉTICO (APITO REALISTA) ---
         let audioCtx;
         
         document.addEventListener('click', () => {
@@ -475,18 +505,19 @@
                 window.speechSynthesis.speak(unlockMsg);
             }
         }, { once: true });
+
         window.bloquearEDeslogar = () => {
-    // Busca o jogador em todas as filas
-    const todasFilas = [...(game.esperaGeral || []), ...(game.esperaEstrela || [])];
-    const jogador = todasFilas.find(p => p.nome === meuNome);
-    
-    if (jogador) {
-        jogador.bloqueado = true;
-        salvarState(); // Salva a alteração no Firebase
-        alert("Você foi bloqueado na fila.");
-    }
-    window.deslogarIdentidade();
-};
+            const todasFilas = [...(game.esperaGeral || []), ...(game.esperaEstrela || [])];
+            const jogador = todasFilas.find(p => p.nome === meuNome);
+            
+            if (jogador) {
+                jogador.bloqueado = true;
+                salvarState();
+                alert("Você foi bloqueado na fila.");
+            }
+            window.deslogarIdentidade();
+        };
+
         function tocarApitoRealista() {
             if (!audioCtx) {
                 try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
@@ -495,14 +526,12 @@
             if (!audioCtx) return;
 
             const now = audioCtx.currentTime;
-            
             const osc1 = audioCtx.createOscillator();
             const osc2 = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
 
             osc1.type = 'triangle'; 
             osc2.type = 'triangle';
-
             osc1.frequency.setValueAtTime(2000, now);
             osc2.frequency.setValueAtTime(2150, now); 
 
@@ -519,7 +548,6 @@
             osc1.stop(now + 1.2); osc2.stop(now + 1.2);
         }
 
-        // --- MOTOR DE VOZ SINTÉTICA (NARRADOR) ---
         function narrarPonto(texto) {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
@@ -536,13 +564,11 @@
             historicoPartidas: [], historicoDias: [], ranking: {}, saqueLado: null, idxA: null, idxB: null,
             weights: { atqG: 1, blqG: 1, aceG: 1.5, atqE: 1.5, blqE: 1.5, aceE: 2, err: -0.5, vit: 3, team: 0.5 },
             config: { size: 4, stars: 1, elites: 2, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' },
-            bloqueios: {} 
+            bloqueios: {}, diaIniciado: true // Inicializa com o estado true se não existir
         };
 
-        // ====== IA DE AUTO-BALANCEAMENTO ======
         window.forcarBalanceamentoManual = () => {
             const todos = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela];
-            
             let avaliaveis = [];
             todos.forEach(p => {
                 let r = game.ranking[p.nome];
@@ -565,26 +591,22 @@
             avaliaveis.sort((a, b) => b.score - a.score);
             let proporcao = Math.max(1, Math.floor(avaliaveis.length * 0.20));
 
-            // Só altera o status de quem jogou o suficiente para ser avaliado
             avaliaveis.forEach(item => { 
                 item.p.elite = false; item.p.estrela = false; 
                 game.ranking[item.p.nome].elite = false; 
                 game.ranking[item.p.nome].estrela = false; 
             });
 
-            // Promove os 20% Melhores para Elite
             for(let i = 0; i < proporcao; i++) {
                 avaliaveis[i].p.elite = true;
                 game.ranking[avaliaveis[i].p.nome].elite = true;
             }
 
-            // Rebaixa os 20% Piores para Estrela
             for(let i = avaliaveis.length - 1; i >= Math.max(proporcao, avaliaveis.length - proporcao); i--) {
                 avaliaveis[i].p.estrela = true;
                 game.ranking[avaliaveis[i].p.nome].estrela = true;
             }
 
-            // Reorganiza fisicamente as filas de espera
             let novaGeral = [];
             let novaEstrela = [];
             [...game.esperaGeral, ...game.esperaEstrela].forEach(p => {
@@ -598,95 +620,111 @@
             alert('Balanceamento IA Concluído! Filas e Rankings Atualizados.');
         };
 
-        window.iniciarNovoDia = () => {
-            if(!confirm("Deseja encerrar o dia de hoje?\n\n- A quadra será liberada.\n- O Ranking SERÁ ACUMULADO (dados não perdidos).\n- O sistema rodará a IA para promover/rebaixar jogadores.")) return;
-            
-            let balanceou = false;
-            const todos = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela];
-            
-            let avaliaveis = [];
-            todos.forEach(p => {
-                let r = game.ranking[p.nome];
-                if (!r) return;
-                let setsJogados = r.v + r.d;
-                if (setsJogados >= 2) {
-                    let impactoAtaque = (r.ptsAtaque || 0) * 2;
-                    let impactoDefesa = ((r.ptsBloqueio || 0) + (r.ptsAce || 0)) * 1.5;
-                    let taxaVitoria = (r.v || 0) * 5; 
-                    let pontuacaoMedia = (impactoAtaque + impactoDefesa + taxaVitoria) / setsJogados;
-                    avaliaveis.push({ p, score: pontuacaoMedia });
-                }
-            });
-
-            if (avaliaveis.length >= 5) {
-                balanceou = true;
-                avaliaveis.sort((a, b) => b.score - a.score);
-                let proporcao = Math.max(1, Math.floor(avaliaveis.length * 0.20));
-
-                avaliaveis.forEach(item => { 
-                    item.p.elite = false; item.p.estrela = false; 
-                    game.ranking[item.p.nome].elite = false; 
-                    game.ranking[item.p.nome].estrela = false; 
+        // Regra de Negócio: Alterar e gerenciar estado de abertura/fechamento do dia
+        window.toggleEstadoDia = () => {
+            if (!isAdmin) return;
+            if (game.diaIniciado) {
+                if (!confirm("Deseja encerrar o dia de hoje?\n\n- O Hall da Fama e Ranking final ficarão visíveis para visitantes.\n- A quadra será limpa e os dados salvos no histórico.")) return;
+                
+                let balanceou = false;
+                const todos = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela];
+                let avaliaveis = [];
+                todos.forEach(p => {
+                    let r = game.ranking[p.nome];
+                    if (!r) return;
+                    let setsJogados = r.v + r.d;
+                    if (setsJogados >= 2) {
+                        let impactoAtaque = (r.ptsAtaque || 0) * 2;
+                        let impactoDefesa = ((r.ptsBloqueio || 0) + (r.ptsAce || 0)) * 1.5;
+                        let taxaVitoria = (r.v || 0) * 5; 
+                        let pontuacaoMedia = (impactoAtaque + impactoDefesa + taxaVitoria) / setsJogados;
+                        avaliaveis.push({ p, score: pontuacaoMedia });
+                    }
                 });
 
-                for(let i = 0; i < proporcao; i++) {
-                    avaliaveis[i].p.elite = true;
-                    game.ranking[avaliaveis[i].p.nome].elite = true;
+                if (avaliaveis.length >= 5) {
+                    balanceou = true;
+                    avaliaveis.sort((a, b) => b.score - a.score);
+                    let proporcao = Math.max(1, Math.floor(avaliaveis.length * 0.20));
+                    avaliaveis.forEach(item => { 
+                        item.p.elite = false; item.p.estrela = false; 
+                        game.ranking[item.p.nome].elite = false; 
+                        game.ranking[item.p.nome].estrela = false; 
+                    });
+                    for(let i = 0; i < proporcao; i++) {
+                        avaliaveis[i].p.elite = true;
+                        game.ranking[avaliaveis[i].p.nome].elite = true;
+                    }
+                    for(let i = avaliaveis.length - 1; i >= Math.max(proporcao, avaliaveis.length - proporcao); i--) {
+                        avaliaveis[i].p.estrela = true;
+                        game.ranking[avaliaveis[i].p.nome].estrela = true;
+                    }
                 }
 
-                for(let i = avaliaveis.length - 1; i >= Math.max(proporcao, avaliaveis.length - proporcao); i--) {
-                    avaliaveis[i].p.estrela = true;
-                    game.ranking[avaliaveis[i].p.nome].estrela = true;
-                }
+                // Salva Snapshot completo e estruturado do dia antes do reset para o histórico retroativo
+                if (!game.historicoDias) game.historicoDias = [];
+                let dataStr = new Date().toLocaleDateString('pt-BR') + ' - ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                
+                game.historicoDias.unshift({
+                    id: Date.now(),
+                    data: dataStr,
+                    partidas: game.historicoPartidas ? [...game.historicoPartidas] : [],
+                    rankingFinal: JSON.parse(JSON.stringify(game.ranking))
+                });
+
+                game.timeA = []; game.timeB = [];
+                game.esperaGeral = []; game.esperaEstrela = [];
+                todos.forEach(p => {
+                    p.bloqueado = true; 
+                    if (p.estrela) game.esperaEstrela.push(p);
+                    else game.esperaGeral.push(p);
+                });
+
+                game.historicoPartidas = []; 
+                game.placar = { A: 0, B: 0 }; game.scoreA = 0; game.scoreB = 0;
+                game.winsConsecA = 0; game.winsConsecB = 0;
+                game.currentMatchStats = {};
+                
+                game.diaIniciado = false;
+                salvarState();
+                alert("🛑 Dia Encerrado! O Hall da Fama agora está visível.");
+            } else {
+                game.diaIniciado = true;
+                salvarState();
+                alert("▶️ Novo dia Iniciado! Boa diversão na quadra!");
             }
-
-            // Limpa a quadra
-            game.timeA = [];
-            game.timeB = [];
-            game.esperaGeral = [];
-            game.esperaEstrela = [];
-
-            // Coloca todos travados na fila correspondente (Força o check-in no dia seguinte)
-            todos.forEach(p => {
-                p.bloqueado = true; 
-                if (p.estrela) game.esperaEstrela.push(p);
-                else game.esperaGeral.push(p);
-            });
-
-            // Arquiva Histórico do Dia
-            if(!game.historicoDias) game.historicoDias = [];
-            if(game.historicoPartidas && game.historicoPartidas.length > 0) {
-                let dataStr = new Date().toLocaleDateString('pt-BR') + ' às ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-                game.historicoDias.push({ data: dataStr, partidas: [...game.historicoPartidas] });
-            }
-
-            game.historicoPartidas = []; 
-            game.placar = { A: 0, B: 0 }; game.scoreA = 0; game.scoreB = 0;
-            game.winsConsecA = 0; game.winsConsecB = 0;
-            game.currentMatchStats = {};
-            
-            salvarState();
-            
-            alert(balanceou ? "☀️ Novo Dia Iniciado!\nDados arquivados, quadra livre e jogadores balanceados pela IA." : "☀️ Novo Dia Iniciado!\nDados arquivados e quadra livre. (Poucos dados para IA rodar hoje).");
             window.fecharModais();
         };
 
         let tempConfig = {};
         let historicoLocal = [];
         let meuNome = localStorage.getItem('voleihub_meunome') || '';
+        let filaEsperaOculta = false;
 
-        // Funções de Identidade do Visitante
+        // Regra de Negócio: Exibir ou ocultar visualmente a fila de espera para visitantes
+        window.toggleVisibilidadeFila = () => {
+            filaEsperaOculta = !filaEsperaOculta;
+            const container = document.getElementById('esperaContainer');
+            const btn = document.getElementById('btnToggleFila');
+            if (filaEsperaOculta) {
+                container.classList.add('hidden');
+                btn.innerText = "Exibir Fila";
+            } else {
+                container.classList.remove('hidden');
+                btn.innerText = "Ocultar Fila";
+            }
+        };
+
         window.acaoMeuPerfil = () => {
             if (meuNome) {
                 window.abrirAuditModal(meuNome);
             } else {
-                // Protege contra arrays nulos
-            const all = [
-            ...(game.timeA || []), 
-            ...(game.timeB || []), 
-            ...(game.esperaGeral || []), 
-            ...(game.esperaEstrela || [])
-            ].sort((a,b) => a.nome.localeCompare(b.nome));
+                const all = [
+                    ...(game.timeA || []), 
+                    ...(game.timeB || []), 
+                    ...(game.esperaGeral || []), 
+                    ...(game.esperaEstrela || [])
+                ].sort((a,b) => a.nome.localeCompare(b.nome));
                 
                 const opt = `<option value="" disabled selected>- Selecione seu nome -</option>` + all.map(p => {
                     const status = p.bloqueado ? ' (Bloqueado)' : '';
@@ -708,30 +746,116 @@
             }
         };
 
-        // Funções do Histórico de Partidas
+        // Regra de Negócio: Escolher o dia e renderizar todas as informações daquela data específica
         window.abrirHistoricoModal = () => {
-            const container = document.getElementById('listaHistoricoContainer');
-            if (!game.historicoPartidas || game.historicoPartidas.length === 0) {
-                container.innerHTML = '<div class="text-center text-slate-500 text-xs italic py-6">Nenhuma partida registrada ainda.</div>';
+            const selDia = document.getElementById('selHistoricoDia');
+            if (!game.historicoDias || game.historicoDias.length === 0) {
+                selDia.innerHTML = '<option value="">Nenhum dia fechado disponível</option>';
+                document.getElementById('listaHistoricoContainer').innerHTML = '<div class="text-center text-slate-500 text-xs italic py-6">Sem registros de dias anteriores.</div>';
+                document.getElementById('rankingHistoricoContainer').innerHTML = '';
+                document.getElementById('hallHistoricoContainer').innerHTML = '';
             } else {
-                container.innerHTML = game.historicoPartidas.map(p => `
-                    <div class="bg-slate-700/40 p-4 rounded-xl border border-slate-600 cursor-pointer hover:bg-slate-700 hover:border-slate-500 transition shadow-md" onclick="window.abrirDetalhePartida(${p.id})">
-                        <div class="flex justify-between items-center mb-3 border-b border-slate-600/50 pb-2">
-                            <span class="text-[10px] font-black uppercase px-2 py-1 rounded bg-slate-800 ${p.vencedor === 'A' ? 'text-blue-400 border border-blue-900' : 'text-orange-400 border border-orange-900'}">Vitória Time ${p.vencedor}</span>
-                            <span class="text-2xl font-black text-white leading-none">${p.scoreA} <span class="text-slate-500 text-lg mx-1">x</span> ${p.scoreB}</span>
-                        </div>
-                        <div class="flex justify-between text-[9px] font-bold text-slate-400 uppercase">
-                            <div class="w-1/2 pr-2 leading-relaxed ${p.vencedor === 'A' ? 'text-blue-300' : ''}">${p.timeA.join('<br>')}</div>
-                            <div class="w-1/2 pl-2 text-right leading-relaxed border-l border-slate-600 ${p.vencedor === 'B' ? 'text-orange-300' : ''}">${p.timeB.join('<br>')}</div>
-                        </div>
-                    </div>
-                `).join('');
+                selDia.innerHTML = game.historicoDias.map((d, index) => `<option value="${index}">${d.data}</option>`).join('');
+                window.carregarDadosDiaHistorico();
             }
             document.getElementById('modalHistorico').classList.remove('hidden');
         };
 
-        window.abrirDetalhePartida = (id) => {
-            const p = game.historicoPartidas.find(x => x.id === id);
+        window.carregarDadosDiaHistorico = () => {
+            const idx = document.getElementById('selHistoricoDia').value;
+            if (idx === "") return;
+            const diaSnapshot = game.historicoDias[idx];
+            
+            // 1. Renderiza as partidas daquele dia específico
+            const containerPartidas = document.getElementById('listaHistoricoContainer');
+            if (!diaSnapshot.partidas || diaSnapshot.partidas.length === 0) {
+                containerPartidas.innerHTML = '<div class="text-slate-500 text-[10px] italic py-2">Sem partidas gravadas neste dia.</div>';
+            } else {
+                containerPartidas.innerHTML = diaSnapshot.partidas.map(p => `
+                    <div class="bg-slate-700/40 p-3 rounded-xl border border-slate-600 cursor-pointer hover:bg-slate-700 transition shadow-sm" onclick="window.abrirDetalhePartidaRetroativo('${idx}', ${p.id})">
+                        <div class="flex justify-between items-center mb-2 pb-1 border-b border-slate-600/30">
+                            <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-slate-800 ${p.vencedor === 'A' ? 'text-blue-400' : 'text-orange-400'}">Vitória Time ${p.vencedor}</span>
+                            <span class="text-xl font-black text-white">${p.scoreA} x ${p.scoreB}</span>
+                        </div>
+                        <div class="flex justify-between text-[8px] font-bold text-slate-400 uppercase">
+                            <div class="w-1/2">${p.timeA.join(', ')}</div>
+                            <div class="w-1/2 text-right border-l border-slate-600 pl-1">${p.timeB.join(', ')}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // 2. Reconstrói o Ranking Master estático fixado naquele dia
+            const rkContainer = document.getElementById('rankingHistoricoContainer');
+            const rkFechado = Object.entries(diaSnapshot.rankingFinal || {}).map(([n, s]) => {
+                const w = game.weights; 
+                const ptsAtq = (s.ptsAtaque || 0) * (s.estrela ? w.atqE : w.atqG);
+                const ptsBlq = (s.ptsBloqueio || 0) * (s.estrela ? w.blqE : w.blqG);
+                const ptsAce = (s.ptsAce || 0) * (s.estrela ? w.aceE : w.aceG);
+                const ptsErr = (s.ptsErroAdversario || 0) * w.err;
+                const ptsVit = (s.v || 0) * w.vit;
+                const ptsTeam = (s.ptsAcertoTime || 0) * w.wTeam;
+                const score = (ptsVit + ptsAtq + ptsBlq + ptsAce + ptsErr + ptsTeam).toFixed(2);
+                return { n, ...s, score: parseFloat(score) };
+            }).filter(x => x.score > 0).sort((a,b) => b.score - a.score);
+
+            if (rkFechado.length === 0) {
+                rkContainer.innerHTML = '<div class="text-slate-500 italic py-1">[Nenhum score computado]</div>';
+            } else {
+                rkContainer.innerHTML = rkFechado.map((j, i) => `
+                    <div class="flex justify-between bg-slate-900/60 p-2 rounded mb-1">
+                        <span><span class="text-slate-500 mr-2">${i+1}</span> ${j.estrela?'⭐ ':''}${j.elite?'💎 ':''}${j.n}</span>
+                        <span class="text-orange-500 font-bold">${j.score}</span>
+                    </div>
+                `).join('');
+            }
+
+            // 3. Reconstrói as lideranças (Hall da Fama) daquele dia selecionado
+            const hallContainer = document.getElementById('hallHistoricoContainer');
+            const cats = [
+                {t:"Top Score",i:"🏆",f:p=>p.score},
+                {t:"Matador",i:"🔥",f:p=>p.ptsAtaque || 0},
+                {t:"Paredão",i:"🚫",f:p=>p.ptsBloqueio || 0},
+                {t:"Ace",i:"⚡",f:p=>p.ptsAce || 0}
+            ];
+
+            hallContainer.innerHTML = cats.map(c => {
+                const sortG = [...rkFechado.filter(x=>!x.estrela)].sort((a,b)=>c.f(b)-c.f(a));
+                const sortE = [...rkFechado.filter(x=>x.estrela)].sort((a,b)=>c.f(b)-c.f(a));
+                const maxG = sortG.length ? c.f(sortG[0]) : 0;
+                const maxE = sortE.length ? c.f(sortE[0]) : 0;
+                if(maxG === 0 && maxE === 0) return '';
+                const winG = sortG.filter(p => c.f(p) === maxG).map(p => p.n).join(', ');
+                const winE = sortE.filter(p => c.f(p) === maxE).map(p => p.n).join(', ');
+
+                return `
+                    <div class="bg-slate-900/40 p-2 rounded border border-slate-700/60 text-[10px]">
+                        <div class="text-slate-400 font-black uppercase mb-1">${c.i} ${c.t}</div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between bg-slate-800/50 p-1 rounded">
+                                <span class="truncate text-orange-400 font-bold w-3/4">Geral: ${maxG > 0 ? winG : '-'}</span>
+                                <span class="font-bold">${maxG > 0 ? maxG : ''}</span>
+                            </div>
+                            <div class="flex justify-between bg-slate-800/50 p-1 rounded">
+                                <span class="truncate text-orange-400 font-bold w-3/4">Estrelas: ${maxE > 0 ? winE : '-'}</span>
+                                <span class="font-bold">${maxE > 0 ? maxE : ''}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        window.abrirDetalhePartidaRetroativo = (diaIdx, matchId) => {
+            const diaSnapshot = game.historicoDias[diaIdx];
+            if (!diaSnapshot) return;
+            const p = diaSnapshot.partidas.find(x => x.id === matchId);
+            if (!p) return;
+            window.abrirDetalhePartida(p.id, diaSnapshot.partidas);
+        };
+
+        window.abrirDetalhePartida = (id, pool = game.historicoPartidas) => {
+            const p = pool.find(x => x.id === id);
             if (!p) return;
             
             document.getElementById('detalhePartidaScore').innerHTML = `
@@ -764,7 +888,6 @@
                 if(liberar) {
                     let list = null;
                     let p = null;
-                    
                     if (game.esperaGeral.some(x => x.nome === val)) {
                         list = game.esperaGeral; p = list.find(x => x.nome === val);
                     } else if (game.esperaEstrela.some(x => x.nome === val)) {
@@ -774,7 +897,6 @@
                     if (p && p.bloqueado) {
                         p.bloqueado = false;
                         p.unlockedAt = Date.now();
-                        
                         list.splice(list.indexOf(p), 1);
                         let novaPos = 0;
                         for (let i = 0; i < list.length; i++) {
@@ -784,11 +906,9 @@
                             else break;
                         }
                         list.splice(novaPos, 0, p);
-                        
                         salvarState(); 
                     }
                 }
-                
                 window.fecharModais();
                 render();
             } else {
@@ -799,14 +919,11 @@
         window.addESalvarIdentificacao = () => {
             const n = document.getElementById('novoMeuNome').value.toUpperCase().trim(); 
             if(!n) return; 
-            
             adicionarLocal(n, false); 
             salvarState();
-            
             meuNome = n;
             localStorage.setItem('voleihub_meunome', meuNome);
             document.getElementById('novoMeuNome').value = '';
-            
             window.fecharModais();
             render();
             alert(`Bem-vindo, ${n}!`);
@@ -838,6 +955,7 @@
                     esperaGeral: data.esperaGeral || [], esperaEstrela: data.esperaEstrela || [], 
                     ranking: data.ranking || {}, restricoes: data.restricoes || [],
                     historicoPartidas: data.historicoPartidas || [],
+                    historicoDias: data.historicoDias || [],
                     systemMsg: data.systemMsg || { text:"AGUARDANDO", sub:"...", ts: 0 }, 
                     matchLog: data.matchLog || [], 
                     lastAnim: data.lastAnim || { ts: 0 }, 
@@ -848,7 +966,8 @@
                     requests: data.requests || [], deniedRequests: data.deniedRequests || [], 
                     currentMatchStats: data.currentMatchStats || {},
                     soundTrigger: data.soundTrigger || 0,
-                    weights: { ...game.weights, ...(data.weights || {}) }                    
+                    weights: { ...game.weights, ...(data.weights || {}) },
+                    diaIniciado: typeof data.diaIniciado !== 'undefined' ? data.diaIniciado : true
                 };
                 ensureRankingConsistency();
                 render();
@@ -861,7 +980,6 @@
                 if (typeof p.elite === 'undefined') {
                     p.elite = INITIAL_ELITE.includes(p.nome);
                 }
-
                 if(!game.ranking[p.nome]) {
                     game.ranking[p.nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: p.estrela, elite: p.elite };
                 }
@@ -872,6 +990,8 @@
 
         function initGameData() {
             game.esperaGeral = []; game.esperaEstrela = [];
+            game.historicoDias = [];
+            game.diaIniciado = true;
             
             INITIAL_GERAL.forEach(n => adicionarLocal(n, false));
             INITIAL_ESTRELA.forEach(n => adicionarLocal(n, true));
@@ -921,6 +1041,8 @@
                 game.ranking = {}; 
                 game.matchLog = [];
                 game.historicoPartidas = [];
+                game.historicoDias = [];
+                game.diaIniciado = true;
                 historicoLocal = []; 
                 game.nextGameReason = 'default';
                 game.publicRanking = false;
@@ -930,7 +1052,6 @@
                 game.weights = { atqG: 1.0, blqG: 1.25, aceG: 1.5, atqE: 1.5, blqE: 2.0, aceE: 2.0, err: 0.10, vit: 3.0, wTeam: 0.25 };
                 
                 initGameData(); 
-                
                 setSystemMessage("SISTEMA REINICIADO", "Configurações Padrão Restauradas", false);
                 window.fecharModais(); 
                 render();
@@ -1002,7 +1123,6 @@
             document.getElementById('winsA').innerText = `Sets: ${game.winsConsecA}`;
             document.getElementById('winsB').innerText = `Sets: ${game.winsConsecB}`;
 
-            
             const drawTeam = (l) => (l === 'A' ? game.timeA : game.timeB).map((p, i) => `
                 <div class="jogador-card bg-slate-800 p-3 rounded-xl border-l-4 ${l==='A'?'border-l-blue-500':'border-l-orange-500'} ${game.partidaAtiva && game.saqueLado===l && (l==='A'?game.idxA:game.idxB)===i?'sacando':''} ${p.estrela?'is-estrela':''}" onclick="window.abrirPontoTecnico('${l}', ${i})" data-id="${p.id}">
                     <div class="uppercase font-black text-[10px] truncate"><span class="bola-saque mr-1">🏐</span> ${p.estrela?'⭐ ':''}${p.elite?'💎 ':''}${p.nome}</div>
@@ -1017,13 +1137,12 @@
             const f = filaTab === 'geral' ? game.esperaGeral : game.esperaEstrela;
             let countLib = 0;
             document.getElementById('esperaContainer').innerHTML = f.length ? f.map((p, i) => {
-            let dest = "";
-            if(!p.bloqueado && filaTab === 'geral') { countLib++; if(countLib<=3) dest="is-proximo"; }
-            // Ícone drag-handle agora posicionado antes do nome (esquerda)
-            return `<div data-id="${p.id}" class="bg-slate-800 p-3 rounded-xl flex items-center border border-slate-700 ${p.bloqueado ? 'is-bloqueado' : ''} ${dest}">
-            ${isAdmin ? '<div class="drag-handle hover:text-white mr-3 cursor-grab">⠿</div>' : ''}
-            <div onclick="window.abrirEscalacao('${filaTab}', ${i})" class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2 cursor-pointer">${p.estrela ? '⭐ ' : ''}${p.elite ? '💎 ' : ''}${p.nome}</div>
-            </div>`;
+                let dest = "";
+                if(!p.bloqueado && filaTab === 'geral') { countLib++; if(countLib<=3) dest="is-proximo"; }
+                return `<div data-id="${p.id}" class="bg-slate-800 p-3 rounded-xl flex items-center border border-slate-700 ${p.bloqueado ? 'is-bloqueado' : ''} ${dest}">
+                ${isAdmin ? '<div class="drag-handle hover:text-white mr-3 cursor-grab">⠿</div>' : ''}
+                <div onclick="window.abrirEscalacao('${filaTab}', ${i})" class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2 cursor-pointer">${p.estrela ? '⭐ ' : ''}${p.elite ? '💎 ' : ''}${p.nome}</div>
+                </div>`;
             }).join('') : '<div class="text-center text-slate-600 text-[10px] py-4 italic">Fila vazia...</div>';
 
             const todos = [...game.timeA, ...game.timeB];
@@ -1038,6 +1157,28 @@
             document.getElementById('rankingContainer').innerHTML = rk.map((j, i) => `<div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 cursor-pointer mb-1 hover:bg-slate-800 transition" onclick="window.abrirAuditModal('${j.n}')"><div class="flex items-center gap-3"><span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span><div class="rank-name uppercase text-[10px] font-bold text-slate-300">${j.estrela?'⭐ ':''}${j.elite?'💎 ':''}${j.n}</div></div><div class="text-orange-500 font-black text-xs">${j.score}</div></div>`).join('');
             renderLeaders();
             
+            // Regra de Negócio: Mostrar Hall da fama apenas quando o dia estiver ENCERRADO
+            const hallFamaSec = document.getElementById('hallFamaSection');
+            if (hallFamaSec) {
+                if (!game.diaIniciado) {
+                    hallFamaSec.classList.remove('hidden');
+                } else {
+                    hallFamaSec.classList.add('hidden');
+                }
+            }
+
+            // Interface Admin: Controla cores e textos do botão de gerenciamento do dia
+            const btnDia = document.getElementById('btnControleDia');
+            if (btnDia) {
+                if (game.diaIniciado) {
+                    btnDia.innerText = "🛑 Encerrar Dia Atual";
+                    btnDia.className = "w-full bg-red-600 hover:bg-red-500 text-white p-3 rounded-xl font-black uppercase text-[10px] border border-red-500 shadow-lg mt-4 transition";
+                } else {
+                    btnDia.innerText = "▶️ Iniciar Novo Dia";
+                    btnDia.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white p-3 rounded-xl font-black uppercase text-[10px] border border-emerald-500 shadow-lg mt-4 transition";
+                }
+            }
+
             const visitorControls = document.getElementById('visitor-controls');
             if (visitorControls) {
                 if (!isAdmin) {
@@ -1085,7 +1226,6 @@
             
             if(isErro) {
                 game.lastVoice = { text: "Ponto por erro", ts: Date.now() }; 
-                
                 const beneficiados = lado === 'A' ? game.timeA : game.timeB;
                 beneficiados.forEach(p => game.ranking[p.nome].ptsErroAdversario++);
                 addToLog(`PONTO TIME ${lado} - ERRO ADVERSÁRIO`, lado);
@@ -1115,7 +1255,6 @@
 
             const aNoMatchPoint = (game.scoreA === alvoA - 1);
             const bNoMatchPoint = (game.scoreB === alvoB - 1);
-            
             const empate11 = (game.scoreA === limit - 1 && game.scoreB === limit - 1);
             const empateVantagem = (game.scoreA >= limit - 1 && game.scoreB >= limit - 1 && game.scoreA === game.scoreB);
 
@@ -1140,7 +1279,7 @@
             salvarState(true);
             const p = (modalCtx.lado==='A'?game.timeA:game.timeB)[modalCtx.idx];
             
-           if(tipo==='ataque') {
+            if(tipo==='ataque') {
                 game.lastVoice = { text: "Ponto de Ataque", ts: Date.now() }; 
                 game.ranking[p.nome].ptsAtaque++;
                 const timeAtual = modalCtx.lado === 'A' ? game.timeA : game.timeB;
@@ -1183,7 +1322,6 @@
             if (game.config.desempate === '3direto') {
                 if (game.scoreA >= limit - 1 && game.scoreB >= limit - 1) {
                     const novoAlvo = (limit - 1) + 3; 
-                    
                     if (game.scoreA >= novoAlvo) vencedor = 'A';
                     else if (game.scoreB >= novoAlvo) vencedor = 'B';
                 } else {
@@ -1238,11 +1376,9 @@
                 if(game.config.reaction === 'dividir') { 
                     game.nextGameReason = 'mixed'; 
                     const pool = [...tV].sort((a,b) => parseFloat(getScore(b.nome)) - parseFloat(getScore(a.nome))); 
-                    
                     if (pool.length >= 4) {
                         game.timeA = [pool[0], pool[pool.length - 1]]; 
                         game.timeB = [pool[1], pool[2]]; 
-                        
                         for(let i = 3; i < pool.length - 1; i++) {
                             const sA = game.timeA.reduce((acc, p) => acc + parseFloat(getScore(p.nome)), 0);
                             const sB = game.timeB.reduce((acc, p) => acc + parseFloat(getScore(p.nome)), 0);
@@ -1347,7 +1483,6 @@
                         const scoreA = originalA.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0) + comboA.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0);
                         const scoreB = originalB.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0) + comboB.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0);
                         const diff = Math.abs(scoreA - scoreB);
-                        
                         if (diff < bestDiff) {
                             bestDiff = diff;
                             bestComboA = comboA;
@@ -1363,11 +1498,9 @@
             }
 
             game.scoreA = 0; game.scoreB = 0; game.idxA = 0; game.idxB = 0; 
-            
             game.saqueLado = venceu;
             game.jaSacouA = (venceu === 'A');
             game.jaSacouB = (venceu === 'B');
-
             game.partidaAtiva = true; 
             salvarState();
         }
@@ -1440,7 +1573,6 @@
         window.solicitarTrocaCategoria = () => {
             const p = modalCtx.pFila;
             if(game.deniedRequests.includes(p.id)) { alert("Alteração Negada pelo Admin."); return; }
-            
             const reqId = p.id + '_cat'; 
             
             if(!game.requests.some(r => r.reqId === reqId)) {
@@ -1453,7 +1585,6 @@
 
         window.abrirSolicitacoes = () => {
             const container = document.getElementById('listaSolicitacoes');
-            
             if(game.requests.length === 0) {
                 container.innerHTML = '<div class="text-slate-500 text-xs italic text-center py-4">Nenhuma solicitação pendente.</div>';
             } else {
@@ -1461,7 +1592,6 @@
                     let badgeCor = "";
                     let tipoAcao = "";
                     let detalheAcao = "";
-                    
                     if (r.tipo === 'bloqueio') {
                         badgeCor = "bg-red-600";
                         tipoAcao = "AÇÃO: BLOQUEIO 🚫";
@@ -1489,7 +1619,6 @@
                     `;
                 }).join('');
             }
-            
             document.getElementById('modalSolicitacoes').classList.remove('hidden');
         };
 
@@ -1498,7 +1627,6 @@
             if(aprovado) {
                 const list = game.esperaGeral.some(x=>x.id===req.id) ? game.esperaGeral : game.esperaEstrela;
                 const p = list.find(x=>x.id===req.id);
-                
                 if(p) {
                     if (req.tipo === 'bloqueio') {
                         p.bloqueado = true; 
@@ -1512,7 +1640,6 @@
             } else {
                 game.deniedRequests.push(req.id);
             }
-            
             game.requests.splice(idx, 1);
             window.abrirSolicitacoes(); 
             salvarState();
@@ -1545,61 +1672,53 @@
             }).join('');
         }
 
-    window.abrirAuditModal = (n) => {
-    const s = game.ranking[n]; 
-    if(!s) return; 
+        window.abrirAuditModal = (n) => {
+            const s = game.ranking[n]; 
+            if(!s) return; 
 
-    // 1. Busca histórico de partidas do jogador
-    const historicoDoJogador = game.historicoPartidas.filter(p => p.timeA.includes(n) || p.timeB.includes(n));
-    
-    // 2. Tempo em quadra (Estimativa de 10 min por partida confirmada no histórico)
-    const duracaoMediaPartida = 10 * 60 * 1000; // 10 minutos em milissegundos
-    const tempoEmQuadraMs = historicoDoJogador.length * duracaoMediaPartida;
+            const historicoDoJogador = game.historicoPartidas.filter(p => p.timeA.includes(n) || p.timeB.includes(n));
+            const duracaoMediaPartida = 10 * 60 * 1000; 
+            const tempoEmQuadraMs = historicoDoJogador.length * duracaoMediaPartida;
+            const inicioEspera = s.unlockedAt || (Date.now() - (60 * 60 * 1000)); 
+            const tempoTotalDecorridoMs = Date.now() - inicioEspera;
+            let tempoEmEsperaMs = tempoTotalDecorridoMs - tempoEmQuadraMs;
+            if (tempoEmEsperaMs < 0) tempoEmEsperaMs = 0;
 
-    // 3. Tempo total desde que foi desbloqueado (até agora)
-    // Se não tiver unlockedAt, assumimos que entrou agora ou usa uma margem padrão
-    const inicioEspera = s.unlockedAt || (Date.now() - (60 * 60 * 1000)); 
-    const tempoTotalDecorridoMs = Date.now() - inicioEspera;
+            const tempoQuadraMin = Math.floor(tempoEmQuadraMs / 60000);
+            const tempoEsperaMin = Math.floor(tempoEmEsperaMs / 60000);
 
-    // 4. Tempo em espera é o tempo total menos o que ele passou jogando
-    // Não deixamos o resultado ficar negativo
-    let tempoEmEsperaMs = tempoTotalDecorridoMs - tempoEmQuadraMs;
-    if (tempoEmEsperaMs < 0) tempoEmEsperaMs = 0;
+            let parceiros = {};
+            historicoDoJogador.forEach(p => {
+                [...p.timeA, ...p.timeB].forEach(c => { if(c!==n) parceiros[c] = (parceiros[c]||0) + 1; });
+            });
+            const melhorParceiro = Object.keys(parceiros).sort((a,b) => parceiros[b]-parceiros[a])[0] || "---";
 
-    // Conversão para minutos
-    const tempoQuadraMin = Math.floor(tempoEmQuadraMs / 60000);
-    const tempoEsperaMin = Math.floor(tempoEmEsperaMs / 60000);
+            document.getElementById('auditNome').innerText = n;
+            document.getElementById('auditContent').innerHTML = `
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <div class="bg-slate-900 p-2 rounded text-center"><div class="text-[8px] uppercase text-slate-500">Na Quadra</div><div class="font-black text-blue-400">${tempoQuadraMin} min</div></div>
+                    <div class="bg-slate-900 p-2 rounded text-center"><div class="text-[8px] uppercase text-slate-500">Em Espera</div><div class="font-black text-yellow-400">${tempoEsperaMin} min</div></div>
+                </div>
+                <div class="space-y-2 text-[11px] bg-slate-900/50 p-3 rounded-xl border border-slate-700">
+                    <div class="flex justify-between"><span>Melhor Dupla:</span> <b class="text-orange-400">${melhorParceiro}</b></div>
+                    <div class="flex justify-between"><span>Vitórias:</span> <b>${s.v}</b></div>
+                </div>
+            `;
+            document.getElementById('auditTotal').innerText = getScore(n);
+            document.getElementById('modalAudit').classList.remove('hidden');
+        };
 
-    // Calcular parceiros (lógica mantida)
-    let parceiros = {};
-    historicoDoJogador.forEach(p => {
-        [...p.timeA, ...p.timeB].forEach(c => { if(c!==n) parceiros[c] = (parceiros[c]||0) + 1; });
-    });
-    const melhorParceiro = Object.keys(parceiros).sort((a,b) => parceiros[b]-parceiros[a])[0] || "---";
-
-    document.getElementById('auditNome').innerText = n;
-    document.getElementById('auditContent').innerHTML = `
-        <div class="grid grid-cols-2 gap-2 mb-4">
-            <div class="bg-slate-900 p-2 rounded text-center"><div class="text-[8px] uppercase text-slate-500">Na Quadra</div><div class="font-black text-blue-400">${tempoQuadraMin} min</div></div>
-            <div class="bg-slate-900 p-2 rounded text-center"><div class="text-[8px] uppercase text-slate-500">Em Espera</div><div class="font-black text-yellow-400">${tempoEsperaMin} min</div></div>
-        </div>
-        <div class="space-y-2 text-[11px] bg-slate-900/50 p-3 rounded-xl border border-slate-700">
-            <div class="flex justify-between"><span>Melhor Dupla:</span> <b class="text-orange-400">${melhorParceiro}</b></div>
-            <div class="flex justify-between"><span>Vitórias:</span> <b>${s.v}</b></div>
-        </div>
-    `;
-    document.getElementById('auditTotal').innerText = getScore(n);
-    document.getElementById('modalAudit').classList.remove('hidden');
-};
         window.abrirWeights = () => { 
             document.getElementById('modalConfigMenu').classList.add('hidden');
             document.getElementById('wAtqG').value = game.weights.atqG; document.getElementById('wBlqG').value = game.weights.blqG; document.getElementById('wAceG').value = game.weights.aceG; document.getElementById('wAtqE').value = game.weights.atqE; document.getElementById('wBlqE').value = game.weights.blqE; document.getElementById('wAceE').value = game.weights.aceE; document.getElementById('wErr').value = game.weights.err; document.getElementById('wVit').value = game.weights.vit; 
             document.getElementById('wTeam').value = game.weights.wTeam;
             document.getElementById('modalWeights').classList.remove('hidden'); 
         };
+
         window.fecharModais = () => {
             document.querySelectorAll('.modal-global, #modalPontoTec').forEach(m => m.classList.add('hidden'));
         };
+
         window.setFilaTab = (t) => { filaTab = t; render(); };
         window.setRankingTab = (t) => { rkTab = t; render(); };
         window.abrirBloqueioDuplas = () => { const all = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela].sort((a,b)=>a.nome.localeCompare(b.nome)); const opt = `<option value="" disabled selected>- Selecione -</option>`+all.map(p=>`<option value="${p.id}">${p.nome}</option>`).join(''); document.getElementById('selJ1').innerHTML = opt; document.getElementById('selJ2').innerHTML = opt; window.renderListaRestricoes(); document.getElementById('modalRestricao').classList.remove('hidden'); };
@@ -1609,10 +1728,10 @@
         window.salvarWeightsEClose = () => { 
             game.weights.atqG = parseFloat(document.getElementById('wAtqG').value); game.weights.blqG = parseFloat(document.getElementById('wBlqG').value); game.weights.aceG = parseFloat(document.getElementById('wAceG').value); game.weights.atqE = parseFloat(document.getElementById('wAtqE').value); game.weights.blqE = parseFloat(document.getElementById('wBlqE').value); game.weights.aceE = parseFloat(document.getElementById('wAceE').value); game.weights.err = parseFloat(document.getElementById('wErr').value); game.weights.vit = parseFloat(document.getElementById('wVit').value); 
             game.weights.wTeam = parseFloat(document.getElementById('wTeam').value);
-
             document.getElementById('modalWeights').classList.add('hidden');
             window.abrirConfig(); 
         };
+
         window.adicionarNovoJogador = () => { const n = document.getElementById('novoNome').value.toUpperCase().trim(); if(!n) return; adicionarLocal(n, filaTab==='estrela'); document.getElementById('novoNome').value=''; salvarState(); };
         window.adicionarRestricao = () => { const j1 = document.getElementById('selJ1').value, j2 = document.getElementById('selJ2').value; if(j1&&j2&&j1!==j2) { game.restricoes.push([j1,j2]); window.renderListaRestricoes(); salvarState(); } };
         window.escalarParaTime = (lado) => { const t = lado==='A'?game.timeA:game.timeB; if(t.length<game.config.size) { const l = modalCtx.tabFila==='geral'?game.esperaGeral:game.esperaEstrela; const p = l.splice(modalCtx.idxFila, 1)[0]; p.bloqueado=false; t.push(p); window.fecharModais(); salvarState(); } else alert("Time Cheio!"); };
@@ -1632,7 +1751,6 @@
         window.abrirEscalacao = (tab, idx) => { 
             const l = tab === 'geral' ? game.esperaGeral : game.esperaEstrela; 
             modalCtx = { pFila: l[idx], idxFila: idx, tabFila: tab }; 
-            
             document.getElementById('modalNomeFila').innerText = modalCtx.pFila.nome; 
             
             const btnElite = document.getElementById('btnToggleElite');
@@ -1643,10 +1761,8 @@
             
             btn.onclick = () => { 
                 const estavaBloqueado = modalCtx.pFila.bloqueado; 
-                
                 if (!isAdmin && !estavaBloqueado) {
                     const reqId = modalCtx.pFila.id + '_block'; 
-                    
                     if(!game.requests.some(r => r.reqId === reqId)) {
                         game.requests.push({ reqId: reqId, id: modalCtx.pFila.id, nome: modalCtx.pFila.nome, tipo: 'bloqueio', acao: 'bloquear', solicitante: (meuNome || 'Visitante Anônimo') });
                         alert("Solicitação para BLOQUEAR enviada ao Admin!");
@@ -1659,7 +1775,6 @@
                 }
 
                 modalCtx.pFila.bloqueado = !estavaBloqueado; 
-                
                 if (estavaBloqueado) {
                     l.splice(modalCtx.idxFila, 1);
                     let novaPos = 0;
@@ -1671,7 +1786,6 @@
                     }
                     l.splice(novaPos, 0, modalCtx.pFila);
                 }
-                
                 window.fecharModais(); 
                 salvarState(); 
             }; 
@@ -1692,7 +1806,6 @@
                 document.getElementById('subsA').innerHTML = gen(game.timeA, 'A'); 
                 document.getElementById('subsB').innerHTML = gen(game.timeB, 'B'); 
             } 
-            
             document.getElementById('modalFilaEscala').classList.remove('hidden'); 
         };
         
@@ -1701,22 +1814,6 @@
         window.definirSacadorManual = () => { game.saqueLado = modalCtx.lado; if(modalCtx.lado === 'A') { game.idxA = modalCtx.idx; game.jaSacouA = true; } else { game.idxB = modalCtx.idx; game.jaSacouB = true; } window.fecharModais(); salvarState(); };
         window.removerParaFilaManual = () => { salvarState(true); const t = modalCtx.lado==='A'?game.timeA:game.timeB; const p = t.splice(modalCtx.idx, 1)[0]; (p.estrela?game.esperaEstrela:game.esperaGeral).push(p); window.fecharModais(); salvarState(false); };
         window.abrirPontoTecnico = (l, i) => { modalCtx = { lado: l, idx: i }; const p = (l==='A'?game.timeA:game.timeB)[i]; document.getElementById('modalNomeTec').innerText = p.nome; if(isAdmin) { const w = game.weights; document.getElementById('labelAtq').innerText = `+${p.estrela?w.atqE:w.atqG}`; document.getElementById('labelBlq').innerText = `+${p.estrela?w.blqE:w.blqG}`; document.getElementById('labelAce').innerText = `+${p.estrela?w.aceE:w.aceG}`; const isSacador = (game.saqueLado === l && (l==='A'?game.idxA:game.idxB)===i); const btn = document.getElementById('btnAceTec'); if(!isSacador) btn.classList.add('opacity-50','pointer-events-none'); else btn.classList.remove('opacity-50','pointer-events-none'); document.getElementById('playerViewMsg').classList.add('hidden'); } else { document.getElementById('playerViewMsg').classList.remove('hidden'); } document.getElementById('modalPontoTec').classList.remove('hidden'); };
-
-        function salvarSnapshotDoDia() {
-    const dataHoje = new Date().toLocaleDateString('pt-BR');
-    
-    // Recupera os dias salvos ou cria um novo objeto
-    let historicoDias = JSON.parse(localStorage.getItem('voleihub_dias')) || {};
-    
-    // Salva o estado exato de hoje
-    historicoDias[dataHoje] = {
-        historicoPartidas: [...game.historico],
-        rankingFinal: [...game.ranking],
-        hallFamaFinal: extrairDadosHallDaFama() 
-    };
-    
-    localStorage.setItem('voleihub_dias', JSON.stringify(historicoDias));
-}
         
         function getScore(n) { 
             const s = game.ranking[n]; 
@@ -1734,71 +1831,15 @@
         function estaoBloqueados(p1, p2) { return game.restricoes.some(d => (d[0]==p1.id && d[1]==p2.id) || (d[1]==p1.id && d[0]==p2.id)); }
 
         window.addEventListener('load', () => {
-        // Verificamos apenas quando a página termina de carregar
-        if (!isAdmin && !localStorage.getItem('voleihub_meunome')) {
-        setTimeout(() => {
-            // Verifica se o modal ainda está escondido antes de chamar
-            const modal = document.getElementById('modalIdentificacao');
-            if (modal && modal.classList.contains('hidden')) {
-                window.acaoMeuPerfil();
+            if (!isAdmin && !localStorage.getItem('voleihub_meunome')) {
+                setTimeout(() => {
+                    const modal = document.getElementById('modalIdentificacao');
+                    if (modal && modal.classList.contains('hidden')) {
+                        window.acaoMeuPerfil();
+                    }
+                }, 1000);
             }
-        }, 1000); // 1 segundo de delay garante que tudo esteja pronto
-    }
-            // Variável global para saber se o dia está rolando
-let diaIniciado = localStorage.getItem('voleihub_diaIniciado') === 'true';
-
-window.atualizarInterfaceDia = function() {
-    const btn = document.getElementById('btnToggleDia');
-    const hallFama = document.getElementById('hallFamaSection');
-    
-    if (btn) {
-        if (diaIniciado) {
-            // Dia em andamento: Botão de Encerrar (Vermelho)
-            btn.textContent = "🛑 Encerrar Dia Atual";
-            btn.className = "w-full bg-red-600 hover:bg-red-500 text-white p-3 rounded-xl font-black uppercase text-[10px] border border-red-500 shadow-lg mt-4";
-            
-            // Oculta o Hall da Fama
-            if(hallFama) hallFama.classList.add('hidden');
-        } else {
-            // Dia encerrado: Botão de Iniciar (Verde)
-            btn.textContent = "▶️ Iniciar Novo Dia";
-            btn.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white p-3 rounded-xl font-black uppercase text-[10px] border border-emerald-500 shadow-lg mt-4";
-            
-            // Mostra o Hall da Fama (desde que não seja admin, o CSS do passo 1 já cuida disso)
-            if(hallFama) hallFama.classList.remove('hidden');
-        }
-    }
-};
-window.toggleFilaEspera = function() {
-    const container = document.getElementById('esperaContainer');
-    const btn = event.currentTarget; // Pega o botão clicado
-    
-    if (container.style.display === 'none') {
-        container.style.display = 'block';
-        btn.innerHTML = "👁️ Ocultar";
-    } else {
-        container.style.display = 'none';
-        btn.innerHTML = "👁️ Exibir";
-    }
-};
-            
-window.toggleStatusDia = function() {
-    if (diaIniciado) {
-        // Se estava iniciado, vai encerrar
-        if(confirm("Tem certeza que deseja encerrar o dia atual? O Hall da Fama será gerado.")) {
-            diaIniciado = false;
-            window.iniciarNovoDia(); // Chama sua função existente de encerramento
-        }
-    } else {
-        // Se estava encerrado, vai iniciar
-        diaIniciado = true;
-    }
-    
-    localStorage.setItem('voleihub_diaIniciado', diaIniciado);
-    window.atualizarInterfaceDia();
-};
-
-});
-</script>
+        });
+    </script>
 </body>
 </html>
