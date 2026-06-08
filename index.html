@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V2.0.7</title>
+    <title>Vôlei Hub PRO - V2.0.8</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -26,7 +26,7 @@
         #match-log-box { max-height: 120px; overflow-y: auto; background: rgba(15, 23, 42, 0.5); border-radius: 8px; padding: 5px; font-size: 10px; border: 1px solid #1e293b; }
         .log-item { padding: 4px 8px; border-radius: 4px; margin-bottom: 2px; font-weight: bold; text-transform: uppercase; display: flex; justify-content: space-between; }
         .log-A { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-left: 2px solid #3b82f6; }
-        .log-B { background: rgba(249, 115, 22, 0.2); color: #fb923c; border-left: 2px solid #f97316; }
+        .log-B { background: rgba(249, 115, 22, 0.2); color: #f97316; border-left: 2px solid #f97316; }
 
         #emoji-layer { position: fixed; inset: 0; pointer-events: none; z-index: 5000; overflow: hidden; }
         .emoji-particle { position: absolute; font-size: 3rem; animation: floatUp ease-out forwards; opacity: 0; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
@@ -57,7 +57,6 @@
         #admin-notif-bell { position: relative; }
         #admin-notif-dot { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: red; border-radius: 50%; border: 1px solid #1e293b; }
 
-        /* Regra de Negócio: No acesso admin NÃO mostrar ranking master nem o hall da fama */
         body.is-admin #rankingSection,
         body.is-admin #hallFamaSection,
         body.is-admin #btnVerHistoricoPublico {
@@ -133,7 +132,6 @@
                     <button onclick="window.setFilaTab('estrela')" id="tabEstrela" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg transition">Estrelas ⭐ <span id="countEstrela" class="ml-1 opacity-50">0</span></button>
                 </div>
                 <div class="flex gap-2 items-center">
-                    <!-- Acesso de visitante: Botão para exibir ou ocultar a fila de espera -->
                     <button id="btnToggleFila" onclick="window.toggleVisibilidadeFila()" class="text-[9px] bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded border border-slate-600 font-bold uppercase transition">Ocultar Fila</button>
                     <div id="statusConn" class="text-[8px] text-emerald-500 font-bold uppercase animate-pulse">● Online</div>
                 </div>
@@ -151,7 +149,6 @@
             <span class="text-orange-500 text-xs">Visualizar ❯</span>
         </button>
 
-        <!-- Botão de histórico visível para visitantes já que a seção admin oculta o container nativo -->
         <button id="btnVerHistoricoPublico" onclick="window.abrirHistoricoModal()" class="w-full bg-slate-800/50 text-slate-400 font-black uppercase py-3 rounded-2xl shadow border border-slate-800 hover:bg-slate-800 transition flex justify-between items-center px-4">
             <span class="flex items-center gap-2 text-xs">📅 Histórico de Dias Anteriores</span>
             <span class="text-orange-500 text-xs">Abrir ❯</span>
@@ -159,7 +156,18 @@
 
         <section id="rankingSection" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl admin-section">
             <div class="p-4 bg-slate-800/60 border-b border-slate-800 text-center">
-                <h2 class="text-xs font-black uppercase text-orange-500 italic mb-3 tracking-widest">🏆 Ranking Master</h2>
+                <h2 class="text-xs font-black uppercase text-orange-500 italic mb-2 tracking-widest">🏆 Ranking Master</h2>
+                
+                <!-- Adicionado: Filtro de período temporal para o Ranking Master -->
+                <div class="mb-3">
+                    <select id="filtroPeriodoRanking" onchange="window.mudarFiltroPeriodo()" class="bg-slate-950 border border-slate-700 rounded p-1.5 text-[10px] font-bold text-slate-300 outline-none w-full">
+                        <option value="hoje">Dados de Hoje (Data Atual)</option>
+                        <option value="semana">Última Semana</option>
+                        <option value="mes">Último Mês</option>
+                        <option value="tudo" selected>Histórico Completo (Tudo)</option>
+                    </select>
+                </div>
+
                 <div class="flex gap-2">
                     <button onclick="window.setRankingTab('tudo')" id="rkTabTudo" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg bg-slate-700 hover:bg-slate-600">Tudo</button>
                     <button onclick="window.setRankingTab('geral')" id="rkTabGeral" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg bg-slate-700 hover:bg-slate-600">Geral</button>
@@ -288,7 +296,6 @@
                 <button onclick="window.abrirBloqueioDuplas()" class="w-full bg-slate-700 text-red-400 p-3 rounded-xl font-black uppercase text-[10px] border border-slate-600 mb-6">🚫 Bloqueio Duplas</button>
 
                 <div class="border-t border-slate-600 pt-6 space-y-2">
-                    <!-- Regra de Negócio: Botão Dinâmico de Iniciar (Verde) / Encerrar (Vermelho) -->
                     <button id="btnControleDia" onclick="window.toggleEstadoDia()" class="w-full p-3 rounded-xl font-black uppercase text-[10px] shadow-lg transition"></button>
                     <button onclick="window.forcarBalanceamentoManual()" class="w-full bg-purple-600 hover:bg-purple-500 text-white p-3 rounded-xl font-black uppercase text-[10px] border border-purple-500 shadow-lg">🤖 Forçar Balanceamento (IA)</button>
                     <button onclick="window.limparSistema()" class="w-full text-red-600 hover:text-red-400 text-[10px] font-black uppercase py-2 mt-4">⚠️ Resetar Sistema Completo</button>
@@ -303,7 +310,7 @@
     <div id="modalAudit" class="modal-global hidden">
         <div class="bg-slate-800 w-full max-w-xs rounded-3xl p-6 border border-orange-500">
             <h3 id="auditNome" class="font-black text-orange-500 uppercase text-lg italic mb-2">---</h3>
-            <div class="flex gap-3 mb-6 text-[10px] text-slate-500 italic font-bold">
+            <div class="flex gap-3 mb-4 text-[10px] text-slate-500 italic font-bold">
                <span id="auditMatches">Partidas: 0</span>
                <span id="auditLosses">Derrotas: 0</span>
             </div>
@@ -316,7 +323,6 @@
             <div class="mt-6 flex flex-col gap-2">
                 <button onclick="window.deslogarIdentidade()" class="w-full bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600 text-white">Sair (Deslogar)</button>
                 <button onclick="window.bloquearEDeslogar()" class="w-full bg-red-900/50 text-red-400 border border-red-800 py-3 rounded-xl uppercase text-xs font-black hover:bg-red-900/80">Bloquear e Sair</button>
-                <!-- Regra de Negócio: Opção de simplesmente fechar o modal -->
                 <button onclick="window.fecharModais()" class="w-full bg-slate-800 text-slate-400 border border-slate-700 py-2 rounded-xl uppercase text-[10px] font-bold hover:bg-slate-700 transition">Simplesmente Fechar</button>
             </div>
         </div>
@@ -391,7 +397,6 @@
         </div>
     </div>
     
-    <!-- Modificado: Modal de histórico com seletor de dia e exibição retroativa de ranking/hall da fama -->
     <div id="modalHistorico" class="modal-global hidden">
         <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-slate-600 overflow-y-auto max-h-[90vh]">
             <div class="flex justify-between items-center mb-4">
@@ -463,6 +468,7 @@
         const DEFAULT_RESTRICTIONS = [];
 
         let isAdmin = false;
+        let filtroPeriodoAtual = 'tudo'; // Inicializador padrão para o escopo do ranking
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -564,7 +570,7 @@
             historicoPartidas: [], historicoDias: [], ranking: {}, saqueLado: null, idxA: null, idxB: null,
             weights: { atqG: 1, blqG: 1, aceG: 1.5, atqE: 1.5, blqE: 1.5, aceE: 2, err: -0.5, vit: 3, team: 0.5 },
             config: { size: 4, stars: 1, elites: 2, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' },
-            bloqueios: {}, diaIniciado: true // Inicializa com o estado true se não existir
+            bloqueios: {}, diaIniciado: true
         };
 
         window.forcarBalanceamentoManual = () => {
@@ -620,7 +626,6 @@
             alert('Balanceamento IA Concluído! Filas e Rankings Atualizados.');
         };
 
-        // Regra de Negócio: Alterar e gerenciar estado de abertura/fechamento do dia
         window.toggleEstadoDia = () => {
             if (!isAdmin) return;
             if (game.diaIniciado) {
@@ -661,12 +666,13 @@
                     }
                 }
 
-                // Salva Snapshot completo e estruturado do dia antes do reset para o histórico retroativo
                 if (!game.historicoDias) game.historicoDias = [];
                 let dataStr = new Date().toLocaleDateString('pt-BR') + ' - ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
                 
+                // Registra o timestamp atual em milissegundos para viabilizar os filtros temporais retroativos
                 game.historicoDias.unshift({
                     id: Date.now(),
+                    timestamp: Date.now(), 
                     data: dataStr,
                     partidas: game.historicoPartidas ? [...game.historicoPartidas] : [],
                     rankingFinal: JSON.parse(JSON.stringify(game.ranking))
@@ -701,7 +707,6 @@
         let meuNome = localStorage.getItem('voleihub_meunome') || '';
         let filaEsperaOculta = false;
 
-        // Regra de Negócio: Exibir ou ocultar visualmente a fila de espera para visitantes
         window.toggleVisibilidadeFila = () => {
             filaEsperaOculta = !filaEsperaOculta;
             const container = document.getElementById('esperaContainer');
@@ -746,7 +751,6 @@
             }
         };
 
-        // Regra de Negócio: Escolher o dia e renderizar todas as informações daquela data específica
         window.abrirHistoricoModal = () => {
             const selDia = document.getElementById('selHistoricoDia');
             if (!game.historicoDias || game.historicoDias.length === 0) {
@@ -766,7 +770,6 @@
             if (idx === "") return;
             const diaSnapshot = game.historicoDias[idx];
             
-            // 1. Renderiza as partidas daquele dia específico
             const containerPartidas = document.getElementById('listaHistoricoContainer');
             if (!diaSnapshot.partidas || diaSnapshot.partidas.length === 0) {
                 containerPartidas.innerHTML = '<div class="text-slate-500 text-[10px] italic py-2">Sem partidas gravadas neste dia.</div>';
@@ -785,17 +788,9 @@
                 `).join('');
             }
 
-            // 2. Reconstrói o Ranking Master estático fixado naquele dia
             const rkContainer = document.getElementById('rankingHistoricoContainer');
             const rkFechado = Object.entries(diaSnapshot.rankingFinal || {}).map(([n, s]) => {
-                const w = game.weights; 
-                const ptsAtq = (s.ptsAtaque || 0) * (s.estrela ? w.atqE : w.atqG);
-                const ptsBlq = (s.ptsBloqueio || 0) * (s.estrela ? w.blqE : w.blqG);
-                const ptsAce = (s.ptsAce || 0) * (s.estrela ? w.aceE : w.aceG);
-                const ptsErr = (s.ptsErroAdversario || 0) * w.err;
-                const ptsVit = (s.v || 0) * w.vit;
-                const ptsTeam = (s.ptsAcertoTime || 0) * w.wTeam;
-                const score = (ptsVit + ptsAtq + ptsBlq + ptsAce + ptsErr + ptsTeam).toFixed(2);
+                const score = calcularScoreComPesos(s);
                 return { n, ...s, score: parseFloat(score) };
             }).filter(x => x.score > 0).sort((a,b) => b.score - a.score);
 
@@ -810,7 +805,6 @@
                 `).join('');
             }
 
-            // 3. Reconstrói as lideranças (Hall da Fama) daquele dia selecionado
             const hallContainer = document.getElementById('hallHistoricoContainer');
             const cats = [
                 {t:"Top Score",i:"🏆",f:p=>p.score},
@@ -1079,6 +1073,78 @@
         function triggerEmoji(type) { game.lastAnim = { type: type, ts: Date.now() }; }
         function showEndGameOverlay() { game.endGameAnim = { active: true, ts: Date.now() }; }
 
+        // Adicionado: Evento para escutar alteração do filtro temporal no front-end
+        window.mudarFiltroPeriodo = () => {
+            filtroPeriodoAtual = document.getElementById('filtroPeriodoRanking').value;
+            render();
+        };
+
+        // Adicionado: Função modular para consolidar dados históricos com base em limites temporais
+        function processarRankingComFiltroTemporal(periodo) {
+            let rankingConsolidado = {};
+
+            // 1. Se o filtro incluir o dia de hoje, pega os dados ativos da seção atual do jogo
+            if (periodo === 'tudo' || periodo === 'hoje') {
+                rankingConsolidado = JSON.parse(JSON.stringify(game.ranking || {}));
+            }
+
+            // 2. Determina limite em milissegundos se aplicável
+            let limiteMs = 0;
+            const agora = Date.now();
+            if (periodo === 'semana') limiteMs = agora - (7 * 24 * 60 * 60 * 1000);
+            if (periodo === 'mes') limiteMs = agora - (30 * 24 * 60 * 60 * 1000);
+
+            // 3. Se o filtro pedir dados retroativos, varre e consolida os snapshots salvos na base do Firebase
+            if (periodo !== 'hoje' && game.historicoDias) {
+                game.historicoDias.forEach(dia => {
+                    const timestampDia = dia.timestamp || 0;
+                    if (limiteMs === 0 || timestampDia >= limiteMs) {
+                        Object.entries(dia.rankingFinal || {}).forEach(([nome, stats]) => {
+                            if (!rankingConsolidado[nome]) {
+                                rankingConsolidado[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime:0, estrela: stats.estrela, elite: stats.elite };
+                            }
+                            rankingConsolidado[nome].v += (stats.v || 0);
+                            rankingConsolidado[nome].d += (stats.d || 0);
+                            rankingConsolidado[nome].ptsAtaque += (stats.ptsAtaque || 0);
+                            rankingConsolidado[nome].ptsBloqueio += (stats.ptsBloqueio || 0);
+                            rankingConsolidado[nome].ptsAce += (stats.ptsAce || 0);
+                            rankingConsolidado[nome].ptsErroAdversario += (stats.ptsErroAdversario || 0);
+                            rankingConsolidado[nome].ptsAcertoTime += (stats.ptsAcertoTime || 0);
+                        });
+                    }
+                });
+            }
+
+            return rankingConsolidated;
+        }
+
+        // Adicionado: Função auxiliar para calcular o somatório total de conquistas de insígnias no Hall da Fama
+        function calcularContagemInsigniasHall(nomeJogador) {
+            let conquistas = { topScore: 0, matador: 0, paredao: 0, ace: 0 };
+            if (!game.historicoDias) return conquistas;
+
+            game.historicoDias.forEach(dia => {
+                const playersDia = Object.entries(dia.rankingFinal || {}).map(([n, s]) => {
+                    const score = calcularScoreComPesos(s);
+                    return { n, ...s, score: parseFloat(score) };
+                }).filter(x => x.score > 0);
+
+                if (playersDia.length === 0) return;
+
+                const maxScore = Math.max(...playersDia.map(p => p.score), 0);
+                const maxAtq = Math.max(...playersDia.map(p => p.ptsAtaque || 0), 0);
+                const maxBlq = Math.max(...playersDia.map(p => p.ptsBloqueio || 0), 0);
+                const maxAce = Math.max(...playersDia.map(p => p.ptsAce || 0), 0);
+
+                if (maxScore > 0 && playersDia.some(p => p.n === nomeJogador && p.score === maxScore)) conquistas.topScore++;
+                if (maxAtq > 0 && playersDia.some(p => p.n === nomeJogador && (p.ptsAtaque || 0) === maxAtq)) conquistas.matador++;
+                if (maxBlq > 0 && playersDia.some(p => p.n === nomeJogador && (p.ptsBloqueio || 0) === maxBlq)) conquistas.paredao++;
+                if (maxAce > 0 && playersDia.some(p => p.n === nomeJogador && (p.ptsAce || 0) === maxAce)) conquistas.ace++;
+            });
+
+            return conquistas;
+        }
+
         function render() {
             checkAndPlaySound();
             
@@ -1153,11 +1219,38 @@
             document.getElementById('tabGeral').className = `text-[10px] font-black uppercase px-4 py-2 rounded-lg transition ${filaTab === 'geral' ? 'tab-active shadow-lg' : 'bg-slate-700 hover:bg-slate-600'}`;
             document.getElementById('tabEstrela').className = `text-[10px] font-black uppercase px-4 py-2 rounded-lg transition ${filaTab === 'estrela' ? 'tab-active shadow-lg' : 'bg-slate-700 hover:bg-slate-600'}`;
 
-            const rk = Object.entries(game.ranking).map(([n, s]) => ({ n, ...s, score: parseFloat(getScore(n)) })).filter(x => x.score > 0 && (rkTab==='tudo'?true:rkTab==='estrela'?x.estrela:!x.estrela)).sort((a,b) => b.score - a.score);
-            document.getElementById('rankingContainer').innerHTML = rk.map((j, i) => `<div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 cursor-pointer mb-1 hover:bg-slate-800 transition" onclick="window.abrirAuditModal('${j.n}')"><div class="flex items-center gap-3"><span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span><div class="rank-name uppercase text-[10px] font-bold text-slate-300">${j.estrela?'⭐ ':''}${j.elite?'💎 ':''}${j.n}</div></div><div class="text-orange-500 font-black text-xs">${j.score}</div></div>`).join('');
+            // Modificado: O ranking agora renderiza dinamicamente respeitando o filtro de período temporal selecionado
+            const rankingFiltradoDataset = processarRankingComFiltroTemporal(filtroPeriodoAtual);
+            const rk = Object.entries(rankingFiltradoDataset).map(([n, s]) => {
+                const score = calcularScoreComPesos(s);
+                return { n, ...s, score: parseFloat(score) };
+            }).filter(x => x.score > 0 && (rkTab==='tudo'?true:rkTab==='estrela'?x.estrela:!x.estrela)).sort((a,b) => b.score - a.score);
+            
+            // Corrigido: Agora traz o score correto calculado em tempo real para o visitante no front-end
+            document.getElementById('rankingContainer').innerHTML = rk.map((j, i) => {
+                // Modificado: Renderiza as insígnias acumuladas do Hall da Fama direto no card do jogador com tag title (descrição sobreposta)
+                const bag = calcularContagemInsigniasHall(j.n);
+                let insigniasBadgeHTML = "";
+                if(bag.topScore > 0) insigniasBadgeHTML += `<span class="cursor-help text-[11px]" title="Maior pontuador geral: ${bag.topScore}x">🏆<sub class="text-[8px] font-bold text-slate-400">${bag.topScore}</sub></span>`;
+                if(bag.matador > 0) insigniasBadgeHTML += `<span class="cursor-help text-[11px]" title="Maior pontuador de ataque: ${bag.matador}x">🔥<sub class="text-[8px] font-bold text-slate-400">${bag.matador}</sub></span>`;
+                if(bag.paredao > 0) insigniasBadgeHTML += `<span class="cursor-help text-[11px]" title="Maior bloqueador: ${bag.paredao}x">🚫<sub class="text-[8px] font-bold text-slate-400">${bag.paredao}</sub></span>`;
+                if(bag.ace > 0) insigniasBadgeHTML += `<span class="cursor-help text-[11px]" title="Maior pontuador de saque: ${bag.ace}x">⚡<sub class="text-[8px] font-bold text-slate-400">${bag.ace}</sub></span>`;
+
+                return `
+                <div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 cursor-pointer mb-1 hover:bg-slate-800 transition" onclick="window.abrirAuditModal('${j.n}')">
+                    <div class="flex items-center gap-3">
+                        <span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span>
+                        <div class="rank-name uppercase text-[10px] font-bold text-slate-300">
+                            ${j.estrela?'⭐ ':''}${j.elite?'💎 ':''}${j.n}
+                        </div>
+                        <div class="flex gap-1 ml-2">${insigniasBadgeHTML}</div>
+                    </div>
+                    <div class="text-orange-500 font-black text-xs">${j.score}</div>
+                </div>`;
+            }).join('');
+            
             renderLeaders();
             
-            // Regra de Negócio: Mostrar Hall da fama apenas quando o dia estiver ENCERRADO
             const hallFamaSec = document.getElementById('hallFamaSection');
             if (hallFamaSec) {
                 if (!game.diaIniciado) {
@@ -1167,7 +1260,6 @@
                 }
             }
 
-            // Interface Admin: Controla cores e textos do botão de gerenciamento do dia
             const btnDia = document.getElementById('btnControleDia');
             if (btnDia) {
                 if (game.diaIniciado) {
@@ -1677,15 +1769,6 @@
             if(!s) return; 
 
             const historicoDoJogador = game.historicoPartidas.filter(p => p.timeA.includes(n) || p.timeB.includes(n));
-            const duracaoMediaPartida = 10 * 60 * 1000; 
-            const tempoEmQuadraMs = historicoDoJogador.length * duracaoMediaPartida;
-            const inicioEspera = s.unlockedAt || (Date.now() - (60 * 60 * 1000)); 
-            const tempoTotalDecorridoMs = Date.now() - inicioEspera;
-            let tempoEmEsperaMs = tempoTotalDecorridoMs - tempoEmQuadraMs;
-            if (tempoEmEsperaMs < 0) tempoEmEsperaMs = 0;
-
-            const tempoQuadraMin = Math.floor(tempoEmQuadraMs / 60000);
-            const tempoEsperaMin = Math.floor(tempoEmEsperaMs / 60000);
 
             let parceiros = {};
             historicoDoJogador.forEach(p => {
@@ -1693,15 +1776,13 @@
             });
             const melhorParceiro = Object.keys(parceiros).sort((a,b) => parceiros[b]-parceiros[a])[0] || "---";
 
+            // Modificado: Removido os dados visuais de tempo em quadra e tempo de espera como solicitado
             document.getElementById('auditNome').innerText = n;
             document.getElementById('auditContent').innerHTML = `
-                <div class="grid grid-cols-2 gap-2 mb-4">
-                    <div class="bg-slate-900 p-2 rounded text-center"><div class="text-[8px] uppercase text-slate-500">Na Quadra</div><div class="font-black text-blue-400">${tempoQuadraMin} min</div></div>
-                    <div class="bg-slate-900 p-2 rounded text-center"><div class="text-[8px] uppercase text-slate-500">Em Espera</div><div class="font-black text-yellow-400">${tempoEsperaMin} min</div></div>
-                </div>
                 <div class="space-y-2 text-[11px] bg-slate-900/50 p-3 rounded-xl border border-slate-700">
                     <div class="flex justify-between"><span>Melhor Dupla:</span> <b class="text-orange-400">${melhorParceiro}</b></div>
-                    <div class="flex justify-between"><span>Vitórias:</span> <b>${s.v}</b></div>
+                    <div class="flex justify-between"><span>Vitórias Hoje:</span> <b>${s.v}</b></div>
+                    <div class="flex justify-between"><span>Derrotas Hoje:</span> <b>${s.d}</b></div>
                 </div>
             `;
             document.getElementById('auditTotal').innerText = getScore(n);
@@ -1812,20 +1893,24 @@
         window.substituirJogador = (side, idx) => { const t = side==='A'?game.timeA:game.timeB; if(estaoBloqueados(modalCtx.pFila, t[idx])) return alert("Bloqueado!"); const sai = t.splice(idx, 1)[0]; const entra = (modalCtx.tabFila==='geral'?game.esperaGeral:game.esperaEstrela).splice(modalCtx.idxFila, 1)[0]; entra.bloqueado = false; t.splice(idx, 0, entra); (sai.estrela?game.esperaEstrela:game.esperaGeral).push(sai); window.fecharModais(); salvarState(); };
         window.undoLastAction = () => { if(!isAdmin || historicoLocal.length===0) return; game = JSON.parse(historicoLocal.pop()); set(gameRef, game); };
         window.definirSacadorManual = () => { game.saqueLado = modalCtx.lado; if(modalCtx.lado === 'A') { game.idxA = modalCtx.idx; game.jaSacouA = true; } else { game.idxB = modalCtx.idx; game.jaSacouB = true; } window.fecharModais(); salvarState(); };
-        window.removerParaFilaManual = () => { salvarState(true); const t = modalCtx.lado==='A'?game.timeA:game.timeB; const p = t.splice(modalCtx.idx, 1)[0]; (p.estrela?game.esperaEstrela:game.esperaGeral).push(p); window.fecharModais(); salvarState(false); };
+        window.removerParaFilaManual = () => { salvarState(true); const t = modalCtx.lado==='A'?game.timeA:game.timeB; const p = t.splice(modalCtx.idx, 1)[0]; (p.estrela?game.esperaEstrela:game.esperaGeral).push(p); window.fecharModais(); salvarState(); };
         window.abrirPontoTecnico = (l, i) => { modalCtx = { lado: l, idx: i }; const p = (l==='A'?game.timeA:game.timeB)[i]; document.getElementById('modalNomeTec').innerText = p.nome; if(isAdmin) { const w = game.weights; document.getElementById('labelAtq').innerText = `+${p.estrela?w.atqE:w.atqG}`; document.getElementById('labelBlq').innerText = `+${p.estrela?w.blqE:w.blqG}`; document.getElementById('labelAce').innerText = `+${p.estrela?w.aceE:w.aceG}`; const isSacador = (game.saqueLado === l && (l==='A'?game.idxA:game.idxB)===i); const btn = document.getElementById('btnAceTec'); if(!isSacador) btn.classList.add('opacity-50','pointer-events-none'); else btn.classList.remove('opacity-50','pointer-events-none'); document.getElementById('playerViewMsg').classList.add('hidden'); } else { document.getElementById('playerViewMsg').classList.remove('hidden'); } document.getElementById('modalPontoTec').classList.remove('hidden'); };
         
+        // Adicionado: Função modular reutilizável para aplicar pesos de score dinamicamente
+        function calcularScoreComPesos(s) {
+            if(!s) return 0;
+            const w = game.weights || { atqG: 1, blqG: 1, aceG: 1.5, atqE: 1.5, blqE: 1.5, aceE: 2, err: -0.5, vit: 3, wTeam: 0.5 }; 
+            const ptsAtq = (s.ptsAtaque || 0) * (s.estrela ? w.atqE : w.atqG);
+            const ptsBlq = (s.ptsBloqueio || 0) * (s.estrela ? w.blqE : w.blqG);
+            const ptsAce = (s.ptsAce || 0) * (s.estrela ? w.aceE : w.aceG);
+            const ptsErr = (s.ptsErroAdversario || 0) * w.err;
+            const ptsVit = (s.v || 0) * w.vit;
+            const ptsTeam = (s.ptsAcertoTime || 0) * (w.wTeam || 0);
+            return (ptsVit + ptsAtq + ptsBlq + ptsAce + ptsErr + ptsTeam).toFixed(2);
+        }
+
         function getScore(n) { 
-            const s = game.ranking[n]; 
-            if(!s) return 0; 
-            const w = game.weights; 
-            const ptsAtq = s.ptsAtaque * (s.estrela ? w.atqE : w.atqG);
-            const ptsBlq = s.ptsBloqueio * (s.estrela ? w.blqE : w.blqG);
-            const ptsAce = s.ptsAce * (s.estrela ? w.aceE : w.aceG);
-            const ptsErr = s.ptsErroAdversario * w.err;
-            const ptsVit = s.v * w.vit;
-            const ptsTeam = (s.ptsAcertoTime || 0) * w.wTeam;
-            return (ptsVit + ptsAtq + ptsBlq + ptsAce + ptsErr + ptsTeam).toFixed(2); 
+            return calcularScoreComPesos(game.ranking[n]); 
         }
 
         function estaoBloqueados(p1, p2) { return game.restricoes.some(d => (d[0]==p1.id && d[1]==p2.id) || (d[1]==p1.id && d[0]==p2.id)); }
