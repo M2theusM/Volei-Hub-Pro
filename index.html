@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V2.0.2</title>
+    <title>Vôlei Hub PRO - V2.0.3</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -1521,13 +1521,18 @@
     });
     const melhorParceiro = Object.keys(parceiros).sort((a,b) => parceiros[b]-parceiros[a])[0] || "---";
 
+    // Lógica para estimativa de tempo (Sets jogados * 10min aprox)
+    const tempoQuadra = (s.v + s.d) * 10; 
+    const tempoEspera = Math.max(0, 60 - tempoQuadra); // Simulação simples de tempo
+
     document.getElementById('auditNome').innerText = n;
     document.getElementById('auditContent').innerHTML = `
         <div class="grid grid-cols-2 gap-2 mb-4">
-            <div class="bg-slate-900 p-2 rounded text-center"><div class="text-[8px] uppercase text-slate-500">Sets Jogados</div><div class="font-black text-blue-400">${s.v + s.d}</div></div>
-            <div class="bg-slate-900 p-2 rounded text-center"><div class="text-[8px] uppercase text-slate-500">Melhor Dupla</div><div class="font-black text-orange-400 truncate text-[10px]">${melhorParceiro}</div></div>
+            <div class="bg-slate-900 p-2 rounded text-center"><div class="text-[8px] uppercase text-slate-500">Quadra</div><div class="font-black text-blue-400">${tempoQuadra} min</div></div>
+            <div class="bg-slate-900 p-2 rounded text-center"><div class="text-[8px] uppercase text-slate-500">Em Espera</div><div class="font-black text-yellow-400">${tempoEspera} min</div></div>
         </div>
         <div class="space-y-2 text-[11px] bg-slate-900/50 p-3 rounded-xl border border-slate-700">
+            <div class="flex justify-between"><span>Melhor Dupla:</span> <b class="text-orange-400">${melhorParceiro}</b></div>
             <div class="flex justify-between"><span>Vitórias:</span> <b>${s.v}</b></div>
             <div class="flex justify-between"><span>Score Geral:</span> <b>${getScore(n)}</b></div>
         </div>
@@ -1670,13 +1675,17 @@
         function estaoBloqueados(p1, p2) { return game.restricoes.some(d => (d[0]==p1.id && d[1]==p2.id) || (d[1]==p1.id && d[0]==p2.id)); }
 
         window.addEventListener('load', () => {
-        // Se não for admin e não tiver nome salvo no LocalStorage
-        if (!document.body.classList.contains('is-admin') && !localStorage.getItem('voleihub_meunome')) {        
+        // Verificamos apenas quando a página termina de carregar
+        if (!isAdmin && !localStorage.getItem('voleihub_meunome')) {
         setTimeout(() => {
-            window.acaoMeuPerfil();
-                }, 800);
+            // Verifica se o modal ainda está escondido antes de chamar
+            const modal = document.getElementById('modalIdentificacao');
+            if (modal && modal.classList.contains('hidden')) {
+                window.acaoMeuPerfil();
             }
-        });
+        }, 1000); // 1 segundo de delay garante que tudo esteja pronto
+    }
+});
 </script>
 </body>
 </html>
