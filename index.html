@@ -1157,14 +1157,48 @@ alert("🛑 Evento Encerrado! O Ranking e o Hall da Fama foram preservados.");
             render();
         };
 
-        function processarRankingComFiltroTemporal(periodo) {
-            // Começa sempre mapeando o evento atual (quadra em andamento)
-            let rankingConsolidado = JSON.parse(JSON.stringify(game.ranking || {}));
+        window.processarRankingComFiltroTemporal = (periodo, incluirAtual = true) => {
+    // Começa com um objeto vazio para evitar herança de lixo de memória
+    let rankingConsolidado = {};
 
-            // Se escolheu apenas o evento atual, retorna imediatamente os dados ativos
-            if (periodo === 'atual') {
-                return rankingConsolidado;
-            }
+    // 1. Se incluirAtual for true, iniciamos com o dia atual
+    if (incluirAtual && game.ranking) {
+        rankingConsolidado = JSON.parse(JSON.stringify(game.ranking));
+    }
+
+    // 2. Define quantos eventos puxar
+    let qtdParaSomar = 0;
+    if (periodo === '3') qtdParaSomar = 2; // Atual + 2 anteriores = 3
+    else if (periodo === '5') qtdParaSomar = 4;
+    else if (periodo === '10') qtdParaSomar = 9;
+    else if (periodo === 'tudo') qtdParaSomar = game.historicoDias ? game.historicoDias.length : 0;
+
+    // 3. Soma apenas se necessário
+    if (game.historicoDias && qtdParaSomar > 0) {
+        const eventosFiltrados = game.historicoDias.slice(0, qtdParaSomar);
+        
+        eventosFiltrados.forEach(evento => {
+            if (!evento.rankingFinal) return;
+            
+            Object.entries(evento.rankingFinal).forEach(([nome, stats]) => {
+                if (!rankingConsolidado[nome]) {
+                    // Se o jogador não existe no acumulado, inicia do zero
+                    rankingConsolidado[nome] = { v: 0, d: 0, ptsAtaque: 0, ptsBloqueio: 0, ptsAce: 0, ptsErroAdversario: 0, ptsAcertoTime: 0, estrela: stats.estrela, elite: stats.elite };
+                }
+                // Acumula os valores
+                rankingConsolidado[nome].v += (stats.v || 0);
+                rankingConsolidado[nome].d += (stats.d || 0);
+                rankingConsolidado[nome].ptsAtaque += (stats.ptsAtaque || 0);
+                rankingConsolidado[nome].ptsBloqueio += (stats.ptsBloqueio || 0);
+                rankingConsolidado[nome].ptsAce += (stats.ptsAce || 0);
+                rankingConsolidado[nome].ptsErroAdversario += (stats.ptsErroAdversario || 0);
+                rankingConsolidado[nome].ptsAcertoTime += (stats.ptsAcertoTime || 0);
+            });
+        });
+    }
+
+    return rankingConsolidado;
+};
 
             // Define quantos eventos passados serão puxados do histórico
             let qtdParaSomar = 0;
