@@ -672,10 +672,11 @@
 
                 if (!game.historicoDias) game.historicoDias = [];
                 let dataStr = new Date().toLocaleDateString('pt-BR') + ' - ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-                
+
                 const options = { weekday: 'long' };
                 const diaDaSemana = new Date().toLocaleDateString('pt-BR', options);
-                const dataStr = new Date().toLocaleDateString('pt-BR') + ' - ' + diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1);
+
+                dataStr = new Date().toLocaleDateString('pt-BR') + ' - ' + diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1);
 
                 game.historicoDias.unshift({
                 id: Date.now(),
