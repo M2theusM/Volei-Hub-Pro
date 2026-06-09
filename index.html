@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V2.1.1</title>
+    <title>Vôlei Hub PRO - V2.1.2</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -161,10 +161,11 @@
                 
                 <div class="mb-3">
                     <select id="filtroPeriodoRanking" onchange="window.mudarFiltroPeriodo()" class="bg-slate-950 border border-slate-700 rounded p-1.5 text-[10px] font-bold text-slate-300 outline-none w-full">
-                        <option value="hoje">Dados de Hoje (Data Atual)</option>
-                        <option value="semana">Última Semana</option>
-                        <option value="mes">Último Mês</option>
-                        <option value="tudo" selected>Histórico Completo (Tudo)</option>
+                        <option value="atual" selected>Evento Atual (Em andamento)</option>
+                        <option value="3">Últimos 3 Eventos</option>
+                        <option value="5">Últimos 5 Eventos</option>
+                        <option value="10">Últimos 10 Eventos</option>
+                        <option value="tudo">Todos os Eventos</option>
                     </select>
                 </div>
 
@@ -470,7 +471,7 @@
         const DEFAULT_RESTRICTIONS = [];
 
         let isAdmin = false;
-        let filtroPeriodoAtual = 'tudo'; 
+        let filtroPeriodoAtual = 'atual'; 
         let modoHistoricoVisivel = 'atual'; // Armazena se o modal está exibindo 'atual' ou 'retroativo'
 
         onAuthStateChanged(auth, (user) => {
@@ -1142,37 +1143,38 @@
         };
 
         function processarRankingComFiltroTemporal(periodo) {
-            // SEMPRE começa com os dados do dia atual em andamento
+            // Começa sempre mapeando o evento atual (quadra em andamento)
             let rankingConsolidado = JSON.parse(JSON.stringify(game.ranking || {}));
 
-            // Se for apenas 'hoje', não soma o histórico, devolve apenas o ranking ativo
-            if (periodo === 'hoje') {
+            // Se escolheu apenas o evento atual, retorna imediatamente os dados ativos
+            if (periodo === 'atual') {
                 return rankingConsolidado;
             }
 
-            let limiteMs = 0;
-            const agora = Date.now();
-            if (periodo === 'semana') limiteMs = agora - (7 * 24 * 60 * 60 * 1000);
-            if (periodo === 'mes') limiteMs = agora - (30 * 24 * 60 * 60 * 1000);
+            // Define quantos eventos passados serão puxados do histórico
+            let qtdParaSomar = 0;
+            if (periodo === '3') qtdParaSomar = 2; // Evento atual + 2 anteriores = 3
+            else if (periodo === '5') qtdParaSomar = 4; // Evento atual + 4 anteriores = 5
+            else if (periodo === '10') qtdParaSomar = 9; // Evento atual + 9 anteriores = 10
+            else if (periodo === 'tudo') qtdParaSomar = game.historicoDias ? game.historicoDias.length : 0;
 
-            if (game.historicoDias) {
-                game.historicoDias.forEach(dia => {
-                    const timestampDia = dia.timestamp || 0;
-                    // Soma apenas os dias passados que caem dentro do filtro escolhido
-                    if (limiteMs === 0 || timestampDia >= limiteMs) {
-                        Object.entries(dia.rankingFinal || {}).forEach(([nome, stats]) => {
-                            if (!rankingConsolidado[nome]) {
-                                rankingConsolidado[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime:0, estrela: stats.estrela, elite: stats.elite };
-                            }
-                            rankingConsolidado[nome].v += (stats.v || 0);
-                            rankingConsolidado[nome].d += (stats.d || 0);
-                            rankingConsolidado[nome].ptsAtaque += (stats.ptsAtaque || 0);
-                            rankingConsolidado[nome].ptsBloqueio += (stats.ptsBloqueio || 0);
-                            rankingConsolidado[nome].ptsAce += (stats.ptsAce || 0);
-                            rankingConsolidado[nome].ptsErroAdversario += (stats.ptsErroAdversario || 0);
-                            rankingConsolidado[nome].ptsAcertoTime += (stats.ptsAcertoTime || 0);
-                        });
-                    }
+            if (game.historicoDias && qtdParaSomar > 0) {
+                // Fatiamos o array do histórico para pegar exatamente os últimos 'N' eventos encerrados
+                const eventosFiltrados = game.historicoDias.slice(0, qtdParaSomar);
+                
+                eventosFiltrados.forEach(evento => {
+                    Object.entries(evento.rankingFinal || {}).forEach(([nome, stats]) => {
+                        if (!rankingConsolidado[nome]) {
+                            rankingConsolidado[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime:0, estrela: stats.estrela, elite: stats.elite };
+                        }
+                        rankingConsolidado[nome].v += (stats.v || 0);
+                        rankingConsolidado[nome].d += (stats.d || 0);
+                        rankingConsolidado[nome].ptsAtaque += (stats.ptsAtaque || 0);
+                        rankingConsolidado[nome].ptsBloqueio += (stats.ptsBloqueio || 0);
+                        rankingConsolidado[nome].ptsAce += (stats.ptsAce || 0);
+                        rankingConsolidado[nome].ptsErroAdversario += (stats.ptsErroAdversario || 0);
+                        rankingConsolidado[nome].ptsAcertoTime += (stats.ptsAcertoTime || 0);
+                    });
                 });
             }
 
