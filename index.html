@@ -321,9 +321,9 @@
             </div>
             
             <div class="mt-6 flex flex-col gap-2">
-                <button onclick="window.deslogarIdentidade()" class="w-full bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600 text-white">Sair (Deslogar)</button>
-                <button onclick="window.bloquearEDeslogar()" class="w-full bg-red-900/50 text-red-400 border border-red-800 py-3 rounded-xl uppercase text-xs font-black hover:bg-red-900/80">Bloquear e Sair</button>
-                <button onclick="window.fecharModais()" class="w-full bg-slate-800 text-slate-400 border border-slate-700 py-2 rounded-xl uppercase text-[10px] font-bold hover:bg-slate-700 transition">Simplesmente Fechar</button>
+                <button onclick="window.deslogarIdentidade()" class="w-full bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600 text-white">Trocar jogador</button>
+                <button onclick="window.bloquearEDeslogar()" class="w-full bg-red-900/50 text-red-400 border border-red-800 py-3 rounded-xl uppercase text-xs font-black hover:bg-red-900/80">Bloquear jogador na fila</button>
+                <button onclick="window.fecharModais()" class="w-full bg-slate-800 text-slate-400 border border-slate-700 py-2 rounded-xl uppercase text-[10px] font-bold hover:bg-slate-700 transition">Voltar</button>
             </div>
         </div>
     </div>
@@ -1270,14 +1270,8 @@
                 return { n, ...s, score: parseFloat(score) };
             }).filter(x => x.score > 0 && (rkTab==='tudo'?true:rkTab==='estrela'?x.estrela:!x.estrela)).sort((a,b) => b.score - a.score);
             
+            // Renderização do Ranking limpo (apenas posição, categoria e nome)
             document.getElementById('rankingContainer').innerHTML = rk.map((j, i) => {
-                const bag = calcularContagemInsigniasHall(j.n);
-                let insigniasBadgeHTML = "";
-                if(bag.topScore > 0) insigniasBadgeHTML += `<span class="cursor-help text-[11px]" title="Maior pontuador geral: ${bag.topScore}x">🏆<sub class="text-[8px] font-bold text-slate-400">${bag.topScore}</sub></span>`;
-                if(bag.matador > 0) insigniasBadgeHTML += `<span class="cursor-help text-[11px]" title="Maior pontuador de ataque: ${bag.matador}x">🔥<sub class="text-[8px] font-bold text-slate-400">${bag.matador}</sub></span>`;
-                if(bag.paredao > 0) insigniasBadgeHTML += `<span class="cursor-help text-[11px]" title="Maior bloqueador: ${bag.paredao}x">🚫<sub class="text-[8px] font-bold text-slate-400">${bag.paredao}</sub></span>`;
-                if(bag.ace > 0) insigniasBadgeHTML += `<span class="cursor-help text-[11px]" title="Maior pontuador de saque: ${bag.ace}x">⚡<sub class="text-[8px] font-bold text-slate-400">${bag.ace}</sub></span>`;
-
                 return `
                 <div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 cursor-pointer mb-1 hover:bg-slate-800 transition" onclick="window.abrirAuditModal('${j.n}')">
                     <div class="flex items-center gap-3">
@@ -1285,7 +1279,6 @@
                         <div class="rank-name uppercase text-[10px] font-bold text-slate-300">
                             ${j.estrela?'⭐ ':''}${j.elite?'💎 ':''}${j.n}
                         </div>
-                        <div class="flex gap-1 ml-2">${insigniasBadgeHTML}</div>
                     </div>
                     <div class="text-orange-500 font-black text-xs">${j.score}</div>
                 </div>`;
