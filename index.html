@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V2.1.2</title>
+    <title>Vôlei Hub PRO - V2.1.3</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -676,7 +676,9 @@
                 game.historicoDias.unshift({
                     id: Date.now(),
                     timestamp: Date.now(), 
-                    data: dataStr,
+                    const options = { weekday: 'long' };
+                    const diaDaSemana = new Date().toLocaleDateString('pt-BR', options);
+                    const dataStr = new Date().toLocaleDateString('pt-BR') + ' - ' + diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1);
                     partidas: game.historicoPartidas ? [...game.historicoPartidas] : [],
                     rankingFinal: JSON.parse(JSON.stringify(game.ranking))
                 });
@@ -706,12 +708,23 @@
                 game.winsConsecA = 0; game.winsConsecB = 0;
                 game.currentMatchStats = {};
                 
-                game.diaIniciado = false;
-                salvarState();
-                alert("🛑 Dia Encerrado! O Hall da Fama agora está visível.");
-            } else {
-                game.diaIniciado = true;
-                salvarState();
+                // Dentro de window.toggleEstadoDia, logo após salvar o historicoDias:
+game.diaIniciado = false;
+
+// Coleta todos os nomes atuais da fila para exibir ao admin
+const jogadoresNaFila = [...game.esperaGeral, ...game.esperaEstrela];
+const nomesParaRemover = prompt("Jogadores na fila para o próximo evento. Digite os nomes que deseja REMOVER (separados por vírgula) ou deixe em branco para manter todos:", "");
+
+if (nomesParaRemover) {
+    const listaRemover = nomesParaRemover.split(',').map(n => n.trim().toUpperCase());
+    listaRemover.forEach(nome => {
+        game.esperaGeral = game.esperaGeral.filter(p => p.nome !== nome);
+        game.esperaEstrela = game.esperaEstrela.filter(p => p.nome !== nome);
+    });
+}
+
+salvarState();
+alert("🛑 Evento Encerrado! O Ranking e o Hall da Fama foram preservados.");
                 alert("▶️ Novo dia Iniciado! Boa diversão na quadra!");
             }
             window.fecharModais();
@@ -1988,15 +2001,16 @@ if (hallFamaSec) {
         function estaoBloqueados(p1, p2) { return game.restricoes.some(d => (d[0]==p1.id && d[1]==p2.id) || (d[1]==p1.id && d[0]==p2.id)); }
 
         window.addEventListener('load', () => {
-            if (!isAdmin && !localStorage.getItem('voleihub_meunome')) {
-                setTimeout(() => {
-                    const modal = document.getElementById('modalIdentificacao');
-                    if (modal && modal.classList.contains('hidden')) {
-                        window.acaoMeuPerfil();
-                    }
-                }, 1000);
+    // Apenas pergunta se NÃO for admin E não houver nome salvo
+    if (!isAdmin && !localStorage.getItem('voleihub_meunome')) {
+        setTimeout(() => {
+            const modal = document.getElementById('modalIdentificacao');
+            if (modal && modal.classList.contains('hidden')) {
+                window.acaoMeuPerfil();
             }
-        });
+        }, 1000);
+    }
+});
     </script>
 </body>
 </html>
