@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V2.0.9</title>
+    <title>Vôlei Hub PRO - V2.1.0</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -1294,13 +1294,9 @@
             renderLeaders();
             
             const hallFamaSec = document.getElementById('hallFamaSection');
-            if (hallFamaSec) {
-                if (!game.diaIniciado) {
-                    hallFamaSec.classList.remove('hidden');
-                } else {
-                    hallFamaSec.classList.add('hidden');
-                }
-            }
+if (hallFamaSec) {
+    hallFamaSec.classList.remove('hidden');
+}
 
             const btnDia = document.getElementById('btnControleDia');
             if (btnDia) {
@@ -1807,28 +1803,54 @@
         }
 
         window.abrirAuditModal = (n) => {
-            const s = game.ranking[n]; 
-            if(!s) return; 
+    const s = game.ranking[n]; 
+    if(!s) return; 
 
-            const historicoDoJogador = game.historicoPartidas.filter(p => p.timeA.includes(n) || p.timeB.includes(n));
+    const historicoDoJogador = game.historicoPartidas.filter(p => p.timeA.includes(n) || p.timeB.includes(n));
 
-            let parceiros = {};
-            historicoDoJogador.forEach(p => {
-                [...p.timeA, ...p.timeB].forEach(c => { if(c!==n) parceiros[c] = (parceiros[c]||0) + 1; });
-            });
-            const melhorParceiro = Object.keys(parceiros).sort((a,b) => parceiros[b]-parceiros[a])[0] || "---";
+    // Correção: Pega apenas os parceiros que estavam no MESMO time na partida
+    let parceiros = {};
+    historicoDoJogador.forEach(p => {
+        const mesmoTime = p.timeA.includes(n) ? p.timeA : p.timeB;
+        mesmoTime.forEach(c => { if(c!==n) parceiros[c] = (parceiros[c]||0) + 1; });
+    });
+    const melhorParceiro = Object.keys(parceiros).sort((a,b) => parceiros[b]-parceiros[a])[0] || "---";
 
-            document.getElementById('auditNome').innerText = n;
-            document.getElementById('auditContent').innerHTML = `
-                <div class="space-y-2 text-[11px] bg-slate-900/50 p-3 rounded-xl border border-slate-700">
-                    <div class="flex justify-between"><span>Melhor Dupla:</span> <b class="text-orange-400">${melhorParceiro}</b></div>
-                    <div class="flex justify-between"><span>Vitórias Hoje:</span> <b>${s.v}</b></div>
-                    <div class="flex justify-between"><span>Derrotas Hoje:</span> <b>${s.d}</b></div>
-                </div>
-            `;
-            document.getElementById('auditTotal').innerText = getScore(n);
-            document.getElementById('modalAudit').classList.remove('hidden');
-        };
+    // Cálculo das insígnias do Hall da Fama
+    const bag = calcularContagemInsigniasHall(n);
+    let insigniasHTML = "";
+    if(bag.topScore > 0) insigniasHTML += `<span title="Maior pontuador geral: ${bag.topScore}x">🏆<sub class="text-[8px]">${bag.topScore}</sub></span>`;
+    if(bag.matador > 0) insigniasHTML += `<span title="Maior pontuador de ataque: ${bag.matador}x">🔥<sub class="text-[8px]">${bag.matador}</sub></span>`;
+    if(bag.paredao > 0) insigniasHTML += `<span title="Maior bloqueador: ${bag.paredao}x">🚫<sub class="text-[8px]">${bag.paredao}</sub></span>`;
+    if(bag.ace > 0) insigniasHTML += `<span title="Maior pontuador de saque: ${bag.ace}x">⚡<sub class="text-[8px]">${bag.ace}</sub></span>`;
+
+    // Total de partidas jogadas (vitórias + derrotas)
+    const totalPartidas = (s.v || 0) + (s.d || 0);
+
+    // Atualiza o título do modal com nome e insígnias integradas
+    document.getElementById('auditNome').innerHTML = `${n} <span class="ml-2 inline-flex gap-1 text-sm">${insigniasHTML}</span>`;
+    
+    // Atualiza o cabeçalho superior
+    document.getElementById('auditMatches').innerText = `Partidas: ${totalPartidas}`;
+    document.getElementById('auditLosses').innerText = `Derrotas: ${s.d || 0}`;
+
+    // Atualiza a lista com as pontuações e a melhor dupla isolada
+    document.getElementById('auditContent').innerHTML = `
+        <div class="space-y-2 text-[11px] bg-slate-900/50 p-3 rounded-xl border border-slate-700">
+            <div class="flex justify-between border-b border-slate-700 pb-2 mb-2">
+                <span class="text-slate-400">Melhor Dupla:</span> <b class="text-orange-400 uppercase">${melhorParceiro}</b>
+            </div>
+            <div class="flex justify-between"><span>Vitórias:</span> <b class="text-green-400">${s.v || 0}</b></div>
+            <div class="flex justify-between"><span>Ataques:</span> <b>${s.ptsAtaque || 0}</b></div>
+            <div class="flex justify-between"><span>Bloqueios:</span> <b>${s.ptsBloqueio || 0}</b></div>
+            <div class="flex justify-between"><span>Aces:</span> <b>${s.ptsAce || 0}</b></div>
+            <div class="flex justify-between"><span>Acerto de Time:</span> <b>${s.ptsAcertoTime || 0}</b></div>
+            <div class="flex justify-between"><span>Erros do Adversário:</span> <b class="text-red-400">${s.ptsErroAdversario || 0}</b></div>
+        </div>
+    `;
+    document.getElementById('auditTotal').innerText = getScore(n);
+    document.getElementById('modalAudit').classList.remove('hidden');
+};
 
         window.abrirWeights = () => { 
             document.getElementById('modalConfigMenu').classList.add('hidden');
