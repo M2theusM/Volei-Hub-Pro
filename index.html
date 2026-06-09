@@ -675,7 +675,7 @@
                 
                 game.historicoDias.unshift({
                     id: Date.now(),
-                    timestamp: Date.now(), 
+                    timestamp: Date.now(); 
                     const options = { weekday: 'long' };
                     const diaDaSemana = new Date().toLocaleDateString('pt-BR', options);
                     const dataStr = new Date().toLocaleDateString('pt-BR') + ' - ' + diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1);
