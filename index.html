@@ -1,1117 +1,2024 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gerenciador de Partidas de Futebol</title>
+    <title>Vôlei Hub PRO - V2.1.4</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: #1e293b; }
-        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
+        .jogador-card { touch-action: none; border: 2px solid transparent; transition: all 0.2s; cursor: pointer; position: relative; z-index: 10; user-select: none; }
+        .sacando { border-color: #f59e0b !important; background-color: #2d3748 !important; box-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
+        .is-estrela { border-right: 4px solid #f59e0b !important; }
+        .is-bloqueado { opacity: 0.5; filter: grayscale(1); background: #0f172a !important; border: 1px dashed #334155 !important; }
+        .is-proximo { border-left: 4px solid #10b981 !important; background: linear-gradient(90deg, rgba(16, 185, 129, 0.1) 0%, rgba(30, 41, 59, 1) 100%) !important; }
+        .tab-active { background-color: #f59e0b !important; color: white !important; }
+        .bola-saque { display: none; }
+        .sacando .bola-saque { display: inline-block; animation: bounce 1s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+        .config-input { background: #0f172a; border: 1px solid #334155; padding: 10px; border-radius: 12px; width: 100%; color: white; font-weight: bold; font-size: 12px; outline: none; }
+        .modal-bottom { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         
-        /* 3D Coin Animation */
-        .perspective-1000 { perspective: 1000px; }
-        .coin-wrapper { transition: transform 5s cubic-bezier(0.25, 1, 0.5, 1); transform-style: preserve-3d; }
-        .coin-face { backface-visibility: hidden; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; box-shadow: inset 0 0 15px rgba(0,0,0,0.3); }
-        .coin-front { background: linear-gradient(45deg, #f59e0b, #fbbf24); color: #78350f; } /* Cara */
-        .coin-back { background: linear-gradient(45deg, #d97706, #f59e0b); color: #78350f; transform: rotateY(180deg); } /* Coroa */
-        .spin-infinite { animation: spin-infinite-anim 1s linear infinite; }
-        @keyframes spin-infinite-anim { 100% { transform: rotateY(360deg); } }
+        #info-panel { margin-bottom: 1rem; }
+        #live-message-box { min-height: 60px; background: #0f172a; border: 1px solid #334155; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 10px; margin-bottom: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        #match-log-box { max-height: 120px; overflow-y: auto; background: rgba(15, 23, 42, 0.5); border-radius: 8px; padding: 5px; font-size: 10px; border: 1px solid #1e293b; }
+        .log-item { padding: 4px 8px; border-radius: 4px; margin-bottom: 2px; font-weight: bold; text-transform: uppercase; display: flex; justify-content: space-between; }
+        .log-A { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-left: 2px solid #3b82f6; }
+        .log-B { background: rgba(249, 115, 22, 0.2); color: #f97316; border-left: 2px solid #f97316; }
+
+        #emoji-layer { position: fixed; inset: 0; pointer-events: none; z-index: 5000; overflow: hidden; }
+        .emoji-particle { position: absolute; font-size: 3rem; animation: floatUp ease-out forwards; opacity: 0; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        @keyframes floatUp { 
+            0% { transform: translateY(110vh) scale(0.5); opacity: 1; } 
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; } 
+        }
+
+        #endgame-overlay { transition: opacity 0.5s; z-index: 99999 !important; }
+        .animate-pop { animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+
+        .modal-global { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        #modalWeights { z-index: 2100 !important; }
+        
+        .hidden { display: none !important; }
+        .admin-only-control { display: none !important; }
+        .admin-click-only { pointer-events: none; } 
+        body.is-admin .admin-only-control { display: block !important; }
+        body.is-admin .admin-click-only { pointer-events: auto; cursor: pointer; }
+        .admin-section { display: none; } 
+        body.is-admin .admin-section { display: block; }
+        body.show-public .admin-section { display: block; }
+        .player-readonly { pointer-events: none; }
+        body.is-admin .player-readonly { pointer-events: auto; }
+        #esperaContainer { min-height: 80px; }
+        .drag-handle { cursor: grab; padding: 10px; color: #64748b; font-size: 20px; touch-action: none; }
+        #admin-notif-bell { position: relative; }
+        #admin-notif-dot { position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: red; border-radius: 50%; border: 1px solid #1e293b; }
+
+        body.is-admin #rankingSection,
+        body.is-admin #hallFamaSection,
+        body.is-admin #btnVerHistoricoPublico {
+            display: none !important;
+        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased">
+<body class="bg-slate-900 text-white font-sans overflow-x-hidden pb-32">
 
-    <!-- Top Header -->
-    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 px-3 py-2.5 sm:px-6 sm:py-4 flex justify-between items-center shadow-md">
-        <div class="flex items-center space-x-2">
-            <div class="bg-emerald-500 text-slate-950 p-2 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10">
-                <i class="fa-solid fa-futbol"></i>
+    <div id="emoji-layer"></div>
+
+    <div id="endgame-overlay" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center flex-col">
+        <div class="text-[150px] animate-pop leading-none">🏐</div>
+        <h2 class="text-5xl font-black text-orange-500 uppercase italic mt-4 animate-pulse text-center">Fim de<br>Jogo!</h2>
+    </div>
+
+    <header class="p-4 bg-slate-800 sticky top-0 shadow-2xl z-40 border-b border-slate-700">
+        <div class="flex justify-between items-center max-w-md mx-auto mb-3">
+            <h1 onclick="window.adminTriggerWhistle()" class="text-orange-500 font-black text-lg italic uppercase tracking-tighter hover:text-orange-400 active:scale-95 transition admin-click-only cursor-default select-none" title="Clique para tocar apito (Admin Only)">Vôlei Hub <span class="text-xs text-blue-400">PRO</span></h1>
+            <div class="flex gap-2 admin-only-control">
+                <button id="admin-notif-bell" onclick="window.abrirSolicitacoes()" class="hidden text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 transition">🔔<div id="admin-notif-dot"></div></button>
+                <button onclick="window.undoLastAction()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase transition">↩ Desfazer</button>
+                <button onclick="window.abrirConfig()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase transition">⚙️ Menu</button>
             </div>
-            <div>
-                <h1 class="text-base sm:text-lg font-bold tracking-tight text-white leading-tight">FutHub</h1>
-                <p class="text-[10px] sm:text-xs text-emerald-400 font-medium">Gestão de Elenco & Partidas V:0.1</p>
+            <div id="visitor-controls" class="flex gap-2 ml-auto" style="display: none;">
+                <button id="btnMeuPerfil" onclick="window.acaoMeuPerfil()" class="text-[10px] bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded-lg border border-blue-500 font-bold uppercase transition text-white shadow-lg">👤 Identificar-se</button>
             </div>
         </div>
-        <div class="flex items-center space-x-2">
-            <button onclick="undoAction()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 rounded-lg border border-slate-700 flex items-center space-x-1.5 transition active:scale-95" title="Desfazer última ação">
-                <i class="fa-solid fa-rotate-left"></i>
-                <span class="hidden sm:inline">Desfazer</span>
-            </button>
-            <button onclick="switchTab('participants')" class="text-slate-400 hover:text-white p-2 rounded-lg text-sm sm:hidden">
-                <i class="fa-solid fa-users"></i>
-            </button>
+        
+        <div id="placarDisplay" class="flex justify-around items-center max-w-md mx-auto bg-slate-950 py-4 rounded-2xl border border-slate-800 shadow-lg">
+            <div class="text-center w-2/5">
+                <p class="text-[9px] uppercase text-blue-400 font-black mb-1 italic">Time A</p>
+                <div id="scoreA" class="text-6xl font-black leading-none select-none transition active:scale-95 player-readonly" onclick="window.registrarPontoSimples('A', true, true)">0</div>
+                <div id="winsA" class="text-[9px] text-blue-300/40 font-bold mt-2 uppercase italic text-center">Sets: 0</div>
+            </div>
+            <div class="text-slate-800 font-black text-xl italic">VS</div>
+            <div class="text-center w-2/5">
+                <p class="text-[9px] uppercase text-orange-400 font-black mb-1 italic">Time B</p>
+                <div id="scoreB" class="text-6xl font-black leading-none select-none transition active:scale-95 player-readonly" onclick="window.registrarPontoSimples('B', true, true)">0</div>
+                <div id="winsB" class="text-[9px] text-orange-300/40 font-bold mt-2 uppercase italic text-center">Sets: 0</div>
+            </div>
         </div>
     </header>
 
-    <!-- Navigation Tabs -->
-    <nav class="bg-slate-900/80 backdrop-blur border-b border-slate-800 px-2 sm:px-6 flex overflow-x-auto space-x-1 sm:space-x-4 no-scrollbar">
-        <button onclick="switchTab('participants')" id="nav-participants" class="tab-btn px-3.5 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold border-b-2 border-emerald-500 text-emerald-400 flex items-center space-x-2 transition whitespace-nowrap">
-            <i class="fa-solid fa-users text-xs sm:text-sm"></i>
-            <span>Participantes</span>
+    <main class="p-4 max-w-md mx-auto space-y-4">
+        
+        <div id="info-panel">
+            <div id="live-message-box">
+                <h2 id="msg-title" class="text-lg font-black uppercase italic text-white leading-none mb-1">---</h2>
+                <p id="msg-sub" class="text-orange-400 font-bold uppercase text-[10px] tracking-widest">---</p>
+                <div id="msg-streak" class="hidden mt-1 bg-red-600 text-white px-2 py-0.5 rounded-full text-[9px] font-black uppercase animate-pulse">Sequência 🔥</div>
+            </div>
+            <div id="match-log-box">
+                <div class="text-center text-slate-500 italic py-2">Histórico vazio...</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1">
+                <h3 id="labelTimeA" class="text-[9px] font-black text-center text-blue-500 uppercase mb-1">Time A - Score: 0.00</h3>
+                <div id="areaA" class="space-y-2 min-h-[160px] bg-slate-800/30 rounded-xl p-2 border border-dashed border-slate-700/50"></div>
+            </div>
+            <div class="space-y-1">
+                <h3 id="labelTimeB" class="text-[9px] font-black text-center text-orange-500 uppercase mb-1">Time B - Score: 0.00</h3>
+                <div id="areaB" class="space-y-2 min-h-[160px] bg-slate-800/30 rounded-xl p-2 border border-dashed border-slate-700/50"></div>
+            </div>
+        </div>
+
+        <section class="bg-slate-800/50 rounded-2xl border border-slate-700 overflow-hidden shadow-lg">
+            <div class="p-3 bg-slate-800/80 border-b border-slate-700 flex justify-between items-center">
+                <div class="flex gap-2">
+                    <button onclick="window.setFilaTab('geral')" id="tabGeral" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg transition">Geral <span id="countGeral" class="ml-1 opacity-50">0</span></button>
+                    <button onclick="window.setFilaTab('estrela')" id="tabEstrela" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg transition">Estrelas ⭐ <span id="countEstrela" class="ml-1 opacity-50">0</span></button>
+                </div>
+                <div class="flex gap-2 items-center">
+                    <button id="btnToggleFila" onclick="window.toggleVisibilidadeFila()" class="text-[9px] bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded border border-slate-600 font-bold uppercase transition">Ocultar Fila</button>
+                    <div id="statusConn" class="text-[8px] text-emerald-500 font-bold uppercase animate-pulse">● Online</div>
+                </div>
+            </div>
+            <div id="esperaContainer" class="p-4 space-y-2 bg-slate-900/50"></div>
+        </section>
+
+        <div class="flex gap-2">
+            <input id="novoNome" type="text" placeholder="NOME DO JOGADOR..." class="bg-slate-800 flex-1 p-4 rounded-2xl outline-none border border-slate-700 focus:border-orange-500 text-sm font-bold uppercase placeholder-slate-600">
+            <button onclick="window.adicionarNovoJogador()" class="bg-blue-600 hover:bg-blue-500 px-6 rounded-2xl font-black text-sm uppercase transition shadow-lg">Add</button>
+        </div>
+
+        <!-- Modificado: Histórico de Partidas do Dia em Andamento agora visível para VISITANTES e ADMINS -->
+        <button onclick="window.abrirHistoricoModal('atual')" class="w-full bg-slate-800/80 text-slate-300 font-black uppercase py-4 rounded-2xl shadow-lg border border-slate-700 hover:bg-slate-700 transition flex justify-between items-center px-4">
+            <span class="flex items-center gap-2"><span class="text-lg">📅</span> Histórico de Partidas de Hoje</span>
+            <span class="text-orange-500 text-xs">Visualizar ❯</span>
         </button>
-        <button onclick="switchTab('draft')" id="nav-draft" class="tab-btn px-3.5 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition whitespace-nowrap">
-            <i class="fa-solid fa-shuffle text-xs sm:text-sm"></i>
-            <span>Sorteio & Fila</span>
+
+        <button id="btnVerHistoricoPublico" onclick="window.abrirHistoricoModal('retroativo')" class="w-full bg-slate-800/50 text-slate-400 font-black uppercase py-3 rounded-2xl shadow border border-slate-800 hover:bg-slate-800 transition flex justify-between items-center px-4">
+            <span class="flex items-center gap-2 text-xs">📅 Histórico de Dias Anteriores</span>
+            <span class="text-orange-500 text-xs">Abrir ❯</span>
         </button>
-        <button onclick="switchTab('match')" id="nav-match" class="tab-btn px-3.5 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition whitespace-nowrap">
-            <i class="fa-solid fa-play text-xs sm:text-sm"></i>
-            <span>Partida Ativa</span>
-        </button>
-        <button onclick="switchTab('rankings')" id="nav-rankings" class="tab-btn px-3.5 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition whitespace-nowrap">
-            <i class="fa-solid fa-trophy text-xs sm:text-sm"></i>
-            <span>Rankings</span>
-        </button>
-    </nav>
 
-    <!-- Main Container -->
-    <main class="flex-1 max-w-5xl w-full mx-auto p-3 sm:p-6 pb-20">
-
-        <!-- ================= TAB 1: PARTICIPANTES ================= -->
-        <div id="tab-participants" class="tab-content active space-y-4 sm:space-y-6">
-            <div class="flex justify-between items-center bg-slate-900/60 p-3 sm:p-4 rounded-xl border border-slate-800">
-                <div>
-                    <h2 class="text-sm sm:text-base font-bold text-white flex items-center space-x-2">
-                        <span>Gerenciar Elenco</span>
-                        <span id="player-count-badge" class="bg-emerald-500/20 text-emerald-400 text-xs px-2 py-0.5 rounded-full font-semibold">0 jogadores</span>
-                    </h2>
-                    <p class="text-xs text-slate-400">Adicione jogadores ou importe sua lista do WhatsApp.</p>
-                </div>
-                <button onclick="confirmResetSystem()" class="text-slate-500 hover:text-red-400 p-2 rounded-lg text-sm transition" title="Redefinir todo o sistema">
-                    <i class="fa-solid fa-trash-can"></i>
-                </button>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-3">
-                    <h3 class="text-xs uppercase tracking-wider font-bold text-slate-400"><i class="fa-solid fa-user-plus mr-1.5"></i> Novo Participante</h3>
-                    <div id="duplicate-warning" class="hidden text-xs text-rose-400 bg-rose-500/10 p-2 rounded border border-rose-500/20">
-                        Já existe um jogador cadastrado com este nome!
-                    </div>
-                    <form onsubmit="addPlayer(event)" class="space-y-3">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-300 mb-1">Nome do Jogador</label>
-                            <input type="text" id="new-player-name" required oninput="checkDuplicateName(this.value)" placeholder="Ex: Matheus" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-300 mb-1">Qualidade (Estrelas): <span id="star-preview" class="text-amber-400 font-bold">★★★★★ (5)</span></label>
-                            <input type="range" id="new-player-stars" min="1" max="5" value="5" oninput="updateStarPreview(this.value)" class="w-full accent-emerald-500 cursor-pointer">
-                        </div>
-                        <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2 px-4 rounded-lg text-sm transition shadow-md active:scale-98">
-                            Adicionar Jogador
-                        </button>
-                    </form>
-                </div>
-
-                <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-3">
-                    <h3 class="text-xs uppercase tracking-wider font-bold text-slate-400"><i class="fa-brands fa-whatsapp mr-1.5 text-emerald-400"></i> Importar do WhatsApp</h3>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Cole a lista (ex: 1. Matheus 5 ou - Carlos)</label>
-                        <textarea id="import-text-area" rows="3" placeholder="Cole aqui a mensagem com a lista de presença..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 resize-none"></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Estrelas padrão</label>
-                        <select id="default-import-stars" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-                            <option value="5">★★★★★ (5 Estrelas)</option>
-                            <option value="4">★★★★☆ (4 Estrelas)</option>
-                            <option value="3">★★★☆☆ (3 Estrelas)</option>
-                            <option value="2">★★☆☆☆ (2 Estrelas)</option>
-                            <option value="1">★☆☆☆☆ (1 Estrela)</option>
-                        </select>
-                    </div>
-                    <button onclick="importWhatsAppList()" class="w-full bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 font-bold py-2 px-4 rounded-lg text-sm transition active:scale-98">
-                        Processar e Importar
-                    </button>
-                </div>
-            </div>
-
-            <div class="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
-                <div class="p-3.5 border-b border-slate-800 flex justify-between items-center bg-slate-900/90">
-                    <h3 class="text-xs uppercase tracking-wider font-bold text-slate-300"><i class="fa-solid fa-list mr-1.5"></i> Lista de Participantes Cadastrados</h3>
-                    <span class="text-[11px] text-slate-400">Clique no nome para editar estrelas</span>
-                </div>
-                <div class="divide-y divide-slate-800 max-h-[360px] overflow-y-auto" id="participants-list-container"></div>
-            </div>
-        </div>
-
-        <!-- ================= TAB 2: SORTEIO & FILA ================= -->
-        <div id="tab-draft" class="tab-content space-y-4 sm:space-y-6">
-            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-4">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <div>
-                        <h2 class="text-sm sm:text-base font-bold text-white flex items-center space-x-2">
-                            <span>Formação de Times & Fila</span>
-                        </h2>
-                        <p class="text-xs text-slate-400">Balanceia todos os times e os posiciona na fila de jogo.</p>
-                    </div>
-                    <div class="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
-                        <div class="flex items-center space-x-2">
-                            <label class="text-xs text-slate-300 whitespace-nowrap">Jog./Time:</label>
-                            <input type="number" id="team-size-input" min="3" max="11" value="7" class="w-16 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-sm text-center text-white focus:outline-none focus:border-emerald-500">
-                        </div>
-                        <div id="draft-trigger-container">
-                            <button onclick="executeDraft()" id="btn-execute-draft" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm shadow-md transition active:scale-95 flex items-center space-x-1.5">
-                                <i class="fa-solid fa-shuffle"></i>
-                                <span>Sortear Times</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="teams-display-area" class="space-y-4"></div>
-        </div>
-
-        <!-- ================= TAB 3: PARTIDA ATIVA ================= -->
-        <div id="tab-match" class="tab-content space-y-4">
-            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
-                <div>
-                    <span id="match-status-badge" class="bg-amber-500/20 text-amber-400 text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Partida em Andamento</span>
-                </div>
-                <button onclick="openMatchSettings()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 p-2 rounded-lg text-sm border border-slate-700 transition" title="Configurações da Partida">
-                    <i class="fa-solid fa-gear"></i>
-                </button>
-            </div>
-
-            <div class="bg-slate-900 p-4 sm:p-6 rounded-xl border border-slate-800 text-center space-y-5 shadow-lg">
-                <div class="grid grid-cols-7 items-center gap-2">
-                    <div class="col-span-3 text-center">
-                        <h3 id="match-team-a-name" class="text-base sm:text-xl font-extrabold text-emerald-400 truncate">Time 1</h3>
-                        <p class="text-[10px] text-slate-400 uppercase tracking-wider">Lado Esquerdo</p>
-                    </div>
-                    <div class="col-span-1 text-center">
-                        <span class="text-xs font-bold text-slate-500">VS</span>
-                    </div>
-                    <div class="col-span-3 text-center">
-                        <h3 id="match-team-b-name" class="text-base sm:text-xl font-extrabold text-cyan-400 truncate">Time 2</h3>
-                        <p class="text-[10px] text-slate-400 uppercase tracking-wider">Lado Direito</p>
-                    </div>
-                </div>
-
-                <div class="flex justify-center items-center space-x-6 sm:space-x-10">
-                    <div class="text-4xl sm:text-6xl font-black text-white bg-slate-950 px-5 py-3 rounded-2xl border border-slate-800 min-w-[80px] sm:min-w-[110px]" id="score-a">0</div>
-                    <span class="text-2xl font-bold text-slate-600">:</span>
-                    <div class="text-4xl sm:text-6xl font-black text-white bg-slate-950 px-5 py-3 rounded-2xl border border-slate-800 min-w-[80px] sm:min-w-[110px]" id="score-b">0</div>
-                </div>
-
-                <div class="space-y-3 pt-2 border-t border-slate-800">
-                    <div class="text-3xl sm:text-5xl font-mono font-bold tracking-wider text-amber-400" id="match-timer-display">10:00</div>
-                    <div class="flex justify-center space-x-2">
-                        <button onclick="toggleTimer()" id="btn-timer-toggle" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-xs sm:text-sm transition flex items-center space-x-1.5">
-                            <i class="fa-solid fa-play" id="timer-icon"></i>
-                            <span id="timer-btn-text">Iniciar Timer</span>
-                        </button>
-                        <button onclick="resetTimer()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg text-xs sm:text-sm border border-slate-700 transition">
-                            <i class="fa-solid fa-rotate-right"></i> Resetar
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-3">
-                    <div class="flex justify-between items-center pb-2 border-b border-slate-800">
-                        <h4 id="match-box-a-title" class="font-bold text-sm text-emerald-400">Elenco Time 1</h4>
-                        <button onclick="addGoal('A')" class="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-xs px-2.5 py-1 rounded font-semibold border border-emerald-500/30 transition">
-                            + Gol Time 1
-                        </button>
-                    </div>
-                    <div class="space-y-1.5 max-h-[280px] overflow-y-auto" id="match-players-a"></div>
-                </div>
-
-                <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-3">
-                    <div class="flex justify-between items-center pb-2 border-b border-slate-800">
-                        <h4 id="match-box-b-title" class="font-bold text-sm text-cyan-400">Elenco Time 2</h4>
-                        <button onclick="addGoal('B')" class="bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 text-xs px-2.5 py-1 rounded font-semibold border border-cyan-500/30 transition">
-                            + Gol Time 2
-                        </button>
-                    </div>
-                    <div class="space-y-1.5 max-h-[280px] overflow-y-auto" id="match-players-b"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ================= TAB 4: RANKINGS ================= -->
-        <div id="tab-rankings" class="tab-content space-y-6">
-            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
-                <h2 class="text-sm sm:text-base font-bold text-white"><i class="fa-solid fa-trophy text-amber-400 mr-2"></i> Tabela de Classificação & Estatísticas</h2>
-                <p class="text-xs text-slate-400">Artilheiros, garçons e campeões da rodada (jogadores empatados compartilham a posição).</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-3">
-                    <h3 class="text-xs uppercase font-bold text-emerald-400 tracking-wider"><i class="fa-solid fa-shoe-prints mr-1"></i> Artilheiros (Gols)</h3>
-                    <div class="divide-y divide-slate-800 text-sm" id="ranking-goals"></div>
-                </div>
-                <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-3">
-                    <h3 class="text-xs uppercase font-bold text-cyan-400 tracking-wider"><i class="fa-solid fa-hands-bubbles mr-1"></i> Assistências</h3>
-                    <div class="divide-y divide-slate-800 text-sm" id="ranking-assists"></div>
-                </div>
-                <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-3">
-                    <h3 class="text-xs uppercase font-bold text-amber-400 tracking-wider"><i class="fa-solid fa-medal mr-1"></i> Campeões (Vitórias)</h3>
-                    <div class="divide-y divide-slate-800 text-sm" id="ranking-wins"></div>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Modals -->
-    <div id="modal-edit-player" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-5 space-y-4 shadow-2xl">
-            <h3 class="text-base font-bold text-white flex items-center justify-between">
-                <span>Editar Jogador</span>
-                <button onclick="closeEditPlayerModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-            </h3>
-            <input type="hidden" id="edit-player-id">
-            <div>
-                <label class="block text-xs font-medium text-slate-300 mb-1">Nome</label>
-                <input type="text" id="edit-player-name-input" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-slate-300 mb-1">Estrelas: <span id="edit-star-preview" class="text-amber-400 font-bold">★★★★★ (5)</span></label>
-                <input type="range" id="edit-player-stars-input" min="1" max="5" value="5" oninput="updateEditStarPreview(this.value)" class="w-full accent-emerald-500 cursor-pointer">
-            </div>
-            <div class="flex space-x-2 pt-2">
-                <button onclick="savePlayerEdit()" class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2 rounded-lg text-sm transition">Salvar</button>
-                <button onclick="closeEditPlayerModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-sm transition">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-match-settings" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 shadow-2xl">
-            <h3 class="text-base font-bold text-white flex items-center justify-between">
-                <span><i class="fa-solid fa-gear text-emerald-400 mr-2"></i> Configurações da Partida</span>
-                <button onclick="closeMatchSettings()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-            </h3>
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Duração da Partida (minutos)</label>
-                    <input type="number" id="setting-match-duration" min="1" max="60" value="10" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Limite de Gols</label>
-                    <input type="number" id="setting-goal-limit" min="1" max="10" value="2" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Critério de Desempate</label>
-                    <select id="setting-tie-breaker" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-                        <option value="coin">Cara ou Coroa (Moeda)</option>
-                        <option value="corner">Primeiro Escanteio (Escolha Manual)</option>
-                        <option value="extratime">Mais X Tempo (Prorrogação)</option>
-                        <option value="bothout">Sai os 2 Times (Substituição Dupla)</option>
-                        <option value="goldengol">Primeiro a Fazer Gol (Gol de Ouro)</option>
+        <section id="rankingSection" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl admin-section">
+            <div class="p-4 bg-slate-800/60 border-b border-slate-800 text-center">
+                <h2 class="text-xs font-black uppercase text-orange-500 italic mb-2 tracking-widest">🏆 Ranking Master</h2>
+                
+                <div class="mb-3">
+                    <select id="filtroPeriodoRanking" onchange="window.mudarFiltroPeriodo()" class="bg-slate-950 border border-slate-700 rounded p-1.5 text-[10px] font-bold text-slate-300 outline-none w-full">
+                        <option value="atual" selected>Evento Atual (Em andamento)</option>
+                        <option value="3">Últimos 3 Eventos</option>
+                        <option value="5">Últimos 5 Eventos</option>
+                        <option value="10">Últimos 10 Eventos</option>
+                        <option value="tudo">Todos os Eventos</option>
                     </select>
                 </div>
+
+                <div class="flex gap-2">
+                    <button onclick="window.setRankingTab('tudo')" id="rkTabTudo" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg bg-slate-700 hover:bg-slate-600">Tudo</button>
+                    <button onclick="window.setRankingTab('geral')" id="rkTabGeral" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg bg-slate-700 hover:bg-slate-600">Geral</button>
+                    <button onclick="window.setRankingTab('estrela')" id="rkTabEstrela" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg bg-slate-700 hover:bg-slate-600">Estrelas ⭐</button>
+                </div>
             </div>
-            <div class="flex space-x-2 pt-2">
-                <button onclick="saveMatchSettings()" class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2 rounded-lg text-sm transition">Salvar Configurações</button>
+            <div id="rankingContainer" class="p-2 space-y-1"></div>
+        </section>
+
+        <section id="hallFamaSection" class="space-y-4 admin-section">
+            <h2 class="text-xs font-black uppercase text-slate-500 text-center tracking-widest italic">⚡ Hall da Fama</h2>
+            <div id="leadersGrid" class="space-y-3"></div>
+        </section>
+    </main>
+
+    <div id="modalWeights" class="modal-global hidden">
+        <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border-2 border-blue-500 overflow-y-auto max-h-[90vh]">
+            <h2 class="text-xl font-black text-blue-400 uppercase mb-6 italic">Pesos do Score</h2>
+            <div class="space-y-6">
+                <div>
+                    <h4 class="text-[10px] font-black text-slate-500 uppercase mb-3">Geral</h4>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div><label class="text-[8px] font-bold">Ataque</label><input type="number" step="0.25" id="wAtqG" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Bloqueio</label><input type="number" step="0.25" id="wBlqG" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Ace</label><input type="number" step="0.25" id="wAceG" class="config-input"></div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-[10px] font-black text-orange-500 uppercase mb-3">Estrela</h4>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div><label class="text-[8px] font-bold">Ataque</label><input type="number" step="0.25" id="wAtqE" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Bloqueio</label><input type="number" step="0.25" id="wBlqE" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Ace</label><input type="number" step="0.25" id="wAceE" class="config-input"></div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-[10px] font-black text-emerald-500 uppercase mb-3">Global</h4>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div><label class="text-[8px] font-bold">Erro Adv.</label><input type="number" step="0.05" id="wErr" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Vitória</label><input type="number" step="0.5" id="wVit" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold text-yellow-400">Acerto Time</label><input type="number" step="0.05" id="wTeam" class="config-input border-yellow-500/50"></div>
+                    </div>
+                    <p class="text-[8px] text-slate-500 mt-2 italic">* Acerto Time: Pontos dados aos companheiros quando alguém faz um ponto de ataque.</p>
+                </div>
             </div>
+            <button onclick="window.salvarWeightsEClose()" class="w-full bg-blue-600 p-4 rounded-xl font-black uppercase italic mt-6">Aplicar</button>
+            <button onclick="window.fecharModais()" class="w-full py-4 text-slate-500 text-[10px] font-bold uppercase">Cancelar</button>
         </div>
     </div>
 
-    <!-- Roulette / Modal Universal com Botão Fechar -->
-    <div id="modal-roulette" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 text-center space-y-5 shadow-2xl relative">
-            <button onclick="closeRouletteModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
-            <h3 id="roulette-modal-title" class="text-base font-bold text-white px-6">Substituição</h3>
+    <div id="modalSolicitacoes" class="modal-global hidden">
+        <div class="bg-slate-800 w-full max-w-sm rounded-3xl p-6 border-2 border-yellow-500">
+            <h2 class="text-xl font-black text-yellow-500 uppercase mb-4 italic">Solicitações</h2>
+            <div id="listaSolicitacoes" class="space-y-3 max-h-[200px] overflow-y-auto mb-4"></div>
+            <button onclick="window.fecharModais()" class="w-full bg-slate-700 py-3 rounded-xl font-bold uppercase text-xs">Fechar</button>
+        </div>
+    </div>
+
+    <div id="modalIdentificacao" class="modal-global hidden">
+        <div class="bg-slate-800 w-full max-w-sm rounded-3xl p-6 border border-blue-500 shadow-2xl">
+            <h2 class="text-xl font-black text-blue-400 uppercase mb-4 italic">Quem é você?</h2>
             
-            <div id="roulette-display-box" class="min-h-[90px] flex flex-col items-center justify-center">
-                <!-- Conteúdo injetado via JS (Lista de nomes ou Moeda) -->
+            <p class="text-[10px] text-slate-400 mb-2 uppercase font-bold">Selecione seu nome na lista:</p>
+            <select id="selMeuNome" class="config-input mb-4 h-10" onchange="window.verificarBloqueioSelect()"></select>
+            
+            <div class="flex gap-2 mb-6">
+                <button onclick="window.salvarIdentificacao(false)" class="flex-1 bg-slate-600 hover:bg-slate-500 p-3 rounded-xl font-bold uppercase text-[9px] shadow-lg transition">Apenas Confirmar</button>
+                <button id="btnConfirmarLiberar" onclick="window.salvarIdentificacao(true)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 p-3 rounded-xl font-bold uppercase text-[9px] shadow-lg transition text-white hidden">Confirmar e Liberar</button>
             </div>
 
-            <div id="roulette-actions" class="space-y-2">
-                <button onclick="spinRoulette()" id="btn-spin-action" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 px-4 rounded-xl text-sm transition shadow-lg active:scale-98">
-                    Girar
-                </button>
-                <button onclick="closeRouletteModal()" id="btn-close-roulette" class="hidden w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2.5 px-4 rounded-xl text-sm transition">
-                    Continuar
-                </button>
+            <div class="border-t border-slate-700 pt-4">
+                <p class="text-[10px] text-orange-400 mb-2 uppercase font-bold">Ainda não está na fila?</p>
+                <div class="flex gap-2">
+                    <input id="novoMeuNome" type="text" placeholder="DIGITE SEU NOME..." class="bg-slate-900 flex-1 p-3 rounded-xl outline-none border border-slate-700 text-xs font-bold uppercase focus:border-orange-500 text-white">
+                    <button onclick="window.addESalvarIdentificacao()" class="bg-orange-600 px-4 rounded-xl font-black text-xs uppercase hover:bg-orange-500 transition shadow-lg">Add</button>
+                </div>
+            </div>
+            
+            <button onclick="window.fecharModais()" class="w-full mt-6 text-slate-500 text-[10px] font-bold uppercase py-2">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="modalConfigMenu" class="modal-global hidden">
+        <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-slate-700 overflow-y-auto max-h-[90vh]">
+            <h2 class="text-xl font-black text-orange-500 uppercase mb-6 italic">Configurações</h2>
+            
+            <div class="space-y-4 mb-6">
+                <div class="bg-slate-700/50 p-4 rounded-xl border border-slate-600 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-black uppercase text-blue-400">Exibir Ranking p/ Todos</span>
+                        <button id="btnToggleRank" onclick="window.togglePublicRanking()" class="text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400">Desativado</button>
+                    </div>
+                    <div class="flex justify-between items-center border-t border-slate-600 pt-3">
+                        <span class="text-[10px] font-black uppercase text-orange-400">Esconder Placar</span>
+                        <button id="btnToggleScoreboard" onclick="window.toggleScoreboardVis()" class="text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400">Visível</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div><label class="text-[8px] uppercase font-bold text-slate-500">Jogs/Time</label><input type="number" id="cSize" class="config-input"></div>
+                    <div><label class="text-[8px] uppercase font-bold text-slate-500">Max Estrelas</label><input type="number" id="cStars" class="config-input"></div>
+                    <div><label class="text-[8px] uppercase font-bold text-slate-500">Max Diamantes</label><input type="number" id="cElites" class="config-input"></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-[9px] uppercase font-bold text-slate-500">Pontos/Set</label><input type="number" id="cPoints" class="config-input"></div>
+                    <div><label class="text-[9px] uppercase font-bold text-slate-500">Max Vitórias</label><input type="number" id="cMax" class="config-input"></div>
+                </div>
+
+                <div><label class="text-[9px] uppercase font-bold text-slate-500">Ao atingir limite:</label>
+                    <select id="cReaction" class="config-input">
+                        <option value="dividir">Dividir Vencedores</option>
+                        <option value="sairDois">Sair Ambos</option>
+                    </select>
+                </div>
+                
+                <div><label class="text-[9px] uppercase font-bold text-slate-500">Desempate</label>
+                    <select id="cDesempate" class="config-input">
+                        <option value="3direto">3 Pontos direto</option>
+                        <option value="2vantagem">2 Pontos vantagem</option>
+                        <option value="sem">Sem Desempate</option>
+                    </select>
+                </div>
+
+                <button onclick="window.abrirWeights()" class="w-full bg-slate-700 text-blue-400 p-3 rounded-xl font-black uppercase text-[10px] border border-slate-600 mb-2">📊 Pesos do Score</button>
+                <button onclick="window.abrirBloqueioDuplas()" class="w-full bg-slate-700 text-red-400 p-3 rounded-xl font-black uppercase text-[10px] border border-slate-600 mb-6">🚫 Bloqueio Duplas</button>
+
+                <div class="border-t border-slate-600 pt-6 space-y-2">
+                    <button id="btnControleDia" onclick="window.toggleEstadoDia()" class="w-full p-3 rounded-xl font-black uppercase text-[10px] shadow-lg transition"></button>
+                    <button onclick="window.forcarBalanceamentoManual()" class="w-full bg-purple-600 hover:bg-purple-500 text-white p-3 rounded-xl font-black uppercase text-[10px] border border-purple-500 shadow-lg">🤖 Forçar Balanceamento (IA)</button>
+                    <button onclick="window.limparSistema()" class="w-full text-red-600 hover:text-red-400 text-[10px] font-black uppercase py-2 mt-4">⚠️ Resetar Sistema Completo</button>
+                </div>
+            </div>
+
+            <button onclick="window.salvarConfigEClose()" class="w-full bg-orange-600 p-4 rounded-xl font-black uppercase italic shadow-lg">Salvar Config</button>
+            <button onclick="window.fecharModais()" class="w-full py-4 text-slate-500 text-[10px] font-bold uppercase">Fechar</button>
+        </div>
+    </div>
+
+    <div id="modalAudit" class="modal-global hidden">
+        <div class="bg-slate-800 w-full max-w-xs rounded-3xl p-6 border border-orange-500">
+            <h3 id="auditNome" class="font-black text-orange-500 uppercase text-lg italic mb-2">---</h3>
+            <div class="flex gap-3 mb-4 text-[10px] text-slate-500 italic font-bold">
+               <span id="auditMatches">Partidas: 0</span>
+               <span id="auditLosses">Derrotas: 0</span>
+            </div>
+            <div id="auditContent" class="space-y-3 text-[11px]"></div>
+            <div class="mt-6 pt-4 border-t border-slate-700 flex justify-between items-center">
+                <span class="text-xs font-black uppercase text-slate-400">Total Score</span>
+                <span id="auditTotal" class="text-3xl font-black text-orange-500">0</span>
+            </div>
+            
+            <div class="mt-6 flex flex-col gap-2">
+                <button onclick="window.deslogarIdentidade()" class="w-full bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600 text-white">Trocar jogador</button>
+                <button onclick="window.bloquearEDeslogar()" class="w-full bg-red-900/50 text-red-400 border border-red-800 py-3 rounded-xl uppercase text-xs font-black hover:bg-red-900/80">Bloquear jogador na fila</button>
+                <button onclick="window.fecharModais()" class="w-full bg-slate-800 text-slate-400 border border-slate-700 py-2 rounded-xl uppercase text-[10px] font-bold hover:bg-slate-700 transition">Voltar</button>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript Application Logic -->
-    <script>
-        let audioCtx = null;
-        function initAudio() {
+    <div id="modalPontoTec" class="fixed inset-0 bg-black/90 hidden z-[100] flex items-end justify-center">
+        <div class="bg-slate-800 w-full max-w-md rounded-t-3xl p-6 border-t-2 border-orange-500 modal-bottom">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modalNomeTec" class="font-black text-white uppercase text-xl leading-none italic">---</h3>
+                <button onclick="window.fecharModais()" class="text-slate-400 text-3xl font-light">&times;</button>
+            </div>
+            <div class="grid grid-cols-1 gap-3">
+                <div class="admin-only-control space-y-3">
+                    <button onclick="window.registrarAcaoJogador('ataque')" class="w-full bg-slate-700 p-4 rounded-2xl font-bold uppercase text-xs flex justify-between italic hover:bg-slate-600">
+                        <div class="flex flex-col text-left">
+                            <span>💥 Ponto de Ataque</span>
+                        </div>
+                        <span id="labelAtq" class="text-orange-500"></span>
+                    </button>
+                    <button onclick="window.registrarAcaoJogador('bloqueio')" class="w-full bg-slate-700 p-4 rounded-2xl font-bold uppercase text-xs flex justify-between italic hover:bg-slate-600"><span>🚫 Ponto de Bloqueio</span> <span id="labelBlq" class="text-orange-500"></span></button>
+                    <button id="btnAceTec" onclick="window.registrarAcaoJogador('saque')" class="w-full bg-orange-600 p-4 rounded-2xl font-black uppercase text-xs flex justify-between italic hover:bg-orange-500 shadow-lg shadow-orange-900/50"><span>⚡ Ace de Saque</span> <span id="labelAce"></span></button>
+                    <div class="grid grid-cols-2 gap-3 mt-2">
+                        <button onclick="window.definirSacadorManual()" class="bg-blue-900/40 text-blue-400 p-3 rounded-xl font-bold uppercase text-[10px] border border-blue-900/30">Definir Sacador</button>
+                        <button onclick="window.removerParaFilaManual()" class="bg-red-900/20 text-red-500 p-3 rounded-xl font-bold uppercase text-[10px] border border-red-900/30">Remover p/ Fila</button>
+                    </div>
+                </div>
+                <div id="playerViewMsg" class="text-center text-slate-500 text-xs italic py-4 hidden">Apenas o administrador pode gerenciar pontos.</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalFilaEscala" class="modal-global hidden">
+        <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-emerald-500/30">
+            
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modalNomeFila" class="font-black text-white uppercase text-xl italic leading-none">---</h3>
+                <button onclick="window.fecharModais()" class="text-slate-400 text-3xl font-light hover:text-white transition">&times;</button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-4 admin-only-control">
+                <div class="space-y-2">
+                    <p class="text-[8px] font-black text-blue-400 uppercase text-center italic">Time A</p>
+                    <button onclick="window.escalarParaTime('A')" class="w-full bg-blue-600 hover:bg-blue-500 p-3 rounded-xl font-black uppercase text-[10px] transition">Entrar A</button>
+                    <div id="subsA" class="space-y-1 max-h-[120px] overflow-y-auto"></div>
+                </div>
+                <div class="space-y-2">
+                    <p class="text-[8px] font-black text-orange-400 uppercase text-center italic">Time B</p>
+                    <button onclick="window.escalarParaTime('B')" class="w-full bg-orange-600 hover:bg-orange-500 p-3 rounded-xl font-black uppercase text-[10px] transition">Entrar B</button>
+                    <div id="subsB" class="space-y-1 max-h-[120px] overflow-y-auto"></div>
+                </div>
+            </div>
+            
+            <button id="btnStatusBloqueio" class="w-full bg-slate-700 p-3 rounded-xl font-black uppercase text-xs mb-2 hover:bg-slate-600">---</button>
+            <button id="btnTrocarCategoria" class="w-full bg-slate-800 text-blue-400 p-3 rounded-xl font-black uppercase text-[10px] border border-blue-900/30 mb-2" onclick="window.solicitarTrocaCategoria()">Trocar Categoria</button>
+            <button id="btnToggleElite" class="w-full bg-slate-800 text-purple-400 p-3 rounded-xl font-black uppercase text-[10px] border border-purple-900/30 mb-2 admin-only-control" onclick="window.toggleElite()">Marcar Elite 💎</button>
+            
+            <button onclick="window.fecharModais()" class="w-full mt-4 bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600 transition">Voltar</button>
+            
+        </div>
+    </div>
+
+    <div id="modalRestricao" class="modal-global hidden">
+        <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-red-500/30">
+            <h2 class="text-xl font-black text-red-500 uppercase mb-4 italic">Vincular Restrições</h2>
+            <div class="space-y-3 mb-6">
+                <select id="selJ1" class="config-input text-xs h-10"></select>
+                <select id="selJ2" class="config-input text-xs h-10"></select>
+                <button onclick="window.adicionarRestricao()" class="w-full bg-red-600 hover:bg-red-500 py-3 rounded-xl font-black uppercase text-xs italic shadow-lg">Bloquear esta Dupla</button>
+            </div>
+            <div id="listaRestricoes" class="space-y-2 max-h-[150px] overflow-y-auto mb-4 bg-slate-900/50 p-2 rounded-xl"></div>
+            <button onclick="document.getElementById('modalRestricao').classList.add('hidden')" class="w-full bg-slate-700 py-3 rounded-xl font-bold uppercase text-xs">Voltar</button>
+        </div>
+    </div>
+    
+    <!-- Modificado: Modal de Histórico adaptado para alternar entre as visões 'atual' e 'retroativo' de forma limpa -->
+    <div id="modalHistorico" class="modal-global hidden">
+        <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-slate-600 overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="tituloModalHistorico" class="text-xl font-black text-white uppercase italic">Histórico</h2>
+                <button onclick="document.getElementById('modalHistorico').classList.add('hidden')" class="text-slate-400 text-3xl font-light hover:text-white transition">&times;</button>
+            </div>
+            
+            <div id="seletorDiaHistoricoContainer" class="mb-4">
+                <label class="text-[10px] font-black uppercase text-slate-400 block mb-1">Selecionar Dia:</label>
+                <select id="selHistoricoDia" onchange="window.carregarDadosDiaHistorico()" class="config-input h-10 text-xs w-full"></select>
+            </div>
+
+            <div id="conteudoHistoricoDia" class="space-y-6">
+                <div>
+                    <h3 id="labelSubtituloPartidas" class="text-xs font-black uppercase text-blue-400 mb-2 border-b border-slate-700 pb-1">📋 Partidas Realizadas</h3>
+                    <div id="listaHistoricoContainer" class="space-y-3"></div>
+                </div>
+                
+                <!-- Removido do escopo do dia atual: seções agora encapsuladas dinamicamente via JS -->
+                <div id="wrapperRankingRetroativo" class="hidden">
+                    <h3 class="text-xs font-black uppercase text-orange-400 mb-2 border-b border-slate-700 pb-1">🏆 Ranking Fechado</h3>
+                    <div id="rankingHistoricoContainer" class="space-y-1 text-xs"></div>
+                </div>
+
+                <div id="wrapperHallRetroativo" class="hidden">
+                    <h3 class="text-xs font-black uppercase text-purple-400 mb-2 border-b border-slate-700 pb-1">⚡ Hall da Fama Deste Dia</h3>
+                    <div id="hallHistoricoContainer" class="space-y-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalDetalhePartida" class="modal-global hidden" style="z-index: 2200;">
+        <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-blue-500 overflow-y-auto max-h-[90vh]">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-black text-blue-400 uppercase italic">Detalhes da Partida</h2>
+                <button onclick="document.getElementById('modalDetalhePartida').classList.add('hidden')" class="text-slate-400 text-3xl font-light hover:text-white transition">&times;</button>
+            </div>
+            <div id="detalhePartidaScore" class="flex justify-around items-center bg-slate-900 p-4 rounded-xl mb-4 border border-slate-700"></div>
+            <div class="text-[10px] font-black uppercase text-slate-500 mb-2 tracking-widest text-center">Logs da Partida</div>
+            <div id="detalhePartidaLog" class="space-y-1 bg-slate-900/50 p-2 rounded-xl border border-slate-700/50 max-h-[250px] overflow-y-auto"></div>
+            <button onclick="document.getElementById('modalDetalhePartida').classList.add('hidden')" class="w-full mt-4 bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600 transition">Voltar</button>
+        </div>
+    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDdX-lpFmddIHt2scaramJSyo3RnJOxtO4",
+            authDomain: "voleihubpro.firebaseapp.com",
+            databaseURL: "https://voleihubpro-default-rtdb.firebaseio.com",
+            projectId: "voleihubpro",
+            storageBucket: "voleihubpro.firebasestorage.app",
+            messagingSenderId: "699650483362",
+            appId: "1:699650483362:web:b4f60916984f58a70de3fb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+        const gameRef = ref(db, 'partida/v9_5');
+
+        const INITIAL_GERAL = ["ALOISIO", "CALEB", "DANIELE", "ITALO", "LUIZ EDUARDO", "MATEUS BRAZ", "MURILO", "SAMUEL", "WENDEL", "YURI", "PATY", "DANIELE", "HEMILY", "KEMILLY", "RHUANA", "SARA"];
+        const INITIAL_ESTRELA = [];
+        const INITIAL_ELITE = ["MATHEUS MATOS", "DANILO", "EDINEI", "JANIR", "LUCAS GABRIEL", "MAICON", "ODAIR"];
+        
+        const PHRASES = ["", "Na conta! Fez 1 ponto.", "Dobradinha! 2 pontos nessa partida", "Pegando fogo! 🔥 Terceiro ponto nesse jogo.", "Insuportável! 4 pontos e contando...", "Mão de ferro! 👊 5 pontos feitos", "Dono da quadra! Fez metade do set sozinho!", "Modo God ativado! ⚡ 7 pontos na partida.", "Chamem o SAMU! Já são 8 pontos.", "Lendário! 9 pontos na partida.", "10 pontos feitos! Fechem as portas e apaguem as lights! 🏆"];
+        const DEFAULT_RESTRICTIONS = [];
+
+        let isAdmin = false;
+        let filtroPeriodoAtual = 'atual'; 
+        let modoHistoricoVisivel = 'atual'; // Armazena se o modal está exibindo 'atual' ou 'retroativo'
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                isAdmin = true;
+                document.body.classList.add('is-admin');
+            } else {
+                isAdmin = false;
+                document.body.classList.remove('is-admin');
+            }
+            render(); 
+        });
+
+        window.fazerLoginAdmin = () => {
+            const email = prompt("E-mail do Administrador:");
+            if (!email) return;
+            const senha = prompt("Senha:");
+            if (!senha) return;
+
+            signInWithEmailAndPassword(auth, email, senha)
+                .then(() => { alert("Acesso de Administrador Liberado! 🔐"); })
+                .catch((error) => { alert("Erro de acesso: Usuário ou senha incorretos."); });
+        };
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('login') === 'admin') {
+            setTimeout(window.fazerLoginAdmin, 800); 
+        }
+
+        let audioCtx;
+        
+        document.addEventListener('click', () => {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
-        }
-        document.addEventListener('click', initAudio, { once: true });
-        document.addEventListener('touchstart', initAudio, { once: true });
+            if ('speechSynthesis' in window) {
+                const unlockMsg = new SpeechSynthesisUtterance('');
+                window.speechSynthesis.speak(unlockMsg);
+            }
+        }, { once: true });
 
-        function playBuzzer() {
-            try {
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                for (let i = 0; i < 3; i++) {
-                    setTimeout(() => {
-                        let osc = audioCtx.createOscillator();
-                        let gain = audioCtx.createGain();
-                        osc.type = 'square';
-                        osc.frequency.setValueAtTime(950, audioCtx.currentTime);
-                        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
-                        osc.connect(gain);
-                        gain.connect(audioCtx.destination);
-                        osc.start();
-                        osc.stop(audioCtx.currentTime + 0.25);
-                    }, i * 350);
+        window.bloquearEDeslogar = () => {
+            const todasFilas = [...(game.esperaGeral || []), ...(game.esperaEstrela || [])];
+            const jogador = todasFilas.find(p => p.nome === meuNome);
+            
+            if (jogador) {
+                jogador.bloqueado = true;
+                salvarState();
+                alert("Você foi bloqueado na fila.");
+            }
+            window.deslogarIdentidade();
+        };
+
+        function tocarApitoRealista() {
+            if (!audioCtx) {
+                try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+            }
+            if (audioCtx && audioCtx.state === 'suspended') { audioCtx.resume(); }
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+            const osc1 = audioCtx.createOscillator();
+            const osc2 = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            osc1.type = 'triangle'; 
+            osc2.type = 'triangle';
+            osc1.frequency.setValueAtTime(2000, now);
+            osc2.frequency.setValueAtTime(2150, now); 
+
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(0.8, now + 0.1); 
+            gainNode.gain.setValueAtTime(0.8, now + 1.0); 
+            gainNode.gain.linearRampToValueAtTime(0, now + 1.2); 
+
+            osc1.connect(gainNode);
+            osc2.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            osc1.start(now); osc2.start(now);
+            osc1.stop(now + 1.2); osc2.stop(now + 1.2);
+        }
+
+        function narrarPonto(texto) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const msg = new SpeechSynthesisUtterance(texto);
+                msg.lang = 'pt-BR'; 
+                msg.rate = 1;     
+                msg.pitch = 1.1;    
+                window.speechSynthesis.speak(msg);
+            }
+        }
+
+        let game = JSON.parse(localStorage.getItem('voleiHubGame')) || {
+            jogadores: [], timeA: [], timeB: [], placar: { A: 0, B: 0 }, vitoriasTime: { A: 0, B: 0 }, vitoriasConsecutivas: 0,
+            historicoPartidas: [], historicoDias: [], ranking: {}, saqueLado: null, idxA: null, idxB: null,
+            weights: { atqG: 1, blqG: 1, aceG: 1.5, atqE: 1.5, blqE: 1.5, aceE: 2, err: -0.5, vit: 3, team: 0.5 },
+            config: { size: 4, stars: 1, elites: 2, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' },
+            bloqueios: {}, diaIniciado: true
+        };
+
+        window.forcarBalanceamentoManual = () => {
+            const todos = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela];
+            let avaliaveis = [];
+            todos.forEach(p => {
+                let r = game.ranking[p.nome];
+                if (!r) return;
+                let setsJogados = r.v + r.d;
+                if (setsJogados >= 2) {
+                    let impactoAtaque = (r.ptsAtaque || 0) * 2;
+                    let impactoDefesa = ((r.ptsBloqueio || 0) + (r.ptsAce || 0)) * 1.5;
+                    let taxaVitoria = (r.v || 0) * 5; 
+                    let pontuacaoMedia = (impactoAtaque + impactoDefesa + taxaVitoria) / setsJogados;
+                    avaliaveis.push({ p, score: pontuacaoMedia });
                 }
-            } catch(e) { console.error("Audio error", e); }
-        }
+            });
 
-        let state = {
-            players: [],
-            teams: [],     // Arrays de times gerados no sorteio [time1, time2, time3...]
-            waitlist: [],  // Jogadores que sobraram (não formam um time completo)
-            history: [],
-            match: {
-                scoreA: 0,
-                scoreB: 0,
-                timerSeconds: 600,
-                initialSeconds: 600,
-                timerRunning: false,
-                interval: null,
-                durationMinutes: 10,
-                goalLimit: 2,
-                tieBreaker: 'coin',
-                hasDrafted: false
+            if (avaliaveis.length < 5) {
+                alert("Poucos jogadores com dados suficientes (mín 2 sets) para a IA balancear.");
+                return;
+            }
+
+            avaliaveis.sort((a, b) => b.score - a.score);
+            let proporcao = Math.max(1, Math.floor(avaliaveis.length * 0.20));
+
+            avaliaveis.forEach(item => { 
+                item.p.elite = false; item.p.estrela = false; 
+                game.ranking[item.p.nome].elite = false; 
+                game.ranking[item.p.nome].estrela = false; 
+            });
+
+            for(let i = 0; i < proporcao; i++) {
+                avaliaveis[i].p.elite = true;
+                game.ranking[avaliaveis[i].p.nome].elite = true;
+            }
+
+            for(let i = avaliaveis.length - 1; i >= Math.max(proporcao, avaliaveis.length - proporcao); i--) {
+                avaliaveis[i].p.estrela = true;
+                game.ranking[avaliaveis[i].p.nome].estrela = true;
+            }
+
+            let novaGeral = [];
+            let novaEstrela = [];
+            [...game.esperaGeral, ...game.esperaEstrela].forEach(p => {
+                if(p.estrela) novaEstrela.push(p);
+                else novaGeral.push(p);
+            });
+            game.esperaGeral = novaGeral;
+            game.esperaEstrela = novaEstrela;
+
+            salvarState();
+            alert('Balanceamento IA Concluído! Filas e Rankings Atualizados.');
+        };
+
+        window.toggleEstadoDia = () => {
+            if (!isAdmin) return;
+            if (game.diaIniciado) {
+                if (!confirm("Deseja encerrar o dia de hoje?\n\n- O Hall da Fama e Ranking final ficarão visíveis para visitantes.\n- A quadra será limpa e os dados salvos no histórico.")) return;
+                
+                let balanceou = false;
+                const todos = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela];
+                let avaliaveis = [];
+                todos.forEach(p => {
+                    let r = game.ranking[p.nome];
+                    if (!r) return;
+                    let setsJogados = r.v + r.d;
+                    if (setsJogados >= 2) {
+                        let impactoAtaque = (r.ptsAtaque || 0) * 2;
+                        let impactoDefesa = ((r.ptsBloqueio || 0) + (r.ptsAce || 0)) * 1.5;
+                        let taxaVitoria = (r.v || 0) * 5; 
+                        let pontuacaoMedia = (impactoAtaque + impactoDefesa + taxaVitoria) / setsJogados;
+                        avaliaveis.push({ p, score: pontuacaoMedia });
+                    }
+                });
+
+                if (avaliaveis.length >= 5) {
+                    balanceou = true;
+                    avaliaveis.sort((a, b) => b.score - a.score);
+                    let proporcao = Math.max(1, Math.floor(avaliaveis.length * 0.20));
+                    avaliaveis.forEach(item => { 
+                        item.p.elite = false; item.p.estrela = false; 
+                        game.ranking[item.p.nome].elite = false; 
+                        game.ranking[item.p.nome].estrela = false; 
+                    });
+                    for(let i = 0; i < proporcao; i++) {
+                        avaliaveis[i].p.elite = true;
+                        game.ranking[avaliaveis[i].p.nome].elite = true;
+                    }
+                    for(let i = avaliaveis.length - 1; i >= Math.max(proporcao, avaliaveis.length - proporcao); i--) {
+                        avaliaveis[i].p.estrela = true;
+                        game.ranking[avaliaveis[i].p.nome].estrela = true;
+                    }
+                }
+
+                if (!game.historicoDias) game.historicoDias = [];
+                let dataStr = new Date().toLocaleDateString('pt-BR') + ' - ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+
+                const options = { weekday: 'long' };
+                const diaDaSemana = new Date().toLocaleDateString('pt-BR', options);
+
+                dataStr = new Date().toLocaleDateString('pt-BR') + ' - ' + diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1);
+
+                game.historicoDias.unshift({
+                id: Date.now(),
+                data: dataStr, // Corrigido para salvar a string formatada
+                partidas: game.historicoPartidas ? [...game.historicoPartidas] : [],
+                rankingFinal: JSON.parse(JSON.stringify(game.ranking))
+                });
+
+                // NOVO: Zera o ranking do dia ativo para não acumular eternamente
+                Object.keys(game.ranking).forEach(nome => {
+                    game.ranking[nome].v = 0;
+                    game.ranking[nome].d = 0;
+                    game.ranking[nome].ptsAtaque = 0;
+                    game.ranking[nome].ptsBloqueio = 0;
+                    game.ranking[nome].ptsAce = 0;
+                    game.ranking[nome].ptsErroAdversario = 0;
+                    game.ranking[nome].ptsAcertoTime = 0;
+                    // Mantém apenas os status de estrela e elite
+                });
+
+                game.timeA = []; game.timeB = [];
+                game.esperaGeral = []; game.esperaEstrela = [];
+                todos.forEach(p => {
+                    p.bloqueado = true; 
+                    if (p.estrela) game.esperaEstrela.push(p);
+                    else game.esperaGeral.push(p);
+                });
+
+                game.historicoPartidas = []; 
+                game.placar = { A: 0, B: 0 }; game.scoreA = 0; game.scoreB = 0;
+                game.winsConsecA = 0; game.winsConsecB = 0;
+                game.currentMatchStats = {};
+                
+                // Dentro de window.toggleEstadoDia, logo após salvar o historicoDias:
+game.diaIniciado = false;
+
+// Coleta todos os nomes atuais da fila para exibir ao admin
+const jogadoresNaFila = [...game.esperaGeral, ...game.esperaEstrela];
+const nomesParaRemover = prompt("Jogadores na fila para o próximo evento. Digite os nomes que deseja REMOVER (separados por vírgula) ou deixe em branco para manter todos:", "");
+
+if (nomesParaRemover) {
+    const listaRemover = nomesParaRemover.split(',').map(n => n.trim().toUpperCase());
+    listaRemover.forEach(nome => {
+        game.esperaGeral = game.esperaGeral.filter(p => p.nome !== nome);
+        game.esperaEstrela = game.esperaEstrela.filter(p => p.nome !== nome);
+    });
+}
+
+salvarState();
+alert("🛑 Evento Encerrado! O Ranking e o Hall da Fama foram preservados.");
+                alert("▶️ Novo dia Iniciado! Boa diversão na quadra!");
+            }
+            window.fecharModais();
+        };
+
+        let tempConfig = {};
+        let historicoLocal = [];
+        let meuNome = localStorage.getItem('voleihub_meunome') || '';
+        let filaEsperaOculta = false;
+
+        window.toggleVisibilidadeFila = () => {
+            filaEsperaOculta = !filaEsperaOculta;
+            const container = document.getElementById('esperaContainer');
+            const btn = document.getElementById('btnToggleFila');
+            if (filaEsperaOculta) {
+                container.classList.add('hidden');
+                btn.innerText = "Exibir Fila";
+            } else {
+                container.classList.remove('hidden');
+                btn.innerText = "Ocultar Fila";
             }
         };
 
-        function saveStateToHistory() {
-            state.history.push(JSON.parse(JSON.stringify({
-                players: state.players,
-                teams: state.teams,
-                waitlist: state.waitlist,
-                match: { scoreA: state.match.scoreA, scoreB: state.match.scoreB, timerSeconds: state.match.timerSeconds, hasDrafted: state.match.hasDrafted }
-            })));
-            if (state.history.length > 20) state.history.shift();
-        }
-
-        function undoAction() {
-            if (state.history.length === 0) {
-                alert("Nenhuma ação anterior para desfazer.");
-                return;
-            }
-            const last = state.history.pop();
-            state.players = last.players;
-            state.teams = last.teams;
-            state.waitlist = last.waitlist;
-            state.match.scoreA = last.match.scoreA;
-            state.match.scoreB = last.match.scoreB;
-            state.match.timerSeconds = last.match.timerSeconds;
-            state.match.hasDrafted = last.match.hasDrafted;
-            renderAll();
-            alert("Ação desfeita com sucesso!");
-        }
-
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('border-emerald-500', 'text-emerald-400');
-                btn.classList.add('border-transparent', 'text-slate-400');
-            });
-            document.getElementById('tab-' + tabId).classList.add('active');
-            const activeBtn = document.getElementById('nav-' + tabId);
-            if(activeBtn) {
-                activeBtn.classList.remove('border-transparent', 'text-slate-400');
-                activeBtn.classList.add('border-emerald-500', 'text-emerald-400');
-            }
-        }
-
-        function updateStarPreview(val) {
-            const stars = '★'.repeat(val) + '☆'.repeat(5 - val);
-            document.getElementById('star-preview').innerText = `${stars} (${val})`;
-        }
-        function updateEditStarPreview(val) {
-            const stars = '★'.repeat(val) + '☆'.repeat(5 - val);
-            document.getElementById('edit-star-preview').innerText = `${stars} (${val})`;
-        }
-
-        function checkDuplicateName(name) {
-            const trimmed = name.trim().toLowerCase();
-            const exists = state.players.some(p => p.name.trim().toLowerCase() === trimmed);
-            const warning = document.getElementById('duplicate-warning');
-            if(exists && trimmed.length > 0) warning.classList.remove('hidden');
-            else warning.classList.add('hidden');
-        }
-
-        function addPlayer(e) {
-            e.preventDefault();
-            const nameInput = document.getElementById('new-player-name');
-            const starsInput = document.getElementById('new-player-stars');
-            const name = nameInput.value.trim();
-            const stars = parseInt(starsInput.value);
-
-            if(state.players.some(p => p.name.trim().toLowerCase() === name.toLowerCase())) {
-                alert("Já existe um jogador com este nome!"); return;
-            }
-
-            saveStateToHistory();
-            const newPlayer = {
-                id: 'p_' + Date.now() + Math.random().toString(36).substr(2, 5),
-                name: name, stars: stars, active: true,
-                matchesPlayed: 0, goals: 0, assists: 0, wins: 0
-            };
-
-            state.players.push(newPlayer);
-            if(state.match.hasDrafted) insertLateArrival(newPlayer);
-
-            nameInput.value = ''; starsInput.value = 5;
-            updateStarPreview(5);
-            document.getElementById('duplicate-warning').classList.add('hidden');
-            renderAll();
-        }
-
-        function insertLateArrival(player) {
-            const zeroMatchIndex = state.waitlist.map(p => p.matchesPlayed).lastIndexOf(0);
-            if (zeroMatchIndex === -1) state.waitlist.unshift(player);
-            else state.waitlist.splice(zeroMatchIndex + 1, 0, player);
-        }
-
-        function importWhatsAppList() {
-            const text = document.getElementById('import-text-area').value.trim();
-            const defaultStars = parseInt(document.getElementById('default-import-stars').value);
-            if(!text) { alert("Cole a lista no campo."); return; }
-
-            saveStateToHistory();
-            const lines = text.split(/\r?\n/);
-            let addedCount = 0;
-
-            lines.forEach(line => {
-                let cleaned = line.trim().replace(/^[\d\.\-\*\)\s]+/, '').trim();
-                if(!cleaned) return;
-                let stars = defaultStars;
-                const starMatch = cleaned.match(/\s+[-–]?\s*([1-5])$/);
-                if(starMatch) {
-                    stars = parseInt(starMatch[1]);
-                    cleaned = cleaned.replace(/\s+[-–]?\s*[1-5]$/, '').trim();
-                }
-
-                if(cleaned && !state.players.some(p => p.name.trim().toLowerCase() === cleaned.toLowerCase())) {
-                    const newPlayer = {
-                        id: 'p_' + Date.now() + Math.random().toString(36).substr(2, 5),
-                        name: cleaned, stars: stars, active: true,
-                        matchesPlayed: 0, goals: 0, assists: 0, wins: 0
-                    };
-                    state.players.push(newPlayer);
-                    addedCount++;
-                    if(state.match.hasDrafted) insertLateArrival(newPlayer);
-                }
-            });
-
-            document.getElementById('import-text-area').value = '';
-            renderAll();
-            alert(`${addedCount} jogadores importados com sucesso!`);
-        }
-
-        function togglePlayerActive(id) {
-            saveStateToHistory();
-            const p = state.players.find(x => x.id === id);
-            if(p) { p.active = !p.active; renderAll(); }
-        }
-
-        function removePlayer(id) {
-            saveStateToHistory();
-            state.players = state.players.filter(x => x.id !== id);
-            state.teams.forEach(t => {
-                const idx = t.findIndex(x => x.id === id);
-                if(idx > -1) t.splice(idx, 1);
-            });
-            state.waitlist = state.waitlist.filter(x => x.id !== id);
-            renderAll();
-        }
-
-        function openEditPlayerModal(id) {
-            const p = state.players.find(x => x.id === id);
-            if(!p) return;
-            document.getElementById('edit-player-id').value = p.id;
-            document.getElementById('edit-player-name-input').value = p.name;
-            document.getElementById('edit-player-stars-input').value = p.stars;
-            updateEditStarPreview(p.stars);
-            document.getElementById('modal-edit-player').classList.remove('hidden');
-        }
-
-        function closeEditPlayerModal() { document.getElementById('modal-edit-player').classList.add('hidden'); }
-
-        function savePlayerEdit() {
-            const id = document.getElementById('edit-player-id').value;
-            const name = document.getElementById('edit-player-name-input').value.trim();
-            const stars = parseInt(document.getElementById('edit-player-stars-input').value);
-            if(!name) { alert("Nome inválido"); return; }
-
-            saveStateToHistory();
-            const p = state.players.find(x => x.id === id);
-            if(p) {
-                p.name = name;
-                p.stars = stars;
-                updateCloneStats(id, 'stars', 0); // Trigger update to references
-                // Hack: find references in other arrays and update manually
-                state.teams.forEach(t => {
-                   let pt = t.find(x => x.id === id);
-                   if(pt) { pt.name = name; pt.stars = stars; }
-                });
-                let pw = state.waitlist.find(x => x.id === id);
-                if(pw) { pw.name = name; pw.stars = stars; }
-            }
-            closeEditPlayerModal();
-            renderAll();
-        }
-
-        function confirmResetSystem() {
-            if(confirm("Tem certeza que deseja zerar todo o sistema e reiniciar as configurações?")) {
-                saveStateToHistory();
-                state.players = [];
-                state.teams = [];
-                state.waitlist = [];
-                state.match = { scoreA: 0, scoreB: 0, timerSeconds: 600, initialSeconds: 600, timerRunning: false, interval: null, durationMinutes: 10, goalLimit: 2, tieBreaker: 'coin', hasDrafted: false };
-                renderAll();
-                alert("Sistema reiniciado com sucesso.");
-            }
-        }
-
-        // ================= ALGORITMO DRAFT (Balanceamento em N times) =================
-        function executeDraft() {
-            const activePlayers = state.players.filter(p => p.active);
-            const teamSize = parseInt(document.getElementById('team-size-input').value) || 7;
-
-            if(activePlayers.length < 2) { alert("Adicione pelo menos 2 jogadores ativos para sortear."); return; }
-            
-            let numTeams = Math.floor(activePlayers.length / teamSize);
-            if (numTeams < 2) numTeams = 2; // Força no mínimo 2 times (podem ficar incompletos se houver poucos jog.)
-
-            saveStateToHistory();
-
-            let pool = [...activePlayers].sort((a,b) => {
-                if(b.stars !== a.stars) return b.stars - a.stars;
-                return Math.random() - 0.5; // Desempate aleatório
-            });
-
-            let newTeams = Array.from({length: numTeams}, () => []);
-            let wait = [];
-
-            let totalDrafted = numTeams * teamSize;
-            let draftedPool = pool.slice(0, totalDrafted);
-            wait = pool.slice(totalDrafted);
-
-            // Distribuição Snake (1º pro A, 2º pro B, 3º pro B, 4º pro A... ou balanceado para 3+ times)
-            draftedPool.forEach((player, i) => {
-                let round = Math.floor(i / numTeams);
-                let isEvenRound = (round % 2 === 0);
-                // Direita pra esquerda na volta da cobra
-                let teamIdx = isEvenRound ? (i % numTeams) : ((numTeams - 1) - (i % numTeams));
-                newTeams[teamIdx].push(player);
-            });
-
-            state.teams = newTeams;
-            state.waitlist = wait;
-            state.match.hasDrafted = true;
-            state.match.scoreA = 0;
-            state.match.scoreB = 0;
-            resetTimer();
-
-            renderAll();
-            switchTab('draft');
-        }
-
-        function triggerSubstitution(teamIdx, playerId) {
-            const team = state.teams[teamIdx];
-            const playerToRemove = team.find(p => p.id === playerId);
-            if(!playerToRemove) return;
-
-            let candidates = state.waitlist.filter(p => p.matchesPlayed === 0);
-            if(candidates.length === 0) candidates = state.waitlist.slice(0, 7);
-            if(candidates.length === 0) { alert("Não há jogadores disponíveis no banco ou na fila para substituição."); return; }
-
-            openRouletteModal(`Substituir: ${playerToRemove.name}`, candidates, (selectedPlayer) => {
-                saveStateToHistory();
-                const index = team.findIndex(p => p.id === playerId);
-                if(index !== -1) {
-                    team[index] = selectedPlayer;
-                    state.waitlist = state.waitlist.filter(p => p.id !== selectedPlayer.id);
-                    state.waitlist.push(playerToRemove);
-                }
-                renderAll();
-            });
-        }
-
-        // ================= SISTEMA DE ROLETA & MOEDA =================
-        let currentRouletteCandidates = [];
-        let rouletteCallback = null;
-        let rouletteMode = 'sub'; // 'sub' = substitution, 'coin' = cara/coroa
-
-        function openRouletteModal(title, candidates, callback) {
-            rouletteMode = 'sub';
-            document.getElementById('roulette-modal-title').innerText = title;
-            currentRouletteCandidates = candidates;
-            rouletteCallback = callback;
-            
-            // Renderizar Grid de Nomes
-            let html = `<div id="roulette-candidates-grid" class="grid grid-cols-2 gap-2 w-full max-h-48 overflow-y-auto mt-2">`;
-            candidates.forEach(c => {
-                html += `<div id="cand-${c.id}" class="p-2 border border-slate-700 bg-slate-800 rounded text-sm text-slate-300 transition-colors">${c.name}</div>`;
-            });
-            html += `</div>`;
-            
-            document.getElementById('roulette-display-box').innerHTML = html;
-            document.getElementById('btn-spin-action').classList.remove('hidden');
-            document.getElementById('btn-spin-action').innerText = "Girar Roleta";
-            document.getElementById('btn-close-roulette').classList.add('hidden');
-            document.getElementById('modal-roulette').classList.remove('hidden');
-        }
-
-        function openContinuousCoinToss() {
-            rouletteMode = 'coin';
-            document.getElementById('roulette-modal-title').innerText = "Cara ou Coroa";
-            
-            const coinHtml = `
-                <div class="relative w-32 h-32 mx-auto perspective-1000 mt-4 mb-4">
-                    <div id="3d-coin" class="w-full h-full relative rounded-full shadow-2xl coin-wrapper spin-infinite">
-                        <div class="coin-face coin-front text-2xl font-black border-4 border-amber-600">CARA</div>
-                        <div class="coin-face coin-back text-2xl font-black border-4 border-amber-600">COROA</div>
-                    </div>
-                </div>
-                <p id="coin-result-text" class="text-sm font-bold text-slate-300 h-6"></p>
-                <div id="coin-winner-buttons" class="hidden flex space-x-2 w-full mt-4">
-                    <button onclick="finishMatch('A'); closeRouletteModal()" class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2 rounded-lg text-xs">Venceu Time 1</button>
-                    <button onclick="finishMatch('B'); closeRouletteModal()" class="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-2 rounded-lg text-xs">Venceu Time 2</button>
-                </div>
-            `;
-            
-            document.getElementById('roulette-display-box').innerHTML = coinHtml;
-            document.getElementById('btn-spin-action').classList.remove('hidden');
-            document.getElementById('btn-spin-action').innerText = "GIRAR MOEDA";
-            document.getElementById('btn-close-roulette').classList.add('hidden');
-            document.getElementById('modal-roulette').classList.remove('hidden');
-        }
-
-        function closeRouletteModal() { document.getElementById('modal-roulette').classList.add('hidden'); }
-
-        function spinRoulette() {
-            if(rouletteMode === 'sub') {
-                if(currentRouletteCandidates.length === 0) return;
-                document.getElementById('btn-spin-action').classList.add('hidden');
-                
-                const end = Date.now() + 5000; // exatos 5 segundos
-                let lastHighlightedId = null;
-                
-                let interval = setInterval(() => {
-                    if (lastHighlightedId) {
-                        const el = document.getElementById(`cand-${lastHighlightedId}`);
-                        if(el) { el.classList.remove('bg-emerald-500', 'text-slate-950', 'font-bold'); el.classList.add('bg-slate-800', 'text-slate-300'); }
-                    }
-                    
-                    const randPlayer = currentRouletteCandidates[Math.floor(Math.random() * currentRouletteCandidates.length)];
-                    lastHighlightedId = randPlayer.id;
-                    const highlightEl = document.getElementById(`cand-${randPlayer.id}`);
-                    if(highlightEl) { highlightEl.classList.remove('bg-slate-800', 'text-slate-300'); highlightEl.classList.add('bg-emerald-500', 'text-slate-950', 'font-bold'); }
-                    
-                    if(Date.now() >= end) {
-                        clearInterval(interval);
-                        document.getElementById('btn-close-roulette').classList.remove('hidden');
-                        if(rouletteCallback) rouletteCallback(randPlayer);
-                    }
-                }, 100);
-            } 
-            else if (rouletteMode === 'coin') {
-                document.getElementById('btn-spin-action').classList.add('hidden');
-                const coinEl = document.getElementById('3d-coin');
-                const resultText = document.getElementById('coin-result-text');
-                
-                coinEl.classList.remove('spin-infinite');
-                
-                // Força um pequeno delay para a transição aplicar
-                setTimeout(() => {
-                    const isCara = Math.random() > 0.5;
-                    const spins = 10; // Giros completos
-                    const extraDegrees = isCara ? 0 : 180; 
-                    const totalRotation = (spins * 360) + extraDegrees;
-                    
-                    coinEl.style.transform = `rotateY(${totalRotation}deg)`;
-                    
-                    setTimeout(() => {
-                        resultText.innerText = `RESULTADO: ${isCara ? 'CARA' : 'COROA'}!`;
-                        resultText.classList.add('text-amber-400');
-                        document.getElementById('coin-winner-buttons').classList.remove('hidden');
-                        document.getElementById('coin-winner-buttons').classList.add('flex');
-                    }, 5000); // Exatos 5 segundos do CSS transition
-                }, 50);
-            }
-        }
-
-        // ================= FUNÇÕES DA PARTIDA E ATUALIZAÇÃO (Fix Historico) =================
-        function updateCloneStats(id, stat, inc) {
-            const p = state.players.find(x => x.id === id);
-            if(p) p[stat] += inc;
-            state.teams.forEach(team => {
-                const pt = team.find(x => x.id === id);
-                if(pt) pt[stat] += inc;
-            });
-            const pw = state.waitlist.find(x => x.id === id);
-            if(pw) pw[stat] += inc;
-        }
-
-        function toggleTimer() {
-            if(state.match.timerRunning) {
-                clearInterval(state.match.interval);
-                state.match.timerRunning = false;
-                document.getElementById('timer-icon').className = "fa-solid fa-play";
-                document.getElementById('timer-btn-text').innerText = "Continuar";
+        window.acaoMeuPerfil = () => {
+            if (meuNome) {
+                window.abrirAuditModal(meuNome);
             } else {
-                state.match.timerRunning = true;
-                document.getElementById('timer-icon').className = "fa-solid fa-pause";
-                document.getElementById('timer-btn-text').innerText = "Pausar";
-                state.match.interval = setInterval(() => {
-                    if(state.match.timerSeconds > 0) {
-                        state.match.timerSeconds--;
-                        updateTimerDisplay();
-                        checkGoalLimit();
-                        if(state.match.timerSeconds === 0) {
-                            clearInterval(state.match.interval);
-                            state.match.timerRunning = false;
-                            playBuzzer();
-                            handleTimeUp();
-                        }
-                    }
-                }, 1000);
-            }
-        }
-
-        function resetTimer() {
-            if(state.match.interval) clearInterval(state.match.interval);
-            state.match.timerRunning = false;
-            state.match.timerSeconds = state.match.initialSeconds;
-            document.getElementById('timer-icon').className = "fa-solid fa-play";
-            document.getElementById('timer-btn-text').innerText = "Iniciar Timer";
-            updateTimerDisplay();
-        }
-
-        function updateTimerDisplay() {
-            const mins = Math.floor(state.match.timerSeconds / 60);
-            const secs = state.match.timerSeconds % 60;
-            document.getElementById('match-timer-display').innerText = String(mins).padStart(2, '0') + ":" + String(secs).padStart(2, '0');
-        }
-
-        function checkGoalLimit() {
-            const limit = state.match.goalLimit;
-            if(state.match.scoreA >= limit || state.match.scoreB >= limit) {
-                if(state.match.timerRunning) {
-                    clearInterval(state.match.interval);
-                    state.match.timerRunning = false;
-                }
-                playBuzzer();
-                finishMatch(state.match.scoreA > state.match.scoreB ? 'A' : (state.match.scoreB > state.match.scoreA ? 'B' : 'draw'));
-            }
-        }
-
-        function addGoal(teamName) {
-            saveStateToHistory();
-            if(teamName === 'A') state.match.scoreA++;
-            else state.match.scoreB++;
-            renderAll();
-            checkGoalLimit();
-        }
-
-        function recordStat(playerId, type) {
-            saveStateToHistory();
-            updateCloneStats(playerId, type === 'goal' ? 'goals' : 'assists', 1);
-            renderAll();
-        }
-
-        function openMatchSettings() {
-            document.getElementById('setting-match-duration').value = state.match.durationMinutes;
-            document.getElementById('setting-goal-limit').value = state.match.goalLimit;
-            document.getElementById('setting-tie-breaker').value = state.match.tieBreaker;
-            document.getElementById('modal-match-settings').classList.remove('hidden');
-        }
-        function closeMatchSettings() { document.getElementById('modal-match-settings').classList.add('hidden'); }
-        function saveMatchSettings() {
-            saveStateToHistory();
-            state.match.durationMinutes = parseInt(document.getElementById('setting-match-duration').value) || 10;
-            state.match.goalLimit = parseInt(document.getElementById('setting-goal-limit').value) || 2;
-            state.match.tieBreaker = document.getElementById('setting-tie-breaker').value;
-            state.match.initialSeconds = state.match.durationMinutes * 60;
-            state.match.timerSeconds = state.match.initialSeconds;
-            updateTimerDisplay();
-            closeMatchSettings();
-            alert("Configurações salvas!");
-        }
-
-        function handleTimeUp() {
-            if(state.match.scoreA > state.match.scoreB) finishMatch('A');
-            else if(state.match.scoreB > state.match.scoreA) finishMatch('B');
-            else {
-                const method = state.match.tieBreaker;
-                if(method === 'coin') { openContinuousCoinToss(); }
-                else if(method === 'corner') {
-                    const winner = confirm("Empate! Time 1 fez o primeiro escanteio? (OK = Time 1, Cancelar = Time 2)") ? 'A' : 'B';
-                    finishMatch(winner);
-                }
-                else if(method === 'extratime') {
-                    alert("Empate! Adicionando 3 minutos extras de prorrogação.");
-                    state.match.timerSeconds = 180;
-                    toggleTimer();
-                }
-                else if(method === 'bothout') {
-                    alert("Empate! Ambos os times saem de campo.");
-                    finishMatch('draw');
-                }
-                else if(method === 'goldengol') {
-                    alert("Empate! Gol de Ouro ativado.");
-                    state.match.goalLimit = Math.max(state.match.scoreA, state.match.scoreB) + 1;
-                    state.match.timerSeconds = 300;
-                    toggleTimer();
-                }
-            }
-        }
-
-        function finishMatch(winner) {
-            saveStateToHistory();
-            const t1 = state.teams[0];
-            const t2 = state.teams[1];
-
-            // Add matches played
-            if(t1) t1.forEach(p => updateCloneStats(p.id, 'matchesPlayed', 1));
-            if(t2) t2.forEach(p => updateCloneStats(p.id, 'matchesPlayed', 1));
-
-            if(winner === 'A' && t1) t1.forEach(p => updateCloneStats(p.id, 'wins', 1));
-            else if(winner === 'B' && t2) t2.forEach(p => updateCloneStats(p.id, 'wins', 1));
-
-            // Rotação: Vencedor fica, Perdedor vai pro final da fila de times
-            if(state.teams.length > 2) {
-                if(winner === 'A') {
-                    // Time 2 perdeu
-                    const loser = state.teams.splice(1, 1)[0];
-                    state.teams.push(loser);
-                } else if(winner === 'B') {
-                    // Time 1 perdeu
-                    const loser = state.teams.splice(0, 1)[0];
-                    state.teams.push(loser);
-                } else {
-                    // Empate - Ambos vão pro fim se for "bothout", ou regras normais
-                    if (state.match.tieBreaker === 'bothout') {
-                        state.teams.push(state.teams.shift());
-                        state.teams.push(state.teams.shift());
-                    }
-                }
-            }
-
-            state.match.scoreA = 0;
-            state.match.scoreB = 0;
-            resetTimer();
-
-            renderAll();
-            switchTab('draft');
-            alert(`Partida encerrada! Vencedor: ${winner === 'A' ? 'Time 1' : (winner === 'B' ? 'Time 2' : 'Empate (ambos saíram)')}`);
-        }
-
-        // ================= RENDERS =================
-        function getTeamAverage(team) {
-            if(team.length === 0) return 0;
-            return (team.reduce((sum, p) => sum + p.stars, 0) / team.length).toFixed(1);
-        }
-
-        function renderAll() {
-            renderParticipants();
-            renderDraftScreen();
-            renderMatchScreen();
-            renderRankings();
-        }
-
-        function renderParticipants() {
-            const container = document.getElementById('participants-list-container');
-            document.getElementById('player-count-badge').innerText = state.players.length + ' jogadores';
-            
-            if(state.players.length === 0) {
-                container.innerHTML = `<div class="p-6 text-center text-xs text-slate-500">Nenhum participante cadastrado ainda.</div>`;
-                return;
-            }
-
-            container.innerHTML = state.players.map(p => `
-                <div class="p-3 flex items-center justify-between hover:bg-slate-800/50 transition">
-                    <div class="flex items-center space-x-3 cursor-pointer" onclick="openEditPlayerModal('${p.id}')">
-                        <button onclick="event.stopPropagation(); togglePlayerActive('${p.id}')" class="w-6 h-6 rounded-full flex items-center justify-center text-xs ${p.active ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-500'}" title="${p.active ? 'Ativo' : 'Inativo'}">
-                            <i class="fa-solid fa-power-off text-[10px]"></i>
-                        </button>
-                        <div>
-                            <span class="text-sm font-bold text-white hover:text-emerald-400 transition">${p.name}</span>
-                            <div class="text-xs text-amber-400">${'★'.repeat(p.stars)}${'☆'.repeat(5 - p.stars)}</div>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-[11px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded">${p.matchesPlayed} jogos</span>
-                        <button onclick="removePlayer('${p.id}')" class="text-slate-500 hover:text-red-400 p-1.5 transition"><i class="fa-solid fa-trash text-xs"></i></button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function renderDraftScreen() {
-            const area = document.getElementById('teams-display-area');
-            if(!state.match.hasDrafted || state.teams.length === 0) {
-                area.innerHTML = `
-                    <div class="bg-slate-900 p-8 rounded-xl border border-slate-800 text-center space-y-3">
-                        <i class="fa-solid fa-people-group text-4xl text-slate-600"></i>
-                        <h3 class="text-sm font-bold text-white">Nenhum time sorteado ainda</h3>
-                        <p class="text-xs text-slate-400 max-w-sm mx-auto">Clique em "Sortear Times" acima para balancear os jogadores e gerar as filas.</p>
-                    </div>`;
-                return;
-            }
-
-            const teamColors = [
-                { text: 'text-emerald-400', border: 'border-emerald-500/30', bgBtn: 'bg-emerald-500' },
-                { text: 'text-cyan-400', border: 'border-cyan-500/30', bgBtn: 'bg-cyan-500' },
-                { text: 'text-purple-400', border: 'border-purple-500/30', bgBtn: 'bg-slate-700' },
-                { text: 'text-amber-400', border: 'border-amber-500/30', bgBtn: 'bg-slate-700' }
-            ];
-
-            let html = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">`;
-            
-            state.teams.forEach((team, idx) => {
-                const color = teamColors[idx % teamColors.length];
-                const isPlaying = idx < 2;
-                const statusBadge = isPlaying ? `<p class="text-[10px] text-slate-400">Titulares em campo</p>` : `<p class="text-[10px] text-amber-400">Aguardando na fila...</p>`;
+                const all = [
+                    ...(game.timeA || []), 
+                    ...(game.timeB || []), 
+                    ...(game.esperaGeral || []), 
+                    ...(game.esperaEstrela || [])
+                ].sort((a,b) => a.nome.localeCompare(b.nome));
                 
-                const actionBtn = isPlaying 
-                    ? `<button onclick="switchTab('match')" class="${color.bgBtn} text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg shadow transition active:scale-95"><i class="fa-solid fa-play mr-1"></i> Partida</button>`
-                    : `<span class="bg-slate-800 text-slate-400 text-[10px] font-bold px-2 py-1 rounded border border-slate-700">Na Fila</span>`;
+                const opt = `<option value="" disabled selected>- Selecione seu nome -</option>` + all.map(p => {
+                    const status = p.bloqueado ? ' (Bloqueado)' : '';
+                    return `<option value="${p.nome}">${p.nome}${status}</option>`;
+                }).join(''); 
+                
+                document.getElementById('selMeuNome').innerHTML = opt;
+                document.getElementById('modalIdentificacao').classList.remove('hidden');
+            }
+        };
 
-                html += `
-                    <div class="bg-slate-900 p-4 rounded-xl border ${color.border} space-y-3 shadow-lg flex flex-col">
-                        <div class="flex justify-between items-center pb-2 border-b border-slate-800">
-                            <div>
-                                <h3 class="font-bold text-sm ${color.text}">Time ${idx + 1} <span class="text-xs text-slate-500 ml-1">(${getTeamAverage(team)}★)</span></h3>
-                                ${statusBadge}
-                            </div>
-                            ${actionBtn}
-                        </div>
-                        <div class="space-y-1.5 flex-1 overflow-y-auto max-h-[300px]">
-                            ${team.map(p => `
-                                <div class="bg-slate-950 p-2 rounded-lg flex justify-between items-center text-xs border border-slate-800">
-                                    <div class="flex items-center space-x-2">
-                                        <span class="font-semibold text-white">${p.name}</span>
-                                        <span class="text-amber-400 text-[10px]">${'★'.repeat(p.stars)}</span>
-                                    </div>
-                                    <button onclick="triggerSubstitution(${idx}, '${p.id}')" class="text-slate-400 hover:text-amber-400 p-1" title="Substituir por Sorteio">
-                                        <i class="fa-solid fa-user-slash text-xs"></i>
-                                    </button>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            });
-            html += `</div>`;
+        window.verificarBloqueioSelect = () => {
+            const sel = document.getElementById('selMeuNome');
+            const btnLib = document.getElementById('btnConfirmarLiberar');
+            if(sel.options[sel.selectedIndex].text.includes('(Bloqueado)')) {
+                btnLib.classList.remove('hidden');
+            } else {
+                btnLib.classList.add('hidden');
+            }
+        };
 
-            // Waitlist avulsa
-            html += `
-                <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-3 mt-4">
-                    <h3 class="text-xs uppercase font-bold text-slate-400 tracking-wider"><i class="fa-solid fa-user-clock mr-1"></i> Banco de Reservas (Avulsos)</h3>
-                    <div class="divide-y divide-slate-800 max-h-[150px] overflow-y-auto">
-                        ${state.waitlist.length === 0 ? '<div class="text-xs text-slate-500 py-3 text-center">Nenhum jogador avulso na reserva.</div>' : 
-                            state.waitlist.map((p, idx) => `
-                                <div class="py-2 flex justify-between items-center text-xs">
-                                    <div class="flex items-center space-x-2">
-                                        <span class="text-slate-500 font-mono font-bold">${idx + 1}º</span>
-                                        <span class="font-semibold text-white">${p.name}</span>
-                                        <span class="text-amber-400">${'★'.repeat(p.stars)}</span>
-                                    </div>
-                                    <span class="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded">${p.matchesPlayed} jogos</span>
-                                </div>
-                            `).join('')}
-                    </div>
-                </div>
-            `;
-            
-            area.innerHTML = html;
-        }
+        // Modificado: O gerenciador de histórico agora aceita o escopo ('atual' ou 'retroativo')
+        window.abrirHistoricoModal = (modo) => {
+            modoHistoricoVisivel = modo;
+            const titleEl = document.getElementById('tituloModalHistorico');
+            const subPartidasEl = document.getElementById('labelSubtituloPartidas');
+            const seletorContainer = document.getElementById('seletorDiaHistoricoContainer');
+            const wrapperRank = document.getElementById('wrapperRankingRetroativo');
+            const wrapperHall = document.getElementById('wrapperHallRetroativo');
 
-        function renderMatchScreen() {
-            document.getElementById('score-a').innerText = state.match.scoreA;
-            document.getElementById('score-b').innerText = state.match.scoreB;
+            if (modo === 'atual') {
+                titleEl.innerText = "Partidas de Hoje";
+                subPartidasEl.innerText = "📋 Rodadas em Andamento";
+                seletorContainer.classList.add('hidden');
+                wrapperRank.classList.add('hidden');
+                wrapperHall.classList.add('hidden');
+                
+                // Renderiza direto as partidas do dia ativo atual
+                window.renderizarListaPartidasEstatica(game.historicoPartidas || []);
+            } else {
+                titleEl.innerText = "Dias Anteriores";
+                subPartidasEl.innerText = "📋 Partidas Realizadas";
+                seletorContainer.classList.remove('hidden');
+                wrapperRank.classList.remove('hidden');
+                wrapperHall.classList.remove('hidden');
 
-            const boxA = document.getElementById('match-players-a');
-            const boxB = document.getElementById('match-players-b');
+                const selDia = document.getElementById('selHistoricoDia');
+                if (!game.historicoDias || game.historicoDias.length === 0) {
+                    selDia.innerHTML = '<option value="">Nenhum dia fechado disponível</option>';
+                    document.getElementById('listaHistoricoContainer').innerHTML = '<div class="text-center text-slate-500 text-xs italic py-6">Sem registros de dias anteriores.</div>';
+                    document.getElementById('rankingHistoricoContainer').innerHTML = '';
+                    document.getElementById('hallHistoricoContainer').innerHTML = '';
+                } else {
+                    selDia.innerHTML = game.historicoDias.map((d, index) => `<option value="${index}">${d.data}</option>`).join('');
+                    window.carregarDadosDiaHistorico();
+                }
+            }
+            document.getElementById('modalHistorico').classList.remove('hidden');
+        };
 
-            if(!state.match.hasDrafted || state.teams.length < 2) {
-                boxA.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Gere o sorteio primeiro.</div>';
-                boxB.innerHTML = '<div class="text-xs text-slate-500 text-center py-4">Gere o sorteio primeiro.</div>';
+        // Adicionado: Função auxiliar modular para desenhar cards de partida clicáveis no histórico
+        window.renderizarListaPartidasEstatica = (partidasPool, diaIdx = null) => {
+            const containerPartidas = document.getElementById('listaHistoricoContainer');
+            if (!partidasPool || partidasPool.length === 0) {
+                containerPartidas.innerHTML = '<div class="text-slate-500 text-[10px] italic py-4 text-center">Nenhuma partida gravada neste período.</div>';
                 return;
             }
 
-            // Always render team 0 and team 1 on the match screen
-            const generatePlayerHTML = (p, teamIdx, teamLetter) => {
-                // Buscamos a versão mais atualizada dos status usando o ID centralizado
-                const freshP = state.players.find(x => x.id === p.id) || p;
+            containerPartidas.innerHTML = partidasPool.map(p => {
+                const acaoClick = diaIdx !== null 
+                    ? `window.abrirDetalhePartidaRetroativo('${diaIdx}', ${p.id})`
+                    : `window.abrirDetalhePartidaAtiva(${p.id})`;
+
                 return `
-                <div class="bg-slate-950 p-2 rounded-lg flex justify-between items-center text-xs border border-slate-800">
-                    <div>
-                        <span class="font-bold text-white">${freshP.name}</span>
-                        <div class="text-[10px] text-slate-400">Gols: ${freshP.goals} | Assist.: ${freshP.assists}</div>
-                    </div>
-                    <div class="flex items-center space-x-1">
-                        <button onclick="recordStat('${freshP.id}', 'goal')" class="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded text-[10px] font-bold">+ Gol</button>
-                        <button onclick="recordStat('${freshP.id}', 'assist')" class="bg-cyan-500/20 text-cyan-400 px-2 py-1 rounded text-[10px] font-bold">+ Assist.</button>
-                        <button onclick="triggerSubstitution(${teamIdx}, '${freshP.id}')" class="text-slate-400 hover:text-amber-400 p-1 ml-1" title="Substituir"><i class="fa-solid fa-user-slash"></i></button>
-                    </div>
-                </div>
-            `};
-
-            boxA.innerHTML = state.teams[0].map(p => generatePlayerHTML(p, 0, 'A')).join('');
-            boxB.innerHTML = state.teams[1].map(p => generatePlayerHTML(p, 1, 'B')).join('');
-        }
-
-        function renderRankings() {
-            const sortedGoals = [...state.players].sort((a,b) => b.goals - a.goals);
-            const sortedAssists = [...state.players].sort((a,b) => b.assists - a.assists);
-            const sortedWins = [...state.players].sort((a,b) => b.wins - a.wins);
-
-            renderRankingList('ranking-goals', sortedGoals, 'goals');
-            renderRankingList('ranking-assists', sortedAssists, 'assists');
-            renderRankingList('ranking-wins', sortedWins, 'wins');
-        }
-
-        function renderRankingList(elementId, list, key) {
-            const container = document.getElementById(elementId);
-            if(list.length === 0 || list.every(p => p[key] === 0)) {
-                container.innerHTML = `<div class="p-3 text-xs text-slate-500 text-center">Sem dados registrados.</div>`;
-                return;
-            }
-            let rank = 1, lastVal = null;
-            container.innerHTML = list.map((p, idx) => {
-                if(p[key] === 0) return '';
-                if(idx === 0) { rank = 1; lastVal = p[key]; } 
-                else if(p[key] < lastVal) { rank = idx + 1; lastVal = p[key]; }
-                return `
-                    <div class="py-2 flex justify-between items-center text-xs">
-                        <div class="flex items-center space-x-2">
-                            <span class="font-bold text-amber-400 w-5">${rank}º</span>
-                            <span class="font-semibold text-white">${p.name}</span>
+                    <div class="bg-slate-700/40 p-3 rounded-xl border border-slate-600 cursor-pointer hover:bg-slate-700 transition shadow-sm" onclick="${acaoClick}">
+                        <div class="flex justify-between items-center mb-2 pb-1 border-b border-slate-600/30">
+                            <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-slate-800 ${p.vencedor === 'A' ? 'text-blue-400' : 'text-orange-400'}">Vitória Time ${p.vencedor}</span>
+                            <span class="text-xl font-black text-white">${p.scoreA} x ${p.scoreB}</span>
                         </div>
-                        <span class="font-mono font-bold text-slate-300">${p[key]}</span>
+                        <div class="flex justify-between text-[8px] font-bold text-slate-400 uppercase">
+                            <div class="w-1/2">${p.timeA.join(', ')}</div>
+                            <div class="w-1/2 text-right border-l border-slate-600 pl-1">${p.timeB.join(', ')}</div>
+                        </div>
                     </div>
                 `;
             }).join('');
+        };
+
+        window.carregarDadosDiaHistorico = () => {
+            if (modoHistoricoVisivel !== 'retroativo') return;
+            const idx = document.getElementById('selHistoricoDia').value;
+            if (idx === "") return;
+            const diaSnapshot = game.historicoDias[idx];
+            
+            // Renderiza as partidas usando a função modular unificada
+            window.renderizarListaPartidasEstatica(diaSnapshot.partidas || [], idx);
+
+            const rkContainer = document.getElementById('rankingHistoricoContainer');
+            const rkFechado = Object.entries(diaSnapshot.rankingFinal || {}).map(([n, s]) => {
+                const score = calcularScoreComPesos(s);
+                return { n, ...s, score: parseFloat(score) };
+            }).filter(x => x.score > 0).sort((a,b) => b.score - a.score);
+
+            if (rkFechado.length === 0) {
+                rkContainer.innerHTML = '<div class="text-slate-500 italic py-1">[Nenhum score computado]</div>';
+            } else {
+                rkContainer.innerHTML = rkFechado.map((j, i) => `
+                    <div class="flex justify-between bg-slate-900/60 p-2 rounded mb-1">
+                        <span><span class="text-slate-500 mr-2">${i+1}</span> ${j.estrela?'⭐ ':''}${j.elite?'💎 ':''}${j.n}</span>
+                        <span class="text-orange-500 font-bold">${j.score}</span>
+                    </div>
+                `).join('');
+            }
+
+            const hallContainer = document.getElementById('hallHistoricoContainer');
+            const cats = [
+                {t:"Top Score",i:"🏆",f:p=>p.score},
+                {t:"Matador",i:"🔥",f:p=>p.ptsAtaque || 0},
+                {t:"Paredão",i:"🚫",f:p=>p.ptsBloqueio || 0},
+                {t:"Ace",i:"⚡",f:p=>p.ptsAce || 0}
+            ];
+
+            hallContainer.innerHTML = cats.map(c => {
+                const sortG = [...rkFechado.filter(x=>!x.estrela)].sort((a,b)=>c.f(b)-c.f(a));
+                const sortE = [...rkFechado.filter(x=>x.estrela)].sort((a,b)=>c.f(b)-c.f(a));
+                const maxG = sortG.length ? c.f(sortG[0]) : 0;
+                const maxE = sortE.length ? c.f(sortE[0]) : 0;
+                if(maxG === 0 && maxE === 0) return '';
+                const winG = sortG.filter(p => c.f(p) === maxG).map(p => p.n).join(', ');
+                const winE = sortE.filter(p => c.f(p) === maxE).map(p => p.n).join(', ');
+
+                return `
+                    <div class="bg-slate-900/40 p-2 rounded border border-slate-700/60 text-[10px]">
+                        <div class="text-slate-400 font-black uppercase mb-1">${c.i} ${c.t}</div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between bg-slate-800/50 p-1 rounded">
+                                <span class="truncate text-orange-400 font-bold w-3/4">Geral: ${maxG > 0 ? winG : '-'}</span>
+                                <span class="font-bold">${maxG > 0 ? maxG : ''}</span>
+                            </div>
+                            <div class="flex justify-between bg-slate-800/50 p-1 rounded">
+                                <span class="truncate text-orange-400 font-bold w-3/4">Estrelas: ${maxE > 0 ? winE : '-'}</span>
+                                <span class="font-bold">${maxE > 0 ? maxE : ''}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        window.abrirDetalhePartidaRetroativo = (diaIdx, matchId) => {
+            const diaSnapshot = game.historicoDias[diaIdx];
+            if (!diaSnapshot) return;
+            const p = diaSnapshot.partidas.find(x => x.id === matchId);
+            if (!p) return;
+            window.abrirDetalhePartida(p.id, diaSnapshot.partidas);
+        };
+
+        // Adicionado: Permite detalhar uma rodada que aconteceu hoje em tempo de execução
+        window.abrirDetalhePartidaAtiva = (matchId) => {
+            window.abrirDetalhePartida(matchId, game.historicoPartidas || []);
+        };
+
+        window.abrirDetalhePartida = (id, pool = game.historicoPartidas) => {
+            const p = pool.find(x => x.id === id);
+            if (!p) return;
+            
+            document.getElementById('detalhePartidaScore').innerHTML = `
+                <div class="text-center w-2/5">
+                    <div class="text-[9px] text-blue-500 font-black mb-1 uppercase">Time A</div>
+                    <div class="text-4xl font-black text-white leading-none">${p.scoreA}</div>
+                    <div class="text-[9px] uppercase font-bold text-blue-300/70 mt-2 leading-tight">${p.timeA.join('<br>')}</div>
+                </div>
+                <div class="text-slate-600 font-black italic text-xl">VS</div>
+                <div class="text-center w-2/5">
+                    <div class="text-[9px] text-orange-500 font-black mb-1 uppercase">Time B</div>
+                    <div class="text-4xl font-black text-white leading-none">${p.scoreB}</div>
+                    <div class="text-[9px] uppercase font-bold text-orange-300/70 mt-2 leading-tight">${p.timeB.join('<br>')}</div>
+                </div>
+            `;
+            
+            document.getElementById('detalhePartidaLog').innerHTML = p.log && p.log.length > 0 
+                ? p.log.map(l => `<div class="log-item log-${l.type}">${l.text}</div>`).join('') 
+                : '<div class="text-center text-slate-500 text-[10px] italic py-4">Sem detalhes de pontuação salvos.</div>';
+                
+            document.getElementById('modalDetalhePartida').classList.remove('hidden');
+        };
+        
+        window.salvarIdentificacao = (liberar = false) => {
+            const val = document.getElementById('selMeuNome').value;
+            if (val) {
+                meuNome = val;
+                localStorage.setItem('voleihub_meunome', meuNome);
+                
+                if(liberar) {
+                    let list = null;
+                    let p = null;
+                    if (game.esperaGeral.some(x => x.nome === val)) {
+                        list = game.esperaGeral; p = list.find(x => x.nome === val);
+                    } else if (game.esperaEstrela.some(x => x.nome === val)) {
+                        list = game.esperaEstrela; p = list.find(x => x.nome === val);
+                    }
+                    
+                    if (p && p.bloqueado) {
+                        p.bloqueado = false;
+                        p.unlockedAt = Date.now();
+                        list.splice(list.indexOf(p), 1);
+                        let novaPos = 0;
+                        for (let i = 0; i < list.length; i++) {
+                            const stats = game.ranking[list[i].nome];
+                            const jogos = stats ? (stats.v + stats.d) : 0;
+                            if (jogos === 0) novaPos = i + 1;
+                            else break;
+                        }
+                        list.splice(novaPos, 0, p);
+                        salvarState(); 
+                    }
+                }
+                window.fecharModais();
+                render();
+            } else {
+                alert("Selecione um nome na lista!");
+            }
+        };
+
+        window.addESalvarIdentificacao = () => {
+            const n = document.getElementById('novoMeuNome').value.toUpperCase().trim(); 
+            if(!n) return; 
+            adicionarLocal(n, false); 
+            salvarState();
+            meuNome = n;
+            localStorage.setItem('voleihub_meunome', meuNome);
+            document.getElementById('novoMeuNome').value = '';
+            window.fecharModais();
+            render();
+            alert(`Bem-vindo, ${n}!`);
+        };
+
+        window.deslogarIdentidade = () => {
+            meuNome = '';
+            localStorage.removeItem('voleihub_meunome');
+            window.fecharModais();
+            render();
+        };
+        
+        let filaTab = 'geral';
+        let rkTab = 'tudo';
+        let modalCtx = { lado: '', idx: 0 };
+        let sortables = [];
+        let lastMsgTs = 0;
+        let lastAnimTs = 0;
+        let lastEndGameTs = 0;
+        let lastSoundTs = 0; 
+        let lastVoiceTs = Date.now();
+
+        onValue(gameRef, (snapshot) => {
+            const data = snapshot.val();
+            if(data) {
+                game = { 
+                    ...data, 
+                    timeA: data.timeA || [], timeB: data.timeB || [], 
+                    esperaGeral: data.esperaGeral || [], esperaEstrela: data.esperaEstrela || [], 
+                    ranking: data.ranking || {}, restricoes: data.restricoes || [],
+                    historicoPartidas: data.historicoPartidas || [],
+                    historicoDias: data.historicoDias || [],
+                    systemMsg: data.systemMsg || { text:"AGUARDANDO", sub:"...", ts: 0 }, 
+                    matchLog: data.matchLog || [], 
+                    lastAnim: data.lastAnim || { ts: 0 }, 
+                    lastVoice: data.lastVoice || { text: "", ts: 0 },
+                    endGameAnim: data.endGameAnim || { active: false, ts: 0 }, 
+                    nextGameReason: data.nextGameReason || 'default', 
+                    publicRanking: data.publicRanking || false, 
+                    requests: data.requests || [], deniedRequests: data.deniedRequests || [], 
+                    currentMatchStats: data.currentMatchStats || {},
+                    soundTrigger: data.soundTrigger || 0,
+                    weights: { ...game.weights, ...(data.weights || {}) },
+                    diaIniciado: typeof data.diaIniciado !== 'undefined' ? data.diaIniciado : true
+                };
+                ensureRankingConsistency();
+                render();
+                
+                // Atualiza em tempo real o modal aberto se for do dia corrente
+                if (document.getElementById('modalHistorico').classList.contains('hidden') === false && modoHistoricoVisivel === 'atual') {
+                    window.renderizarListaPartidasEstatica(game.historicoPartidas || []);
+                }
+            } else { initGameData(); }
+        });
+
+        function ensureRankingConsistency() {
+            const allPlayers = [...game.esperaGeral, ...game.esperaEstrela, ...game.timeA, ...game.timeB];
+            allPlayers.forEach(p => { 
+                if (typeof p.elite === 'undefined') {
+                    p.elite = INITIAL_ELITE.includes(p.nome);
+                }
+                if(!game.ranking[p.nome]) {
+                    game.ranking[p.nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: p.estrela, elite: p.elite };
+                }
+                if(typeof game.ranking[p.nome].ptsAcertoTime === 'undefined') game.ranking[p.nome].ptsAcertoTime = 0;
+                if(typeof game.ranking[p.nome].elite === 'undefined') game.ranking[p.nome].elite = p.elite;
+            });
         }
 
-        window.onload = function() {
-            updateStarPreview(5);
-            updateEditStarPreview(5);
-            renderAll();
+        function initGameData() {
+            game.esperaGeral = []; game.esperaEstrela = [];
+            game.historicoDias = [];
+            game.diaIniciado = true;
+            
+            INITIAL_GERAL.forEach(n => adicionarLocal(n, false));
+            INITIAL_ESTRELA.forEach(n => adicionarLocal(n, true));
+            INITIAL_ELITE.forEach(n => adicionarLocal(n, false));
+
+            const all = [...game.esperaGeral, ...game.esperaEstrela];
+            game.restricoes = [];
+            DEFAULT_RESTRICTIONS.forEach(pair => { 
+                const p1 = all.find(p => p.nome === pair[0]); 
+                const p2 = all.find(p => p.nome === pair[1]); 
+                if(p1 && p2) game.restricoes.push([p1.id, p2.id]); 
+            });
+            
+            game.esperaGeral.forEach(p => p.bloqueado = true);
+            game.esperaEstrela.forEach(p => p.bloqueado = true);
+            
+            game.partidaAtiva = true; 
+            game.saqueLado = 'A'; 
+            game.jaSacouA = true; 
+            game.jaSacouB = false;
+
+            salvarState();
+        }
+
+        function adicionarLocal(nome, isEstrela) {
+            const id = Math.random().toString(36).substr(2, 9);
+            const isElite = INITIAL_ELITE.includes(nome); 
+            const obj = { id, nome, estrela: isEstrela, elite: isElite, bloqueado: false };
+            if(!game.ranking[nome]) game.ranking[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: isEstrela, elite: isElite };
+            const lista = isEstrela ? game.esperaEstrela : game.esperaGeral;
+            let idx = 0;
+            for(let i=0; i<lista.length; i++) { const s = game.ranking[lista[i].nome]; if(s && (s.v + s.d) === 0) idx = i + 1; }
+            lista.splice(idx, 0, obj);
+        }
+
+        function salvarState(pushHist = false) {
+            if(pushHist && isAdmin) { historicoLocal.push(JSON.stringify(game)); if(historicoLocal.length > 10) historicoLocal.shift(); }
+            set(gameRef, game);
+        }
+
+        window.limparSistema = () => {
+            if(confirm("⚠️ RESETAR PARA PADRÃO DE FÁBRICA? Isso apagará todo o histórico e jogadores adicionados.")) {
+                game.timeA = []; game.timeB = [];
+                game.partidaAtiva = true; game.setupLocked = true; 
+                game.scoreA = 0; game.scoreB = 0;
+                game.winsConsecA = 0; game.winsConsecB = 0;
+                game.ranking = {}; 
+                game.matchLog = [];
+                game.historicoPartidas = [];
+                game.historicoDias = [];
+                game.diaIniciado = true;
+                historicoLocal = []; 
+                game.nextGameReason = 'default';
+                game.publicRanking = false;
+                game.currentMatchStats = {};
+                game.requests = []; game.deniedRequests = [];
+                game.config = { size: 4, stars: 1, elites: 2, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' },
+                game.weights = { atqG: 1.0, blqG: 1.25, aceG: 1.5, atqE: 1.5, blqE: 2.0, aceE: 2.0, err: 0.10, vit: 3.0, wTeam: 0.25 };
+                
+                initGameData(); 
+                setSystemMessage("SISTEMA REINICIADO", "Configurações Padrão Restauradas", false);
+                window.fecharModais(); 
+                render();
+            }
         };
+
+        window.adminTriggerWhistle = () => {
+            if(!isAdmin) return;
+            game.soundTrigger = Date.now();
+            salvarState();
+        };
+
+        function checkAndPlaySound() {
+            if(game.soundTrigger > lastSoundTs) {
+                lastSoundTs = game.soundTrigger;
+                tocarApitoRealista();
+            }
+            if(game.endGameAnim && game.endGameAnim.ts > lastEndGameTs) {
+                tocarApitoRealista();
+            }
+        }
+
+        function setSystemMessage(title, sub, streak) { game.systemMsg = { text: title, sub: sub, streak: streak, ts: Date.now() }; }
+        function addToLog(text, type) { const entry = { text, type, ts: Date.now() }; game.matchLog.unshift(entry); if(game.matchLog.length > 40) game.matchLog.pop(); }
+        function triggerEmoji(type) { game.lastAnim = { type: type, ts: Date.now() }; }
+        function showEndGameOverlay() { game.endGameAnim = { active: true, ts: Date.now() }; }
+
+        window.mudarFiltroPeriodo = () => {
+            filtroPeriodoAtual = document.getElementById('filtroPeriodoRanking').value;
+            render();
+        };
+
+    window.processarRankingComFiltroTemporal = (periodo, incluirAtual = true) => {
+            // Começa com um objeto vazio para evitar herança de lixo de memória
+            let rankingConsolidado = {};
+
+            // 1. Se incluirAtual for true, iniciamos com o dia atual
+            if (incluirAtual && game.ranking) {
+                rankingConsolidado = JSON.parse(JSON.stringify(game.ranking));
+            }
+
+            // 2. Define quantos eventos puxar
+            let qtdParaSomar = 0;
+            if (periodo === '3') qtdParaSomar = 2; // Atual + 2 anteriores = 3
+            else if (periodo === '5') qtdParaSomar = 4;
+            else if (periodo === '10') qtdParaSomar = 9;
+            else if (periodo === 'tudo') qtdParaSomar = game.historicoDias ? game.historicoDias.length : 0;
+
+            // 3. Soma apenas se necessário
+            if (game.historicoDias && qtdParaSomar > 0) {
+                const eventosFiltrados = game.historicoDias.slice(0, qtdParaSomar);
+                
+                eventosFiltrados.forEach(evento => {
+                    if (!evento.rankingFinal) return;
+                    
+                    Object.entries(evento.rankingFinal).forEach(([nome, stats]) => {
+                        if (!rankingConsolidado[nome]) {
+                            // Se o jogador não existe no acumulado, inicia do zero
+                            rankingConsolidado[nome] = { v: 0, d: 0, ptsAtaque: 0, ptsBloqueio: 0, ptsAce: 0, ptsErroAdversario: 0, ptsAcertoTime: 0, estrela: stats.estrela, elite: stats.elite };
+                        }
+                        // Acumula os valores
+                        rankingConsolidado[nome].v += (stats.v || 0);
+                        rankingConsolidado[nome].d += (stats.d || 0);
+                        rankingConsolidado[nome].ptsAtaque += (stats.ptsAtaque || 0);
+                        rankingConsolidado[nome].ptsBloqueio += (stats.ptsBloqueio || 0);
+                        rankingConsolidado[nome].ptsAce += (stats.ptsAce || 0);
+                        rankingConsolidado[nome].ptsErroAdversario += (stats.ptsErroAdversario || 0);
+                        rankingConsolidado[nome].ptsAcertoTime += (stats.ptsAcertoTime || 0);
+                    });
+                });
+            }
+
+            return rankingConsolidado;
+        };
+
+        function calcularContagemInsigniasHall(nomeJogador) {
+            let conquistas = { topScore: 0, matador: 0, paredao: 0, ace: 0 };
+            if (!game.historicoDias) return conquistas;
+
+            game.historicoDias.forEach(dia => {
+                const playersDia = Object.entries(dia.rankingFinal || {}).map(([n, s]) => {
+                    const score = calcularScoreComPesos(s);
+                    return { n, ...s, score: parseFloat(score) };
+                }).filter(x => x.score > 0);
+
+                if (playersDia.length === 0) return;
+
+                const maxScore = Math.max(...playersDia.map(p => p.score), 0);
+                const maxAtq = Math.max(...playersDia.map(p => p.ptsAtaque || 0), 0);
+                const maxBlq = Math.max(...playersDia.map(p => p.ptsBloqueio || 0), 0);
+                const maxAce = Math.max(...playersDia.map(p => p.ptsAce || 0), 0);
+
+                if (maxScore > 0 && playersDia.some(p => p.n === nomeJogador && p.score === maxScore)) conquistas.topScore++;
+                if (maxAtq > 0 && playersDia.some(p => p.n === nomeJogador && (p.ptsAtaque || 0) === maxAtq)) conquistas.matador++;
+                if (maxBlq > 0 && playersDia.some(p => p.n === nomeJogador && (p.ptsBloqueio || 0) === maxBlq)) conquistas.paredao++;
+                if (maxAce > 0 && playersDia.some(p => p.n === nomeJogador && (p.ptsAce || 0) === maxAce)) conquistas.ace++;
+            });
+
+            return conquistas;
+        }
+
+        function render() {
+            checkAndPlaySound();
+            
+            if(game.lastVoice && game.lastVoice.ts > lastVoiceTs) {
+                lastVoiceTs = game.lastVoice.ts;
+                narrarPonto(game.lastVoice.text);
+            }
+
+            if(game.endGameAnim && game.endGameAnim.ts > lastEndGameTs) {
+                lastEndGameTs = game.endGameAnim.ts;
+                const overlay = document.getElementById('endgame-overlay');
+                overlay.classList.remove('hidden');
+                setTimeout(() => { overlay.classList.add('hidden'); }, 4000); 
+            }
+
+            if(game.lastAnim && game.lastAnim.ts > lastAnimTs) { lastAnimTs = game.lastAnim.ts; doEmojiExplosion(game.lastAnim.type); }
+            if(game.publicRanking) document.body.classList.add('show-public'); else document.body.classList.remove('show-public');
+
+            const msg = game.systemMsg || { text: "---", sub: "---", streak: false };
+            document.getElementById('msg-title').innerText = msg.text;
+            document.getElementById('msg-sub').innerText = msg.sub;
+            const streakEl = document.getElementById('msg-streak');
+            if(game.systemMsg.streak) streakEl.classList.remove('hidden'); else streakEl.classList.add('hidden');
+
+            const logBox = document.getElementById('match-log-box');
+            logBox.innerHTML = game.matchLog.length ? game.matchLog.map(l => `<div class="log-item log-${l.type}">${l.text}</div>`).join('') : '<div class="text-center text-slate-500 italic py-2">Histórico vazio...</div>';
+
+            const infoPanel = document.getElementById('info-panel');
+            const placarDiv = document.getElementById('placarDisplay');
+            if (game.config.hideScoreboard) {
+                placarDiv.classList.add('hidden'); 
+            } else {
+                placarDiv.classList.remove('hidden'); 
+            }
+            infoPanel.classList.remove('hidden');
+            
+            const bell = document.getElementById('admin-notif-bell');
+            if(isAdmin && game.requests.length > 0) bell.classList.remove('hidden'); else bell.classList.add('hidden');
+
+            document.getElementById('scoreA').innerText = game.scoreA;
+            document.getElementById('scoreB').innerText = game.scoreB;
+            document.getElementById('winsA').innerText = `Sets: ${game.winsConsecA}`;
+            document.getElementById('winsB').innerText = `Sets: ${game.winsConsecB}`;
+
+            const drawTeam = (l) => (l === 'A' ? game.timeA : game.timeB).map((p, i) => `
+                <div class="jogador-card bg-slate-800 p-3 rounded-xl border-l-4 ${l==='A'?'border-l-blue-500':'border-l-orange-500'} ${game.partidaAtiva && game.saqueLado===l && (l==='A'?game.idxA:game.idxB)===i?'sacando':''} ${p.estrela?'is-estrela':''}" onclick="window.abrirPontoTecnico('${l}', ${i})" data-id="${p.id}">
+                    <div class="uppercase font-black text-[10px] truncate"><span class="bola-saque mr-1">🏐</span> ${p.estrela?'⭐ ':''}${p.elite?'💎 ':''}${p.nome}</div>
+                </div>`).join('');
+            document.getElementById('areaA').innerHTML = drawTeam('A');
+            document.getElementById('areaB').innerHTML = drawTeam('B');
+            
+            const sumScore = (team) => team.reduce((acc, p) => acc + parseFloat(getScore(p.nome)), 0).toFixed(2);
+            document.getElementById('labelTimeA').innerText = `TIME A - Score: ${sumScore(game.timeA)}`;
+            document.getElementById('labelTimeB').innerText = `TIME B - Score: ${sumScore(game.timeB)}`;
+
+            const f = filaTab === 'geral' ? game.esperaGeral : game.esperaEstrela;
+            let countLib = 0;
+            document.getElementById('esperaContainer').innerHTML = f.length ? f.map((p, i) => {
+                let dest = "";
+                if(!p.bloqueado && filaTab === 'geral') { countLib++; if(countLib<=3) dest="is-proximo"; }
+                return `<div data-id="${p.id}" class="bg-slate-800 p-3 rounded-xl flex items-center border border-slate-700 ${p.bloqueado ? 'is-bloqueado' : ''} ${dest}">
+                ${isAdmin ? '<div class="drag-handle hover:text-white mr-3 cursor-grab">⠿</div>' : ''}
+                <div onclick="window.abrirEscalacao('${filaTab}', ${i})" class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2 cursor-pointer">${p.estrela ? '⭐ ' : ''}${p.elite ? '💎 ' : ''}${p.nome}</div>
+                </div>`;
+            }).join('') : '<div class="text-center text-slate-600 text-[10px] py-4 italic">Fila vazia...</div>';
+
+            const todos = [...game.timeA, ...game.timeB];
+            const cGeral = game.esperaGeral.filter(j=>!j.bloqueado).length + todos.filter(j=>!j.estrela).length;
+            const cStar = game.esperaEstrela.filter(j=>!j.bloqueado).length + todos.filter(j=>j.estrela).length;
+            document.getElementById('countGeral').innerText = cGeral;
+            document.getElementById('countEstrela').innerText = cStar;
+            document.getElementById('tabGeral').className = `text-[10px] font-black uppercase px-4 py-2 rounded-lg transition ${filaTab === 'geral' ? 'tab-active shadow-lg' : 'bg-slate-700 hover:bg-slate-600'}`;
+            document.getElementById('tabEstrela').className = `text-[10px] font-black uppercase px-4 py-2 rounded-lg transition ${filaTab === 'estrela' ? 'tab-active shadow-lg' : 'bg-slate-700 hover:bg-slate-600'}`;
+
+            const rankingFiltradoDataset = processarRankingComFiltroTemporal(filtroPeriodoAtual);
+            const rk = Object.entries(rankingFiltradoDataset).map(([n, s]) => {
+                const score = calcularScoreComPesos(s);
+                return { n, ...s, score: parseFloat(score) };
+            }).filter(x => x.score > 0 && (rkTab==='tudo'?true:rkTab==='estrela'?x.estrela:!x.estrela)).sort((a,b) => b.score - a.score);
+            
+            // Renderização do Ranking limpo (apenas posição, categoria e nome)
+            document.getElementById('rankingContainer').innerHTML = rk.map((j, i) => {
+                return `
+                <div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 cursor-pointer mb-1 hover:bg-slate-800 transition" onclick="window.abrirAuditModal('${j.n}')">
+                    <div class="flex items-center gap-3">
+                        <span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span>
+                        <div class="rank-name uppercase text-[10px] font-bold text-slate-300">
+                            ${j.estrela?'⭐ ':''}${j.elite?'💎 ':''}${j.n}
+                        </div>
+                    </div>
+                    <div class="text-orange-500 font-black text-xs">${j.score}</div>
+                </div>`;
+            }).join('');
+            
+            renderLeaders();
+            
+            const hallFamaSec = document.getElementById('hallFamaSection');
+if (hallFamaSec) {
+    hallFamaSec.classList.remove('hidden');
+}
+
+            const btnDia = document.getElementById('btnControleDia');
+            if (btnDia) {
+                if (game.diaIniciado) {
+                    btnDia.innerText = "🛑 Encerrar Dia Atual";
+                    btnDia.className = "w-full bg-red-600 hover:bg-red-500 text-white p-3 rounded-xl font-black uppercase text-[10px] border border-red-500 shadow-lg mt-4 transition";
+                } else {
+                    btnDia.innerText = "▶️ Iniciar Novo Dia";
+                    btnDia.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white p-3 rounded-xl font-black uppercase text-[10px] border border-emerald-500 shadow-lg mt-4 transition";
+                }
+            }
+
+            const visitorControls = document.getElementById('visitor-controls');
+            if (visitorControls) {
+                if (!isAdmin) {
+                    visitorControls.style.display = 'flex';
+                    const btnPerfil = document.getElementById('btnMeuPerfil');
+                    if (btnPerfil) btnPerfil.innerText = meuNome ? `👤 ${meuNome}` : "👤 Identificar-se";
+                } else {
+                    visitorControls.style.display = 'none';
+                }
+            }
+            
+            if(isAdmin) {
+                sortables.forEach(s => s.destroy());
+                sortables = [];
+                sortables.push(Sortable.create(document.getElementById('areaA'), { group: 'quadra', animation: 150, onEnd: () => syncQuadra() }));
+                sortables.push(Sortable.create(document.getElementById('areaB'), { group: 'quadra', animation: 150, onEnd: () => syncQuadra() }));
+                sortables.push(Sortable.create(document.getElementById('esperaContainer'), { handle: '.drag-handle', animation: 150, ghostClass: 'bg-slate-700', onEnd: () => syncFila() }));
+            }
+        }
+
+        function doEmojiExplosion(type) {
+            let icon = '';
+            if(type === 'ataque') icon = '💥';
+            else if(type === 'bloqueio') icon = '🚫';
+            else if(type === 'saque') icon = '⚡';
+            else return;
+
+            const layer = document.getElementById('emoji-layer');
+            for(let i = 0; i < 15; i++) { 
+                const el = document.createElement('div');
+                el.innerText = icon;
+                el.className = 'emoji-particle';
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.bottom = '-10vh';
+                el.style.animationDuration = (Math.random() * 2 + 3) + 's';
+                el.style.fontSize = (Math.random() * 4 + 4) + 'rem';
+                layer.appendChild(el);
+                setTimeout(() => el.remove(), 5000);
+            }
+        }
+
+        window.registrarPontoSimples = (lado, hist, isErro) => {
+            if(!isAdmin || !game.partidaAtiva) return;
+            if(hist) salvarState(true);
+            
+            if(isErro) {
+                game.lastVoice = { text: "Ponto por erro", ts: Date.now() }; 
+                const beneficiados = lado === 'A' ? game.timeA : game.timeB;
+                beneficiados.forEach(p => game.ranking[p.nome].ptsErroAdversario++);
+                addToLog(`PONTO TIME ${lado} - ERRO ADVERSÁRIO`, lado);
+                setSystemMessage(`TIME ${lado}`, "PONTO POR ERRO", false);
+            }
+
+            if(game.saqueLado !== lado) {
+                game.saqueLado = lado;
+                if(lado === 'A') { if(!game.jaSacouA) game.jaSacouA = true; else game.idxA = (game.idxA + 1) % game.timeA.length; }
+                else { if(!game.jaSacouB) game.jaSacouB = true; else game.idxB = (game.idxB + 1) % game.timeB.length; }
+            }
+            if(lado === 'A') game.scoreA++; else game.scoreB++;
+            
+            const limit = game.config.points;
+            let alvoA = limit;
+            let alvoB = limit;
+
+            if (game.config.desempate === '3direto') {
+                if (game.scoreA >= limit - 1 && game.scoreB >= limit - 1) {
+                    alvoA = (limit - 1) + 3;
+                    alvoB = (limit - 1) + 3;
+                }
+            } else if (game.config.desempate === '2vantagem') {
+                alvoA = Math.max(limit, game.scoreB + 2);
+                alvoB = Math.max(limit, game.scoreA + 2);
+            }
+
+            const aNoMatchPoint = (game.scoreA === alvoA - 1);
+            const bNoMatchPoint = (game.scoreB === alvoB - 1);
+            const empate11 = (game.scoreA === limit - 1 && game.scoreB === limit - 1);
+            const empateVantagem = (game.scoreA >= limit - 1 && game.scoreB >= limit - 1 && game.scoreA === game.scoreB);
+
+            if (aNoMatchPoint && bNoMatchPoint) {
+                setSystemMessage("MATCH POINT!", "AMBOS JOGANDO PELO SET", false);
+            } else if (aNoMatchPoint) {
+                setSystemMessage("MATCH POINT!", "Time A jogando pelo set", false);
+            } else if (bNoMatchPoint) {
+                setSystemMessage("MATCH POINT!", "Time B jogando pelo set", false);
+            } else if (game.config.desempate === '3direto' && empate11) {
+                setSystemMessage("VAI A 3!", "Desempate Direto Ativado", false);
+            } else if (game.config.desempate === '2vantagem' && empateVantagem) {
+                setSystemMessage("VAI A 2!", "Vantagem de 2 pontos necessária", false);
+            }
+            
+            verificarFimDeSet();
+            salvarState(false);
+        };
+        
+        window.registrarAcaoJogador = (tipo) => {
+            if(!isAdmin) return;
+            salvarState(true);
+            const p = (modalCtx.lado==='A'?game.timeA:game.timeB)[modalCtx.idx];
+            
+            if(tipo==='ataque') {
+                game.lastVoice = { text: "Ponto de Ataque", ts: Date.now() }; 
+                game.ranking[p.nome].ptsAtaque++;
+                const timeAtual = modalCtx.lado === 'A' ? game.timeA : game.timeB;
+                timeAtual.forEach(companheiro => {
+                    if(companheiro.id !== p.id) {
+                        game.ranking[companheiro.nome].ptsAcertoTime++;
+                    }
+                });
+            }
+            if(tipo==='bloqueio') {
+                game.lastVoice = { text: "Ponto de Bloqueio", ts: Date.now() }; 
+                game.ranking[p.nome].ptsBloqueio++; 
+            }
+            if(tipo==='saque') {
+                game.lastVoice = { text: "Ponto de saque", ts: Date.now() }; 
+                game.ranking[p.nome].ptsAce++; 
+            }
+            
+            if(!game.currentMatchStats) game.currentMatchStats = {};
+            game.currentMatchStats[p.id] = (game.currentMatchStats[p.id] || 0) + 1;
+            
+            addToLog(`${tipo.toUpperCase()} - ${p.nome}`, modalCtx.lado);
+            triggerEmoji(tipo);
+            
+            const totalMatch = game.currentMatchStats[p.id]; 
+            const fraseIndex = Math.min(totalMatch, 10);
+            const frase = PHRASES[fraseIndex] || "";
+            
+            let isStreak = false;
+            if(game.lastScorerId === p.id) { game.currentStreak++; if(game.currentStreak >= 2) isStreak = true; } else { game.lastScorerId = p.id; game.currentStreak = 1; }
+            if(frase) setSystemMessage(p.nome, frase, isStreak);
+            window.fecharModais();
+            window.registrarPontoSimples(modalCtx.lado, false, false);
+        };
+
+        function verificarFimDeSet() {
+            const limit = game.config.points; 
+            let vencedor = null;
+
+            if (game.config.desempate === '3direto') {
+                if (game.scoreA >= limit - 1 && game.scoreB >= limit - 1) {
+                    const novoAlvo = (limit - 1) + 3; 
+                    if (game.scoreA >= novoAlvo) vencedor = 'A';
+                    else if (game.scoreB >= novoAlvo) vencedor = 'B';
+                } else {
+                    if (game.scoreA >= limit) vencedor = 'A';
+                    else if (game.scoreB >= limit) vencedor = 'B';
+                }
+            } 
+            else if (game.config.desempate === '2vantagem') {
+                if (game.scoreA >= limit && (game.scoreA - game.scoreB) >= 2) vencedor = 'A';
+                else if (game.scoreB >= limit && (game.scoreB - game.scoreA) >= 2) vencedor = 'B';
+            } 
+            else {
+                if (game.scoreA >= limit) vencedor = 'A';
+                else if (game.scoreB >= limit) vencedor = 'B';
+            }
+
+            if (vencedor === 'A') {
+                finalizarPartida('A'); 
+            } else if (vencedor === 'B') {
+                finalizarPartida('B'); 
+            }
+        }
+
+        function finalizarPartida(venceu) {
+            if(!game.historicoPartidas) game.historicoPartidas = [];
+            const matchSnapshot = {
+                id: Date.now(),
+                timestamp: Date.now(),
+                vencedor: venceu,
+                scoreA: game.scoreA,
+                scoreB: game.scoreB,
+                timeA: game.timeA.map(p => p.nome),
+                timeB: game.timeB.map(p => p.nome),
+                log: [...game.matchLog] 
+            };
+            game.historicoPartidas.unshift(matchSnapshot); 
+            if(game.historicoPartidas.length > 30) game.historicoPartidas.pop(); 
+            game.matchLog = []; 
+
+            setSystemMessage(`VITÓRIA TIME ${venceu}!`, "Set Finalizado", false);
+            showEndGameOverlay(); 
+            const tV = venceu === 'A' ? game.timeA : game.timeB;
+            const tD = venceu === 'A' ? game.timeB : game.timeA;
+            tV.forEach(j => game.ranking[j.nome].v++);
+            tD.forEach(j => { game.ranking[j.nome].d++; (j.estrela ? game.esperaEstrela : game.esperaGeral).push(j); });
+            if(venceu === 'A') { game.timeB = []; game.winsConsecA++; game.winsConsecB = 0; } else { game.timeA = []; game.winsConsecB++; game.winsConsecA = 0; }
+            
+            game.currentMatchStats = {};
+            game.lastScorerId = null; game.currentStreak = 0; game.nextGameReason = 'default';
+            
+            if(game.config.maxWins > 0 && (game.winsConsecA >= game.config.maxWins || game.winsConsecB >= game.config.maxWins)) {
+                if(game.config.reaction === 'dividir') { 
+                    game.nextGameReason = 'mixed'; 
+                    const pool = [...tV].sort((a,b) => parseFloat(getScore(b.nome)) - parseFloat(getScore(a.nome))); 
+                    if (pool.length >= 4) {
+                        game.timeA = [pool[0], pool[pool.length - 1]]; 
+                        game.timeB = [pool[1], pool[2]]; 
+                        for(let i = 3; i < pool.length - 1; i++) {
+                            const sA = game.timeA.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0);
+                            const sB = game.timeB.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0);
+                            if (sA <= sB) game.timeA.push(pool[i]);
+                            else game.timeB.push(pool[i]);
+                        }
+                    } else {
+                        const half = Math.ceil(pool.length / 2); 
+                        game.timeA = pool.slice(0, half); 
+                        game.timeB = pool.slice(half);
+                    }
+                    setSystemMessage("TIMES MISTURADOS", "Limite de Vitórias Atingido", false);
+                }
+                else { 
+                    game.nextGameReason = 'new'; 
+                    tV.forEach(j => (j.estrela ? game.esperaEstrela : game.esperaGeral).push(j)); 
+                    game.timeA = []; game.timeB = []; 
+                }
+                game.winsConsecA = 0; game.winsConsecB = 0;
+            }
+
+            const originalA = [...game.timeA];
+            const originalB = [...game.timeB];
+
+            const fillBothTeams = () => {
+                while (game.timeA.length < game.config.size || game.timeB.length < game.config.size) {
+                    let targetTeam;
+                    if (game.timeA.length === game.config.size) targetTeam = game.timeB;
+                    else if (game.timeB.length === game.config.size) targetTeam = game.timeA;
+                    else {
+                        const scoreA = game.timeA.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0);
+                        const scoreB = game.timeB.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0);
+                        targetTeam = scoreA <= scoreB ? game.timeA : game.timeB;
+                    }
+
+                    let p = null; 
+                    const precisaStar = targetTeam.filter(x => x.estrela).length < game.config.stars; 
+                    const maxElites = game.config.elites !== undefined ? game.config.elites : 2;
+                    const podeElite = targetTeam.filter(x => x.elite).length < maxElites;
+
+                    const isValid = (x) => {
+                        if (x.bloqueado) return false;
+                        if (targetTeam.some(j => estaoBloqueados(x,j))) return false;
+                        if (x.elite && !podeElite) return false; 
+                        return true;
+                    };
+
+                    if(precisaStar) p = game.esperaEstrela.find(isValid); 
+                    if(!p) p = game.esperaGeral.find(isValid); 
+                    if(!p && !precisaStar) p = game.esperaEstrela.find(isValid); 
+                    
+                    if(!p) {
+                        const isValidFallback = (x) => !x.bloqueado && (!x.elite || podeElite);
+                        p = game.esperaGeral.find(isValidFallback) || game.esperaEstrela.find(isValidFallback);
+                    }
+                    if(!p) p = game.esperaGeral.find(x => !x.bloqueado) || game.esperaEstrela.find(x => !x.bloqueado); 
+
+                    if(!p) break; 
+                    const f = p.estrela ? game.esperaEstrela : game.esperaGeral; 
+                    f.splice(f.indexOf(p), 1); 
+                    targetTeam.push(p); 
+                }
+            };
+            fillBothTeams();
+
+            const addedA = game.timeA.slice(originalA.length);
+            const addedB = game.timeB.slice(originalB.length);
+            const allAdded = [...addedA, ...addedB];
+
+            if (allAdded.length > 0) {
+                let bestDiff = Infinity;
+                let bestComboA = [];
+                let bestComboB = [];
+
+                const isComboValid = (baseTeam, combo) => {
+                    const fullTeam = [...baseTeam, ...combo];
+                    if (fullTeam.filter(x => x.estrela).length > game.config.stars) return false;
+                    const maxElites = game.config.elites !== undefined ? game.config.elites : 2;
+                    if (fullTeam.filter(x => x.elite).length > maxElites) return false;
+                    for(let i=0; i<fullTeam.length; i++) {
+                        for(let j=i+1; j<fullTeam.length; j++) {
+                            if(estaoBloqueados(fullTeam[i], fullTeam[j])) return false;
+                        }
+                    }
+                    return true;
+                };
+
+                const getCombos = (arr, k) => {
+                    if (k === 0) return [[]];
+                    if (arr.length === 0) return [];
+                    const [first, ...rest] = arr;
+                    const withFirst = getCombos(rest, k - 1).map(c => [first, ...c]);
+                    const withoutFirst = getCombos(rest, k);
+                    return [...withFirst, ...withoutFirst];
+                };
+
+                const combos = getCombos(allAdded, addedA.length);
+
+                combos.forEach(comboA => {
+                    const comboB = allAdded.filter(p => !comboA.includes(p));
+                    if (isComboValid(originalA, comboA) && isComboValid(originalB, comboB)) {
+                        const scoreA = originalA.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0) + comboA.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0);
+                        const scoreB = originalB.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0) + comboB.reduce((sum, p) => sum + parseFloat(getScore(p.nome)), 0);
+                        const diff = Math.abs(scoreA - scoreB);
+                        if (diff < bestDiff) {
+                            bestDiff = diff;
+                            bestComboA = comboA;
+                            bestComboB = comboB;
+                        }
+                    }
+                });
+
+                if (bestDiff !== Infinity) {
+                    game.timeA = [...originalA, ...bestComboA];
+                    game.timeB = [...originalB, ...bestComboB];
+                }
+            }
+
+            game.scoreA = 0; game.scoreB = 0; game.idxA = 0; game.idxB = 0; 
+            game.saqueLado = venceu;
+            game.jaSacouA = (venceu === 'A');
+            game.jaSacouB = (venceu === 'B');
+            game.partidaAtiva = true; 
+            salvarState();
+        }
+
+        window.abrirConfig = () => {
+            tempConfig = JSON.parse(JSON.stringify(game.config)); 
+            tempConfig.publicRanking = game.publicRanking; 
+            tempConfig.hideScoreboard = game.config.hideScoreboard || false; 
+            
+            document.getElementById('cSize').value = tempConfig.size;
+            document.getElementById('cStars').value = tempConfig.stars;
+            document.getElementById('cElites').value = tempConfig.elites !== undefined ? tempConfig.elites : 2; 
+            document.getElementById('cPoints').value = tempConfig.points;
+            document.getElementById('cMax').value = tempConfig.maxWins;
+            document.getElementById('cReaction').value = tempConfig.reaction;
+            document.getElementById('cDesempate').value = tempConfig.desempate;
+            
+            updateToggleBtnUI();
+            document.getElementById('modalConfigMenu').classList.remove('hidden');
+        };
+
+        window.togglePublicRanking = () => {
+            tempConfig.publicRanking = !tempConfig.publicRanking;
+            updateToggleBtnUI();
+        };
+
+        window.toggleScoreboardVis = () => {
+            tempConfig.hideScoreboard = !tempConfig.hideScoreboard;
+            updateToggleBtnUI();
+        };
+
+        function updateToggleBtnUI() {
+            const btnRk = document.getElementById('btnToggleRank');
+            if(tempConfig.publicRanking) {
+                btnRk.innerText = "ATIVADO";
+                btnRk.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-green-500 text-green-400";
+            } else {
+                btnRk.innerText = "DESATIVADO";
+                btnRk.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400";
+            }
+
+            const btnSb = document.getElementById('btnToggleScoreboard');
+            if(btnSb) {
+                if(tempConfig.hideScoreboard) {
+                    btnSb.innerText = "OCULTO";
+                    btnSb.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-green-500 text-green-400";
+                } else {
+                    btnSb.innerText = "VISÍVEL";
+                    btnSb.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400";
+                }
+            }
+        }
+
+        window.salvarConfigEClose = () => {
+            game.config.size = parseInt(document.getElementById('cSize').value);
+            game.config.stars = parseInt(document.getElementById('cStars').value);
+            game.config.elites = parseInt(document.getElementById('cElites').value); 
+            game.config.points = parseInt(document.getElementById('cPoints').value);
+            game.config.maxWins = parseInt(document.getElementById('cMax').value);
+            game.config.reaction = document.getElementById('cReaction').value;
+            game.config.desempate = document.getElementById('cDesempate').value;
+            
+            game.publicRanking = tempConfig.publicRanking;
+            game.config.hideScoreboard = tempConfig.hideScoreboard;
+            
+            window.fecharModais();
+            salvarState();
+        };
+
+        window.solicitarTrocaCategoria = () => {
+            const p = modalCtx.pFila;
+            if(game.deniedRequests.includes(p.id)) { alert("Alteração Negada pelo Admin."); return; }
+            const reqId = p.id + '_cat'; 
+            
+            if(!game.requests.some(r => r.reqId === reqId)) {
+                game.requests.push({ reqId: reqId, id: p.id, nome: p.nome, tipo: 'categoria', solicitante: (meuNome || 'Visitante Anônimo') });
+                alert("Solicitação enviada ao Admin!");
+                salvarState();
+            } else { alert("Já solicitado."); }
+            window.abrirEscalacao(modalCtx.tabFila, modalCtx.idxFila); 
+        };
+
+        window.abrirSolicitacoes = () => {
+            const container = document.getElementById('listaSolicitacoes');
+            if(game.requests.length === 0) {
+                container.innerHTML = '<div class="text-slate-500 text-xs italic text-center py-4">Nenhuma solicitação pendente.</div>';
+            } else {
+                container.innerHTML = game.requests.map((r, i) => {
+                    let badgeCor = "";
+                    let tipoAcao = "";
+                    let detalheAcao = "";
+                    if (r.tipo === 'bloqueio') {
+                        badgeCor = "bg-red-600";
+                        tipoAcao = "AÇÃO: BLOQUEIO 🚫";
+                        detalheAcao = `Solicitado por: ${r.solicitante || 'Desconhecido'}`; 
+                    } else { 
+                        badgeCor = "bg-yellow-600";
+                        tipoAcao = "AÇÃO: CATEGORIA ⭐";
+                        detalheAcao = `Solicitado por: ${r.solicitante || 'Desconhecido'}`; 
+                    }
+                    
+                    return `
+                    <div class="bg-slate-700/80 p-3 rounded-xl border border-slate-600 mb-3 shadow-lg">
+                        <div class="flex justify-between items-center">
+                            <div class="flex flex-col gap-1 w-2/3">
+                                <span class="text-[9px] font-black uppercase text-white px-2 py-0.5 rounded ${badgeCor} self-start shadow-sm">${tipoAcao}</span>
+                                <span class="text-sm font-black text-white uppercase mt-1 truncate">${r.nome}</span>
+                                <span class="text-[10px] text-slate-400 italic">${detalheAcao}</span>
+                            </div>
+                            <div class="flex flex-col gap-2 w-1/3 items-end">
+                                <button onclick="window.responderSolicitacao(${i}, true)" class="w-full bg-emerald-600 hover:bg-emerald-500 py-1.5 rounded text-white text-[10px] font-black uppercase shadow transition">✔ Aceitar</button>
+                                <button onclick="window.responderSolicitacao(${i}, false)" class="w-full bg-red-600 hover:bg-red-500 py-1.5 rounded text-white text-[10px] font-black uppercase shadow transition">✖ Recusar</button>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+            }
+            document.getElementById('modalSolicitacoes').classList.remove('hidden');
+        };
+
+        window.responderSolicitacao = (idx, aprovado) => {
+            const req = game.requests[idx];
+            if(aprovado) {
+                const list = game.esperaGeral.some(x=>x.id===req.id) ? game.esperaGeral : game.esperaEstrela;
+                const p = list.find(x=>x.id===req.id);
+                if(p) {
+                    if (req.tipo === 'bloqueio') {
+                        p.bloqueado = true; 
+                    } else {
+                        list.splice(list.indexOf(p), 1);
+                        p.estrela = !p.estrela;
+                        (p.estrela ? game.esperaEstrela : game.esperaGeral).push(p);
+                        if(game.ranking[p.nome]) game.ranking[p.nome].estrela = p.estrela;
+                    }
+                }
+            } else {
+                game.deniedRequests.push(req.id);
+            }
+            game.requests.splice(idx, 1);
+            window.abrirSolicitacoes(); 
+            salvarState();
+        };
+
+        function renderLeaders() {
+            const pl = Object.entries(game.ranking).map(([n, s]) => ({ n, ...s, score: parseFloat(getScore(n)) }));
+            const cats = [{t:"Top Score",i:"🏆",f:p=>p.score},{t:"Matador",i:"🔥",f:p=>p.ptsAtaque},{t:"Paredão",i:"🚫",f:p=>p.ptsBloqueio},{t:"Ace",i:"⚡",f:p=>p.ptsAce},{t:"Vitórias",i:"🥇",f:p=>p.v}];
+            document.getElementById('leadersGrid').innerHTML = cats.map(c => {
+                const sort = (l) => [...l].sort((a,b)=>c.f(b)-c.f(a));
+                const listG = sort(pl.filter(x=>!x.estrela)); const listE = sort(pl.filter(x=>x.estrela));
+                const maxG = listG.length ? c.f(listG[0]) : 0; const maxE = listE.length ? c.f(listE[0]) : 0;
+                if(maxG === 0 && maxE === 0) return '';
+                const winnersG = listG.filter(p => c.f(p) === maxG).map(p => p.n).join(', ');
+                const winnersE = listE.filter(p => c.f(p) === maxE).map(p => p.n).join(', ');
+
+                return `<div class="bg-slate-800 p-3 rounded border border-slate-700 mb-2">
+                    <div class="text-xs text-slate-400 mb-1 font-bold tracking-widest uppercase">${c.i} ${c.t}</div>
+                    <div class="flex flex-col gap-1 text-[10px]">
+                        <div class="flex justify-between items-center bg-slate-700/30 p-1 rounded">
+                            <div class="text-lg font-black text-orange-500 whitespace-normal leading-tight w-4/5">${maxG > 0 ? winnersG : '-'}</div>
+                            <div class="font-bold text-2xl text-white">${maxG > 0 ? maxG : ''}</div>
+                        </div>
+                        <div class="flex justify-between items-center bg-slate-700/30 p-1 rounded">
+                            <div class="text-lg font-black text-orange-500 whitespace-normal leading-tight w-4/5">${maxE > 0 ? winnersE : '-'}</div>
+                            <div class="font-bold text-2xl text-white">${maxE > 0 ? maxE : ''}</div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.abrirAuditModal = (n) => {
+    const s = game.ranking[n]; 
+    if(!s) return; 
+
+    const historicoDoJogador = game.historicoPartidas.filter(p => p.timeA.includes(n) || p.timeB.includes(n));
+
+    // Correção: Pega apenas os parceiros que estavam no MESMO time na partida
+    let parceiros = {};
+    historicoDoJogador.forEach(p => {
+        const mesmoTime = p.timeA.includes(n) ? p.timeA : p.timeB;
+        mesmoTime.forEach(c => { if(c!==n) parceiros[c] = (parceiros[c]||0) + 1; });
+    });
+    const melhorParceiro = Object.keys(parceiros).sort((a,b) => parceiros[b]-parceiros[a])[0] || "---";
+
+    // Cálculo das insígnias do Hall da Fama
+    const bag = calcularContagemInsigniasHall(n);
+    let insigniasHTML = "";
+    if(bag.topScore > 0) insigniasHTML += `<span title="Maior pontuador geral: ${bag.topScore}x">🏆<sub class="text-[8px]">${bag.topScore}</sub></span>`;
+    if(bag.matador > 0) insigniasHTML += `<span title="Maior pontuador de ataque: ${bag.matador}x">🔥<sub class="text-[8px]">${bag.matador}</sub></span>`;
+    if(bag.paredao > 0) insigniasHTML += `<span title="Maior bloqueador: ${bag.paredao}x">🚫<sub class="text-[8px]">${bag.paredao}</sub></span>`;
+    if(bag.ace > 0) insigniasHTML += `<span title="Maior pontuador de saque: ${bag.ace}x">⚡<sub class="text-[8px]">${bag.ace}</sub></span>`;
+
+    // Total de partidas jogadas (vitórias + derrotas)
+    const totalPartidas = (s.v || 0) + (s.d || 0);
+
+    // Atualiza o título do modal com nome e insígnias integradas
+    document.getElementById('auditNome').innerHTML = `${n} <span class="ml-2 inline-flex gap-1 text-sm">${insigniasHTML}</span>`;
+    
+    // Atualiza o cabeçalho superior
+    document.getElementById('auditMatches').innerText = `Partidas: ${totalPartidas}`;
+    document.getElementById('auditLosses').innerText = `Derrotas: ${s.d || 0}`;
+
+    // Atualiza a lista com as pontuações e a melhor dupla isolada
+    document.getElementById('auditContent').innerHTML = `
+        <div class="space-y-2 text-[11px] bg-slate-900/50 p-3 rounded-xl border border-slate-700">
+            <div class="flex justify-between border-b border-slate-700 pb-2 mb-2">
+                <span class="text-slate-400">Melhor Dupla:</span> <b class="text-orange-400 uppercase">${melhorParceiro}</b>
+            </div>
+            <div class="flex justify-between"><span>Vitórias:</span> <b class="text-green-400">${s.v || 0}</b></div>
+            <div class="flex justify-between"><span>Ataques:</span> <b>${s.ptsAtaque || 0}</b></div>
+            <div class="flex justify-between"><span>Bloqueios:</span> <b>${s.ptsBloqueio || 0}</b></div>
+            <div class="flex justify-between"><span>Aces:</span> <b>${s.ptsAce || 0}</b></div>
+            <div class="flex justify-between"><span>Acerto de Time:</span> <b>${s.ptsAcertoTime || 0}</b></div>
+            <div class="flex justify-between"><span>Erros do Adversário:</span> <b class="text-red-400">${s.ptsErroAdversario || 0}</b></div>
+        </div>
+    `;
+    document.getElementById('auditTotal').innerText = getScore(n);
+    document.getElementById('modalAudit').classList.remove('hidden');
+};
+
+        window.abrirWeights = () => { 
+            document.getElementById('modalConfigMenu').classList.add('hidden');
+            document.getElementById('wAtqG').value = game.weights.atqG; document.getElementById('wBlqG').value = game.weights.blqG; document.getElementById('wAceG').value = game.weights.aceG; document.getElementById('wAtqE').value = game.weights.atqE; document.getElementById('wBlqE').value = game.weights.blqE; document.getElementById('wAceE').value = game.weights.aceE; document.getElementById('wErr').value = game.weights.err; document.getElementById('wVit').value = game.weights.vit; 
+            document.getElementById('wTeam').value = game.weights.wTeam;
+            document.getElementById('modalWeights').classList.remove('hidden'); 
+        };
+
+        window.fecharModais = () => {
+            document.querySelectorAll('.modal-global, #modalPontoTec').forEach(m => m.classList.add('hidden'));
+        };
+
+        window.setFilaTab = (t) => { filaTab = t; render(); };
+        window.setRankingTab = (t) => { rkTab = t; render(); };
+        window.abrirBloqueioDuplas = () => { const all = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela].sort((a,b)=>a.nome.localeCompare(b.nome)); const opt = `<option value="" disabled selected>- Selecione -</option>`+all.map(p=>`<option value="${p.id}">${p.nome}</option>`).join(''); document.getElementById('selJ1').innerHTML = opt; document.getElementById('selJ2').innerHTML = opt; window.renderListaRestricoes(); document.getElementById('modalRestricao').classList.remove('hidden'); };
+        window.renderListaRestricoes = () => { const all = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela]; document.getElementById('listaRestricoes').innerHTML = game.restricoes.map((r,i) => { const n1 = all.find(x=>x.id==r[0])?.nome||'?'; const n2 = all.find(x=>x.id==r[1])?.nome||'?'; return `<div class="bg-slate-800 p-2 flex justify-between text-[10px] text-red-400 border border-red-900/30"><span>${n1} 🚫 ${n2}</span><button onclick="window.removeRestricao(${i})">X</button></div>`; }).join(''); };
+        window.removeRestricao = (i) => { game.restricoes.splice(i,1); window.renderListaRestricoes(); salvarState(); };
+        
+        window.salvarWeightsEClose = () => { 
+            game.weights.atqG = parseFloat(document.getElementById('wAtqG').value); game.weights.blqG = parseFloat(document.getElementById('wBlqG').value); game.weights.aceG = parseFloat(document.getElementById('wAceG').value); game.weights.atqE = parseFloat(document.getElementById('wAtqE').value); game.weights.blqE = parseFloat(document.getElementById('wBlqE').value); game.weights.aceE = parseFloat(document.getElementById('wAceE').value); game.weights.err = parseFloat(document.getElementById('wErr').value); game.weights.vit = parseFloat(document.getElementById('wVit').value); 
+            game.weights.wTeam = parseFloat(document.getElementById('wTeam').value);
+            document.getElementById('modalWeights').classList.add('hidden');
+            window.abrirConfig(); 
+        };
+
+        window.adicionarNovoJogador = () => { const n = document.getElementById('novoNome').value.toUpperCase().trim(); if(!n) return; adicionarLocal(n, filaTab==='estrela'); document.getElementById('novoNome').value=''; salvarState(); };
+        window.adicionarRestricao = () => { const j1 = document.getElementById('selJ1').value, j2 = document.getElementById('selJ2').value; if(j1&&j2&&j1!==j2) { game.restricoes.push([j1,j2]); window.renderListaRestricoes(); salvarState(); } };
+        window.escalarParaTime = (lado) => { const t = lado==='A'?game.timeA:game.timeB; if(t.length<game.config.size) { const l = modalCtx.tabFila==='geral'?game.esperaGeral:game.esperaEstrela; const p = l.splice(modalCtx.idxFila, 1)[0]; p.bloqueado=false; t.push(p); window.fecharModais(); salvarState(); } else alert("Time Cheio!"); };
+        function syncQuadra() { if(!isAdmin) return; const p = [...game.timeA, ...game.timeB]; const get = (id) => [...document.getElementById(id).children].map(e => p.find(x => x.id === e.dataset.id)).filter(x=>x); game.timeA = get('areaA'); game.timeB = get('areaB'); salvarState(); }
+        function syncFila() { if(!isAdmin) return; const l = filaTab==='geral'?game.esperaGeral:game.esperaEstrela; const els = document.getElementById('esperaContainer').children; const novos = [...els].map(e => l.find(x => x.id === e.dataset.id)).filter(x=>x); if(filaTab==='geral') game.esperaGeral = novos; else game.esperaEstrela = novos; salvarState(); }
+        
+        window.toggleElite = () => {
+            if(!isAdmin) return; 
+            modalCtx.pFila.elite = !modalCtx.pFila.elite;
+            if(game.ranking[modalCtx.pFila.nome]) {
+                game.ranking[modalCtx.pFila.nome].elite = modalCtx.pFila.elite;
+            }
+            window.fecharModais();
+            salvarState();
+        };
+
+        window.abrirEscalacao = (tab, idx) => { 
+            const l = tab === 'geral' ? game.esperaGeral : game.esperaEstrela; 
+            modalCtx = { pFila: l[idx], idxFila: idx, tabFila: tab }; 
+            document.getElementById('modalNomeFila').innerText = modalCtx.pFila.nome; 
+            
+            const btnElite = document.getElementById('btnToggleElite');
+            if (btnElite) btnElite.innerText = modalCtx.pFila.elite ? "REMOVER MARCAÇÃO 💎" : "MARCAR COMO ELITE 💎";
+
+            const btn = document.getElementById('btnStatusBloqueio'); 
+            btn.innerText = modalCtx.pFila.bloqueado ? "LIBERAR" : "BLOQUEAR"; 
+            
+            btn.onclick = () => { 
+                const estavaBloqueado = modalCtx.pFila.bloqueado; 
+                if (!isAdmin && !estavaBloqueado) {
+                    const reqId = modalCtx.pFila.id + '_block'; 
+                    if(!game.requests.some(r => r.reqId === reqId)) {
+                        game.requests.push({ reqId: reqId, id: modalCtx.pFila.id, nome: modalCtx.pFila.nome, tipo: 'bloqueio', acao: 'bloquear', solicitante: (meuNome || 'Visitante Anônimo') });
+                        alert("Solicitação para BLOQUEAR enviada ao Admin!");
+                        salvarState();
+                    } else {
+                        alert("Já existe uma solicitação pendente para este jogador.");
+                    }
+                    window.fecharModais();
+                    return;
+                }
+
+                modalCtx.pFila.bloqueado = !estavaBloqueado; 
+                if (estavaBloqueado) {
+                    l.splice(modalCtx.idxFila, 1);
+                    let novaPos = 0;
+                    for (let i = 0; i < l.length; i++) {
+                        const stats = game.ranking[l[i].nome];
+                        const jogos = stats ? (stats.v + stats.d) : 0;
+                        if (jogos === 0) novaPos = i + 1;
+                        else break;
+                    }
+                    l.splice(novaPos, 0, modalCtx.pFila);
+                }
+                window.fecharModais(); 
+                salvarState(); 
+            }; 
+
+            const btnTroca = document.getElementById('btnTrocarCategoria'); 
+            if(game.requests.some(r => r.id === modalCtx.pFila.id && (!r.tipo || r.tipo === 'categoria'))) {
+                btnTroca.innerText = "SOLICITADO..."; 
+            } else if(game.deniedRequests.includes(modalCtx.pFila.id)) { 
+                btnTroca.innerText = "ALTERAÇÃO NEGADA"; 
+                btnTroca.classList.add('opacity-50'); 
+            } else {
+                btnTroca.innerText = "TROCAR CATEGORIA";
+                btnTroca.classList.remove('opacity-50');
+            } 
+            
+            if(isAdmin) { 
+                const gen = (t, side) => t.map((j, i) => `<button onclick="window.substituirJogador('${side}', ${i})" class="w-full bg-slate-700 p-2 rounded text-[9px] mb-1 uppercase border border-slate-600">Sub: ${j.nome}</button>`).join(''); 
+                document.getElementById('subsA').innerHTML = gen(game.timeA, 'A'); 
+                document.getElementById('subsB').innerHTML = gen(game.timeB, 'B'); 
+            } 
+            document.getElementById('modalFilaEscala').classList.remove('hidden'); 
+        };
+        
+        window.substituirJogador = (side, idx) => { const t = side==='A'?game.timeA:game.timeB; if(estaoBloqueados(modalCtx.pFila, t[idx])) return alert("Bloqueado!"); const sai = t.splice(idx, 1)[0]; const entra = (modalCtx.tabFila==='geral'?game.esperaGeral:game.esperaEstrela).splice(modalCtx.idxFila, 1)[0]; entra.bloqueado = false; t.splice(idx, 0, entra); (sai.estrela?game.esperaEstrela:game.esperaGeral).push(sai); window.fecharModais(); salvarState(); };
+        window.undoLastAction = () => { if(!isAdmin || historicoLocal.length===0) return; game = JSON.parse(historicoLocal.pop()); set(gameRef, game); };
+        window.definirSacadorManual = () => { game.saqueLado = modalCtx.lado; if(modalCtx.lado === 'A') { game.idxA = modalCtx.idx; game.jaSacouA = true; } else { game.idxB = modalCtx.idx; game.jaSacouB = true; } window.fecharModais(); salvarState(); };
+        window.removerParaFilaManual = () => { salvarState(true); const t = modalCtx.lado==='A'?game.timeA:game.timeB; const p = t.splice(modalCtx.idx, 1)[0]; (p.estrela?game.esperaEstrela:game.esperaGeral).push(p); window.fecharModais(); salvarState(); };
+        window.abrirPontoTecnico = (l, i) => { modalCtx = { lado: l, idx: i }; const p = (l==='A'?game.timeA:game.timeB)[i]; document.getElementById('modalNomeTec').innerText = p.nome; if(isAdmin) { const w = game.weights; document.getElementById('labelAtq').innerText = `+${p.estrela?w.atqE:w.atqG}`; document.getElementById('labelBlq').innerText = `+${p.estrela?w.blqE:w.blqG}`; document.getElementById('labelAce').innerText = `+${p.estrela?w.aceE:w.aceG}`; const isSacador = (game.saqueLado === l && (l==='A'?game.idxA:game.idxB)===i); const btn = document.getElementById('btnAceTec'); if(!isSacador) btn.classList.add('opacity-50','pointer-events-none'); else btn.classList.remove('opacity-50','pointer-events-none'); document.getElementById('playerViewMsg').classList.add('hidden'); } else { document.getElementById('playerViewMsg').classList.remove('hidden'); } document.getElementById('modalPontoTec').classList.remove('hidden'); };
+        
+        function calcularScoreComPesos(s) {
+            if(!s) return 0;
+            const w = game.weights || { atqG: 1, blqG: 1, aceG: 1.5, atqE: 1.5, blqE: 1.5, aceE: 2, err: -0.5, vit: 3, wTeam: 0.5 }; 
+            const ptsAtq = (s.ptsAtaque || 0) * (s.estrela ? w.atqE : w.atqG);
+            const ptsBlq = (s.ptsBloqueio || 0) * (s.estrela ? w.blqE : w.blqG);
+            const ptsAce = (s.ptsAce || 0) * (s.estrela ? w.aceE : w.aceG);
+            const ptsErr = (s.ptsErroAdversario || 0) * w.err;
+            const ptsVit = (s.v || 0) * w.vit;
+            const ptsTeam = (s.ptsAcertoTime || 0) * (w.wTeam || 0);
+            return (ptsVit + ptsAtq + ptsBlq + ptsAce + ptsErr + ptsTeam).toFixed(2);
+        }
+
+        function getScore(n) { 
+            return calcularScoreComPesos(game.ranking[n]); 
+        }
+
+        function estaoBloqueados(p1, p2) { return game.restricoes.some(d => (d[0]==p1.id && d[1]==p2.id) || (d[1]==p1.id && d[0]==p2.id)); }
+
+        window.addEventListener('load', () => {
+        // Adicione a verificação: Se for admin, não roda o modal
+        if (document.body.classList.contains('is-admin')) return;
+
+        if (!localStorage.getItem('voleihub_meunome')) {
+            setTimeout(() => {
+                const modal = document.getElementById('modalIdentificacao');
+                if (modal && modal.classList.contains('hidden')) {
+                    window.acaoMeuPerfil();
+                    }
+            }, 1000);
+        }
+        });
     </script>
 </body>
 </html>
