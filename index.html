@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V2.1.7</title>
+    <title>Vôlei Hub PRO - V2.1.8</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -144,7 +144,6 @@
             <button onclick="window.adicionarNovoJogador()" class="bg-blue-600 hover:bg-blue-500 px-6 rounded-2xl font-black text-sm uppercase transition shadow-lg">Add</button>
         </div>
 
-        <!-- Modificado: Histórico de Partidas do Dia em Andamento agora visível para VISITANTES e ADMINS -->
         <button onclick="window.abrirHistoricoModal('atual')" class="w-full bg-slate-800/80 text-slate-300 font-black uppercase py-4 rounded-2xl shadow-lg border border-slate-700 hover:bg-slate-700 transition flex justify-between items-center px-4">
             <span class="flex items-center gap-2"><span class="text-lg">📅</span> Histórico de Partidas de Hoje</span>
             <span class="text-orange-500 text-xs">Visualizar ❯</span>
@@ -398,7 +397,6 @@
         </div>
     </div>
     
-    <!-- Modificado: Modal de Histórico adaptado para alternar entre as visões 'atual' e 'retroativo' de forma limpa -->
     <div id="modalHistorico" class="modal-global hidden">
         <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-slate-600 overflow-y-auto max-h-[90vh]">
             <div class="flex justify-between items-center mb-4">
@@ -417,7 +415,6 @@
                     <div id="listaHistoricoContainer" class="space-y-3"></div>
                 </div>
                 
-                <!-- Removido do escopo do dia atual: seções agora encapsuladas dinamicamente via JS -->
                 <div id="wrapperRankingRetroativo" class="hidden">
                     <h3 class="text-xs font-black uppercase text-orange-400 mb-2 border-b border-slate-700 pb-1">🏆 Ranking Fechado</h3>
                     <div id="rankingHistoricoContainer" class="space-y-1 text-xs"></div>
@@ -461,23 +458,20 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const auth = getAuth(app);
-        // Obtém a data atual no formato DDMMYYYY (ex: 28092026)
+        
         function getFormattedDate() {
-        const d = new Date();
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const year = d.getFullYear();
-        return `${day}${month}${year}`;
+            const d = new Date();
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}${month}${year}`;
         }
 
-        // Controla o número da sessão no localStorage (padrão é 1)
         let currentSession = parseInt(localStorage.getItem('voleihub_session_id')) || 1;
         let currentPath = `partida/${getFormattedDate()}_${currentSession}`;
         
-        // Instância inicial da referência
         let gameRef = ref(db, currentPath);
         
-        // Função auxiliar para mudar o nó escutado no Firebase
         function updateGameReference(newPath) {
             currentPath = newPath;
             gameRef = ref(db, currentPath);
@@ -493,7 +487,7 @@
 
         let isAdmin = false;
         let filtroPeriodoAtual = 'atual'; 
-        let modoHistoricoVisivel = 'atual'; // Armazena se o modal está exibindo 'atual' ou 'retroativo'
+        let modoHistoricoVisivel = 'atual';
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -623,9 +617,14 @@
             let proporcao = Math.max(1, Math.floor(avaliaveis.length * 0.20));
 
             avaliaveis.forEach(item => { 
-                item.p.elite = false; item.p.estrela = false; 
+                item.p.elite = false; 
+                
+                // Trava: IA só remove estrela se não for do grupo fixo
+                if (!INITIAL_ESTRELA.includes(item.p.nome)) {
+                    item.p.estrela = false; 
+                    game.ranking[item.p.nome].estrela = false; 
+                }
                 game.ranking[item.p.nome].elite = false; 
-                game.ranking[item.p.nome].estrela = false; 
             });
 
             for(let i = 0; i < proporcao; i++) {
@@ -652,42 +651,39 @@
         };
 
         window.toggleEstadoDia = () => {
-    if (!isAdmin) return;
-    
-    if (game.diaIniciado) {
-        if (!confirm(`Deseja encerrar a sessão atual (${currentPath})?\n\n- Os dados ficarão salvos neste nó no Firebase.\n- A quadra será limpa para o próximo evento.`)) return;
+            if (!isAdmin) return;
+            
+            if (game.diaIniciado) {
+                if (!confirm(`Deseja encerrar a sessão atual (${currentPath})?\n\n- Os dados ficarão salvos neste nó no Firebase.\n- A quadra será limpa para o próximo evento.`)) return;
 
-        // Salva snapshot do dia encerrado no nó atual antes de fechar
-        game.diaIniciado = false;
-        salvarState();
+                game.diaIniciado = false;
+                salvarState();
 
-        alert(`🛑 Sessão ${currentPath} Encerrada com sucesso!`);
-        render();
+                alert(`🛑 Sessão ${currentPath} Encerrada com sucesso!`);
+                render();
 
-    } else {
-        if (!confirm("Deseja iniciar um novo evento/dia de jogos?")) return;
+            } else {
+                if (!confirm("Deseja iniciar um novo evento/dia de jogos?")) return;
 
-        // Verifica se é o mesmo dia civil ou se a data mudou
-        const hojeStr = getFormattedDate();
-        const dataUltimaSessao = currentPath.split('/')[1]?.split('_')[0];
+                const hojeStr = getFormattedDate();
+                const dataUltimaSessao = currentPath.split('/')[1]?.split('_')[0];
 
-        if (dataUltimaSessao === hojeStr) {
-            currentSession++;
-        } else {
-            currentSession = 1;
-        }
+                if (dataUltimaSessao === hojeStr) {
+                    currentSession++;
+                } else {
+                    currentSession = 1;
+                }
 
-        localStorage.setItem('voleihub_session_id', currentSession);
-        const novoPath = `partida/${hojeStr}_${currentSession}`;
+                localStorage.setItem('voleihub_session_id', currentSession);
+                const novoPath = `partida/${hojeStr}_${currentSession}`;
 
-        // Aponta para a nova rota no Firebase e dispara a criação do nó
-        updateGameReference(novoPath);
+                updateGameReference(novoPath);
 
-        alert(`▶️ Nova sessão iniciada no banco: ${novoPath}`);
-    }
-    
-    window.fecharModais();
-};
+                alert(`▶️ Nova sessão iniciada no banco: ${novoPath}`);
+            }
+            
+            window.fecharModais();
+        };
 
         let tempConfig = {};
         let historicoLocal = [];
@@ -738,7 +734,6 @@
             }
         };
 
-        // Modificado: O gerenciador de histórico agora aceita o escopo ('atual' ou 'retroativo')
         window.abrirHistoricoModal = (modo) => {
             modoHistoricoVisivel = modo;
             const titleEl = document.getElementById('tituloModalHistorico');
@@ -754,7 +749,6 @@
                 wrapperRank.classList.add('hidden');
                 wrapperHall.classList.add('hidden');
                 
-                // Renderiza direto as partidas do dia ativo atual
                 window.renderizarListaPartidasEstatica(game.historicoPartidas || []);
             } else {
                 titleEl.innerText = "Dias Anteriores";
@@ -777,7 +771,6 @@
             document.getElementById('modalHistorico').classList.remove('hidden');
         };
 
-        // Adicionado: Função auxiliar modular para desenhar cards de partida clicáveis no histórico
         window.renderizarListaPartidasEstatica = (partidasPool, diaIdx = null) => {
             const containerPartidas = document.getElementById('listaHistoricoContainer');
             if (!partidasPool || partidasPool.length === 0) {
@@ -811,7 +804,6 @@
             if (idx === "") return;
             const diaSnapshot = game.historicoDias[idx];
             
-            // Renderiza as partidas usando a função modular unificada
             window.renderizarListaPartidasEstatica(diaSnapshot.partidas || [], idx);
 
             const rkContainer = document.getElementById('rankingHistoricoContainer');
@@ -874,7 +866,6 @@
             window.abrirDetalhePartida(p.id, diaSnapshot.partidas);
         };
 
-        // Adicionado: Permite detalhar uma rodada que aconteceu hoje em tempo de execução
         window.abrirDetalhePartidaAtiva = (matchId) => {
             window.abrirDetalhePartida(matchId, game.historicoPartidas || []);
         };
@@ -973,7 +964,7 @@
         let unsubscribeListener = null;
 
         function bindFirebaseListener() {
-            if (unsubscribeListener) unsubscribeListener(); // Desconecta o escutador anterior se existir
+            if (unsubscribeListener) unsubscribeListener(); 
         
             unsubscribeListener = onValue(gameRef, (snapshot) => {
                 const data = snapshot.val();
@@ -1005,13 +996,11 @@
                         window.renderizarListaPartidasEstatica(game.historicoPartidas || []);
                     }
                 } else { 
-                    // Nó novo no Firebase! Inicializa carregando a lista fixa do código
                     initGameData(); 
                 }
             });
         }
         
-        // Inicializa a escuta no carregamento
         bindFirebaseListener();
 
         function ensureRankingConsistency() {
@@ -1020,11 +1009,22 @@
                 if (typeof p.elite === 'undefined') {
                     p.elite = INITIAL_ELITE.includes(p.nome);
                 }
+                
+                // Trava: Garante que o grupo raiz de estrelas nunca perca o status no cache
+                if (INITIAL_ESTRELA.includes(p.nome)) {
+                    p.estrela = true;
+                }
+                
                 if(!game.ranking[p.nome]) {
                     game.ranking[p.nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: p.estrela, elite: p.elite };
                 }
                 if(typeof game.ranking[p.nome].ptsAcertoTime === 'undefined') game.ranking[p.nome].ptsAcertoTime = 0;
                 if(typeof game.ranking[p.nome].elite === 'undefined') game.ranking[p.nome].elite = p.elite;
+                
+                // Trava: Força a consistência também no objeto de ranking
+                if (INITIAL_ESTRELA.includes(p.nome)) {
+                    game.ranking[p.nome].estrela = true;
+                }
             });
         }
 
@@ -1035,7 +1035,14 @@
             
             INITIAL_GERAL.forEach(n => adicionarLocal(n, false));
             INITIAL_ESTRELA.forEach(n => adicionarLocal(n, true));
-            INITIAL_ELITE.forEach(n => adicionarLocal(n, false));
+            
+            // Trava: Adiciona os Elites checando se eles já não foram adicionados nas listas acima
+            INITIAL_ELITE.forEach(n => {
+                const jaExiste = game.esperaGeral.some(p => p.nome === n) || game.esperaEstrela.some(p => p.nome === n);
+                if (!jaExiste) {
+                    adicionarLocal(n, false);
+                }
+            });
 
             const all = [...game.esperaGeral, ...game.esperaEstrela];
             game.restricoes = [];
@@ -1124,23 +1131,19 @@
             render();
         };
 
-    window.processarRankingComFiltroTemporal = (periodo, incluirAtual = true) => {
-            // Começa com um objeto vazio para evitar herança de lixo de memória
+        window.processarRankingComFiltroTemporal = (periodo, incluirAtual = true) => {
             let rankingConsolidado = {};
 
-            // 1. Se incluirAtual for true, iniciamos com o dia atual
             if (incluirAtual && game.ranking) {
                 rankingConsolidado = JSON.parse(JSON.stringify(game.ranking));
             }
 
-            // 2. Define quantos eventos puxar
             let qtdParaSomar = 0;
-            if (periodo === '3') qtdParaSomar = 2; // Atual + 2 anteriores = 3
+            if (periodo === '3') qtdParaSomar = 2;
             else if (periodo === '5') qtdParaSomar = 4;
             else if (periodo === '10') qtdParaSomar = 9;
             else if (periodo === 'tudo') qtdParaSomar = game.historicoDias ? game.historicoDias.length : 0;
 
-            // 3. Soma apenas se necessário
             if (game.historicoDias && qtdParaSomar > 0) {
                 const eventosFiltrados = game.historicoDias.slice(0, qtdParaSomar);
                 
@@ -1149,10 +1152,8 @@
                     
                     Object.entries(evento.rankingFinal).forEach(([nome, stats]) => {
                         if (!rankingConsolidado[nome]) {
-                            // Se o jogador não existe no acumulado, inicia do zero
                             rankingConsolidado[nome] = { v: 0, d: 0, ptsAtaque: 0, ptsBloqueio: 0, ptsAce: 0, ptsErroAdversario: 0, ptsAcertoTime: 0, estrela: stats.estrela, elite: stats.elite };
                         }
-                        // Acumula os valores
                         rankingConsolidado[nome].v += (stats.v || 0);
                         rankingConsolidado[nome].d += (stats.d || 0);
                         rankingConsolidado[nome].ptsAtaque += (stats.ptsAtaque || 0);
@@ -1273,7 +1274,6 @@
                 return { n, ...s, score: parseFloat(score) };
             }).filter(x => x.score > 0 && (rkTab==='tudo'?true:rkTab==='estrela'?x.estrela:!x.estrela)).sort((a,b) => b.score - a.score);
             
-            // Renderização do Ranking limpo (apenas posição, categoria e nome)
             document.getElementById('rankingContainer').innerHTML = rk.map((j, i) => {
                 return `
                 <div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 cursor-pointer mb-1 hover:bg-slate-800 transition" onclick="window.abrirAuditModal('${j.n}')">
@@ -1290,9 +1290,9 @@
             renderLeaders();
             
             const hallFamaSec = document.getElementById('hallFamaSection');
-if (hallFamaSec) {
-    hallFamaSec.classList.remove('hidden');
-}
+            if (hallFamaSec) {
+                hallFamaSec.classList.remove('hidden');
+            }
 
             const btnDia = document.getElementById('btnControleDia');
             if (btnDia) {
@@ -1799,54 +1799,48 @@ if (hallFamaSec) {
         }
 
         window.abrirAuditModal = (n) => {
-    const s = game.ranking[n]; 
-    if(!s) return; 
+            const s = game.ranking[n]; 
+            if(!s) return; 
 
-    const historicoDoJogador = game.historicoPartidas.filter(p => p.timeA.includes(n) || p.timeB.includes(n));
+            const historicoDoJogador = game.historicoPartidas.filter(p => p.timeA.includes(n) || p.timeB.includes(n));
 
-    // Correção: Pega apenas os parceiros que estavam no MESMO time na partida
-    let parceiros = {};
-    historicoDoJogador.forEach(p => {
-        const mesmoTime = p.timeA.includes(n) ? p.timeA : p.timeB;
-        mesmoTime.forEach(c => { if(c!==n) parceiros[c] = (parceiros[c]||0) + 1; });
-    });
-    const melhorParceiro = Object.keys(parceiros).sort((a,b) => parceiros[b]-parceiros[a])[0] || "---";
+            let parceiros = {};
+            historicoDoJogador.forEach(p => {
+                const mesmoTime = p.timeA.includes(n) ? p.timeA : p.timeB;
+                mesmoTime.forEach(c => { if(c!==n) parceiros[c] = (parceiros[c]||0) + 1; });
+            });
+            const melhorParceiro = Object.keys(parceiros).sort((a,b) => parceiros[b]-parceiros[a])[0] || "---";
 
-    // Cálculo das insígnias do Hall da Fama
-    const bag = calcularContagemInsigniasHall(n);
-    let insigniasHTML = "";
-    if(bag.topScore > 0) insigniasHTML += `<span title="Maior pontuador geral: ${bag.topScore}x">🏆<sub class="text-[8px]">${bag.topScore}</sub></span>`;
-    if(bag.matador > 0) insigniasHTML += `<span title="Maior pontuador de ataque: ${bag.matador}x">🔥<sub class="text-[8px]">${bag.matador}</sub></span>`;
-    if(bag.paredao > 0) insigniasHTML += `<span title="Maior bloqueador: ${bag.paredao}x">🚫<sub class="text-[8px]">${bag.paredao}</sub></span>`;
-    if(bag.ace > 0) insigniasHTML += `<span title="Maior pontuador de saque: ${bag.ace}x">⚡<sub class="text-[8px]">${bag.ace}</sub></span>`;
+            const bag = calcularContagemInsigniasHall(n);
+            let insigniasHTML = "";
+            if(bag.topScore > 0) insigniasHTML += `<span title="Maior pontuador geral: ${bag.topScore}x">🏆<sub class="text-[8px]">${bag.topScore}</sub></span>`;
+            if(bag.matador > 0) insigniasHTML += `<span title="Maior pontuador de ataque: ${bag.matador}x">🔥<sub class="text-[8px]">${bag.matador}</sub></span>`;
+            if(bag.paredao > 0) insigniasHTML += `<span title="Maior bloqueador: ${bag.paredao}x">🚫<sub class="text-[8px]">${bag.paredao}</sub></span>`;
+            if(bag.ace > 0) insigniasHTML += `<span title="Maior pontuador de saque: ${bag.ace}x">⚡<sub class="text-[8px]">${bag.ace}</sub></span>`;
 
-    // Total de partidas jogadas (vitórias + derrotas)
-    const totalPartidas = (s.v || 0) + (s.d || 0);
+            const totalPartidas = (s.v || 0) + (s.d || 0);
 
-    // Atualiza o título do modal com nome e insígnias integradas
-    document.getElementById('auditNome').innerHTML = `${n} <span class="ml-2 inline-flex gap-1 text-sm">${insigniasHTML}</span>`;
-    
-    // Atualiza o cabeçalho superior
-    document.getElementById('auditMatches').innerText = `Partidas: ${totalPartidas}`;
-    document.getElementById('auditLosses').innerText = `Derrotas: ${s.d || 0}`;
+            document.getElementById('auditNome').innerHTML = `${n} <span class="ml-2 inline-flex gap-1 text-sm">${insigniasHTML}</span>`;
+            
+            document.getElementById('auditMatches').innerText = `Partidas: ${totalPartidas}`;
+            document.getElementById('auditLosses').innerText = `Derrotas: ${s.d || 0}`;
 
-    // Atualiza a lista com as pontuações e a melhor dupla isolada
-    document.getElementById('auditContent').innerHTML = `
-        <div class="space-y-2 text-[11px] bg-slate-900/50 p-3 rounded-xl border border-slate-700">
-            <div class="flex justify-between border-b border-slate-700 pb-2 mb-2">
-                <span class="text-slate-400">Melhor Dupla:</span> <b class="text-orange-400 uppercase">${melhorParceiro}</b>
-            </div>
-            <div class="flex justify-between"><span>Vitórias:</span> <b class="text-green-400">${s.v || 0}</b></div>
-            <div class="flex justify-between"><span>Ataques:</span> <b>${s.ptsAtaque || 0}</b></div>
-            <div class="flex justify-between"><span>Bloqueios:</span> <b>${s.ptsBloqueio || 0}</b></div>
-            <div class="flex justify-between"><span>Aces:</span> <b>${s.ptsAce || 0}</b></div>
-            <div class="flex justify-between"><span>Acerto de Time:</span> <b>${s.ptsAcertoTime || 0}</b></div>
-            <div class="flex justify-between"><span>Erros do Adversário:</span> <b class="text-red-400">${s.ptsErroAdversario || 0}</b></div>
-        </div>
-    `;
-    document.getElementById('auditTotal').innerText = getScore(n);
-    document.getElementById('modalAudit').classList.remove('hidden');
-};
+            document.getElementById('auditContent').innerHTML = `
+                <div class="space-y-2 text-[11px] bg-slate-900/50 p-3 rounded-xl border border-slate-700">
+                    <div class="flex justify-between border-b border-slate-700 pb-2 mb-2">
+                        <span class="text-slate-400">Melhor Dupla:</span> <b class="text-orange-400 uppercase">${melhorParceiro}</b>
+                    </div>
+                    <div class="flex justify-between"><span>Vitórias:</span> <b class="text-green-400">${s.v || 0}</b></div>
+                    <div class="flex justify-between"><span>Ataques:</span> <b>${s.ptsAtaque || 0}</b></div>
+                    <div class="flex justify-between"><span>Bloqueios:</span> <b>${s.ptsBloqueio || 0}</b></div>
+                    <div class="flex justify-between"><span>Aces:</span> <b>${s.ptsAce || 0}</b></div>
+                    <div class="flex justify-between"><span>Acerto de Time:</span> <b>${s.ptsAcertoTime || 0}</b></div>
+                    <div class="flex justify-between"><span>Erros do Adversário:</span> <b class="text-red-400">${s.ptsErroAdversario || 0}</b></div>
+                </div>
+            `;
+            document.getElementById('auditTotal').innerText = getScore(n);
+            document.getElementById('modalAudit').classList.remove('hidden');
+        };
 
         window.abrirWeights = () => { 
             document.getElementById('modalConfigMenu').classList.add('hidden');
@@ -1974,17 +1968,16 @@ if (hallFamaSec) {
         function estaoBloqueados(p1, p2) { return game.restricoes.some(d => (d[0]==p1.id && d[1]==p2.id) || (d[1]==p1.id && d[0]==p2.id)); }
 
         window.addEventListener('load', () => {
-        // Adicione a verificação: Se for admin, não roda o modal
-        if (document.body.classList.contains('is-admin')) return;
+            if (document.body.classList.contains('is-admin')) return;
 
-        if (!localStorage.getItem('voleihub_meunome')) {
-            setTimeout(() => {
-                const modal = document.getElementById('modalIdentificacao');
-                if (modal && modal.classList.contains('hidden')) {
-                    window.acaoMeuPerfil();
+            if (!localStorage.getItem('voleihub_meunome')) {
+                setTimeout(() => {
+                    const modal = document.getElementById('modalIdentificacao');
+                    if (modal && modal.classList.contains('hidden')) {
+                        window.acaoMeuPerfil();
                     }
-            }, 1000);
-        }
+                }, 1000);
+            }
         });
     </script>
 </body>
