@@ -586,6 +586,8 @@
 
         let game = JSON.parse(localStorage.getItem('voleiHubGame')) || {
             jogadores: [], timeA: [], timeB: [], placar: { A: 0, B: 0 }, vitoriasTime: { A: 0, B: 0 }, vitoriasConsecutivas: 0,
+            scoreA: 0, scoreB: 0, winsConsecA: 0, winsConsecB: 0,
+            systemMsg: { text: "AGUARDANDO", sub: "...", streak: false, ts: 0 },
             historicoPartidas: [], historicoDias: [], ranking: {}, saqueLado: null, idxA: null, idxB: null,
             weights: { atqG: 1, blqG: 1, aceG: 1.5, atqE: 1.5, blqE: 1.5, aceE: 2, err: -0.5, vit: 3, team: 0.5 },
             config: { size: 4, stars: 1, elites: 2, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' },
@@ -619,7 +621,6 @@
             avaliaveis.forEach(item => { 
                 item.p.elite = false; 
                 
-                // Trava: IA só remove estrela se não for do grupo fixo
                 if (!INITIAL_ESTRELA.includes(item.p.nome)) {
                     item.p.estrela = false; 
                     game.ranking[item.p.nome].estrela = false; 
@@ -976,7 +977,11 @@
                         ranking: data.ranking || {}, restricoes: data.restricoes || [],
                         historicoPartidas: data.historicoPartidas || [],
                         historicoDias: data.historicoDias || [],
-                        systemMsg: data.systemMsg || { text:"AGUARDANDO", sub:"...", ts: 0 }, 
+                        scoreA: data.scoreA || 0,
+                        scoreB: data.scoreB || 0,
+                        winsConsecA: data.winsConsecA || 0,
+                        winsConsecB: data.winsConsecB || 0,
+                        systemMsg: data.systemMsg || { text: "AGUARDANDO", sub: "...", streak: false, ts: 0 }, 
                         matchLog: data.matchLog || [], 
                         lastAnim: data.lastAnim || { ts: 0 }, 
                         lastVoice: data.lastVoice || { text: "", ts: 0 },
@@ -1010,7 +1015,6 @@
                     p.elite = INITIAL_ELITE.includes(p.nome);
                 }
                 
-                // Trava: Garante que o grupo raiz de estrelas nunca perca o status no cache
                 if (INITIAL_ESTRELA.includes(p.nome)) {
                     p.estrela = true;
                 }
@@ -1021,7 +1025,6 @@
                 if(typeof game.ranking[p.nome].ptsAcertoTime === 'undefined') game.ranking[p.nome].ptsAcertoTime = 0;
                 if(typeof game.ranking[p.nome].elite === 'undefined') game.ranking[p.nome].elite = p.elite;
                 
-                // Trava: Força a consistência também no objeto de ranking
                 if (INITIAL_ESTRELA.includes(p.nome)) {
                     game.ranking[p.nome].estrela = true;
                 }
@@ -1031,12 +1034,19 @@
         function initGameData() {
             game.esperaGeral = []; game.esperaEstrela = [];
             game.historicoDias = [];
+            game.historicoPartidas = [];
+            game.ranking = {};
+            game.scoreA = 0; 
+            game.scoreB = 0;
+            game.winsConsecA = 0; 
+            game.winsConsecB = 0;
+            game.systemMsg = { text: "AGUARDANDO", sub: "...", streak: false, ts: 0 };
+            game.matchLog = [];
             game.diaIniciado = true;
             
             INITIAL_GERAL.forEach(n => adicionarLocal(n, false));
             INITIAL_ESTRELA.forEach(n => adicionarLocal(n, true));
             
-            // Trava: Adiciona os Elites checando se eles já não foram adicionados nas listas acima
             INITIAL_ELITE.forEach(n => {
                 const jaExiste = game.esperaGeral.some(p => p.nome === n) || game.esperaEstrela.some(p => p.nome === n);
                 if (!jaExiste) {
