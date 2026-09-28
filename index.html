@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V2.1.6</title>
+    <title>Vôlei Hub PRO - V2.1.7</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -461,7 +461,28 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const auth = getAuth(app);
-        const gameRef = ref(db, 'partida/v9_5');
+        // Obtém a data atual no formato DDMMYYYY (ex: 28092026)
+        function getFormattedDate() {
+        const d = new Date();
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}${month}${year}`;
+        }
+
+        // Controla o número da sessão no localStorage (padrão é 1)
+        let currentSession = parseInt(localStorage.getItem('voleihub_session_id')) || 1;
+        let currentPath = `partida/${getFormattedDate()}_${currentSession}`;
+        
+        // Instância inicial da referência
+        let gameRef = ref(db, currentPath);
+        
+        // Função auxiliar para mudar o nó escutado no Firebase
+        function updateGameReference(newPath) {
+            currentPath = newPath;
+            gameRef = ref(db, currentPath);
+            bindFirebaseListener();
+        }
 
         const INITIAL_GERAL = ["ALOISIO", "CALEB", "CHRISTIAN", "ITALO", "LUIZ EDUARDO", "SAMUEL", "THIARLES", "WENDEL", "YURI"];
         const INITIAL_ESTRELA =["ANNY", "DANIELE", "HEMILY", "ISABELY", "KEMILLY", "MATEUS BRAZ", "PATY", "RHUANA", "SARA", "THAYLA"];
@@ -631,106 +652,42 @@
         };
 
         window.toggleEstadoDia = () => {
-            if (!isAdmin) return;
-            if (game.diaIniciado) {
-                if (!confirm("Deseja encerrar o dia de hoje?\n\n- O Hall da Fama e Ranking final ficarão visíveis para visitantes.\n- A quadra será limpa e os dados salvos no histórico.")) return;
-                
-                let balanceou = false;
-                const todos = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela];
-                let avaliaveis = [];
-                todos.forEach(p => {
-                    let r = game.ranking[p.nome];
-                    if (!r) return;
-                    let setsJogados = r.v + r.d;
-                    if (setsJogados >= 2) {
-                        let impactoAtaque = (r.ptsAtaque || 0) * 2;
-                        let impactoDefesa = ((r.ptsBloqueio || 0) + (r.ptsAce || 0)) * 1.5;
-                        let taxaVitoria = (r.v || 0) * 5; 
-                        let pontuacaoMedia = (impactoAtaque + impactoDefesa + taxaVitoria) / setsJogados;
-                        avaliaveis.push({ p, score: pontuacaoMedia });
-                    }
-                });
+    if (!isAdmin) return;
+    
+    if (game.diaIniciado) {
+        if (!confirm(`Deseja encerrar a sessão atual (${currentPath})?\n\n- Os dados ficarão salvos neste nó no Firebase.\n- A quadra será limpa para o próximo evento.`)) return;
 
-                if (avaliaveis.length >= 5) {
-                    balanceou = true;
-                    avaliaveis.sort((a, b) => b.score - a.score);
-                    let proporcao = Math.max(1, Math.floor(avaliaveis.length * 0.20));
-                    avaliaveis.forEach(item => { 
-                        item.p.elite = false; item.p.estrela = false; 
-                        game.ranking[item.p.nome].elite = false; 
-                        game.ranking[item.p.nome].estrela = false; 
-                    });
-                    for(let i = 0; i < proporcao; i++) {
-                        avaliaveis[i].p.elite = true;
-                        game.ranking[avaliaveis[i].p.nome].elite = true;
-                    }
-                    for(let i = avaliaveis.length - 1; i >= Math.max(proporcao, avaliaveis.length - proporcao); i--) {
-                        avaliaveis[i].p.estrela = true;
-                        game.ranking[avaliaveis[i].p.nome].estrela = true;
-                    }
-                }
+        // Salva snapshot do dia encerrado no nó atual antes de fechar
+        game.diaIniciado = false;
+        salvarState();
 
-                if (!game.historicoDias) game.historicoDias = [];
-                let dataStr = new Date().toLocaleDateString('pt-BR') + ' - ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+        alert(`🛑 Sessão ${currentPath} Encerrada com sucesso!`);
+        render();
 
-                const options = { weekday: 'long' };
-                const diaDaSemana = new Date().toLocaleDateString('pt-BR', options);
+    } else {
+        if (!confirm("Deseja iniciar um novo evento/dia de jogos?")) return;
 
-                dataStr = new Date().toLocaleDateString('pt-BR') + ' - ' + diaDaSemana.charAt(0).toUpperCase() + diaDaSemana.slice(1);
+        // Verifica se é o mesmo dia civil ou se a data mudou
+        const hojeStr = getFormattedDate();
+        const dataUltimaSessao = currentPath.split('/')[1]?.split('_')[0];
 
-                game.historicoDias.unshift({
-                id: Date.now(),
-                data: dataStr, // Corrigido para salvar a string formatada
-                partidas: game.historicoPartidas ? [...game.historicoPartidas] : [],
-                rankingFinal: JSON.parse(JSON.stringify(game.ranking))
-                });
+        if (dataUltimaSessao === hojeStr) {
+            currentSession++;
+        } else {
+            currentSession = 1;
+        }
 
-                // NOVO: Zera o ranking do dia ativo para não acumular eternamente
-                Object.keys(game.ranking).forEach(nome => {
-                    game.ranking[nome].v = 0;
-                    game.ranking[nome].d = 0;
-                    game.ranking[nome].ptsAtaque = 0;
-                    game.ranking[nome].ptsBloqueio = 0;
-                    game.ranking[nome].ptsAce = 0;
-                    game.ranking[nome].ptsErroAdversario = 0;
-                    game.ranking[nome].ptsAcertoTime = 0;
-                    // Mantém apenas os status de estrela e elite
-                });
+        localStorage.setItem('voleihub_session_id', currentSession);
+        const novoPath = `partida/${hojeStr}_${currentSession}`;
 
-                game.timeA = []; game.timeB = [];
-                game.esperaGeral = []; game.esperaEstrela = [];
-                todos.forEach(p => {
-                    p.bloqueado = true; 
-                    if (p.estrela) game.esperaEstrela.push(p);
-                    else game.esperaGeral.push(p);
-                });
+        // Aponta para a nova rota no Firebase e dispara a criação do nó
+        updateGameReference(novoPath);
 
-                game.historicoPartidas = []; 
-                game.placar = { A: 0, B: 0 }; game.scoreA = 0; game.scoreB = 0;
-                game.winsConsecA = 0; game.winsConsecB = 0;
-                game.currentMatchStats = {};
-                
-                // Dentro de window.toggleEstadoDia, logo após salvar o historicoDias:
-game.diaIniciado = false;
-
-// Coleta todos os nomes atuais da fila para exibir ao admin
-const jogadoresNaFila = [...game.esperaGeral, ...game.esperaEstrela];
-const nomesParaRemover = prompt("Jogadores na fila para o próximo evento. Digite os nomes que deseja REMOVER (separados por vírgula) ou deixe em branco para manter todos:", "");
-
-if (nomesParaRemover) {
-    const listaRemover = nomesParaRemover.split(',').map(n => n.trim().toUpperCase());
-    listaRemover.forEach(nome => {
-        game.esperaGeral = game.esperaGeral.filter(p => p.nome !== nome);
-        game.esperaEstrela = game.esperaEstrela.filter(p => p.nome !== nome);
-    });
-}
-
-salvarState();
-alert("🛑 Evento Encerrado! O Ranking e o Hall da Fama foram preservados.");
-                alert("▶️ Novo dia Iniciado! Boa diversão na quadra!");
-            }
-            window.fecharModais();
-        };
+        alert(`▶️ Nova sessão iniciada no banco: ${novoPath}`);
+    }
+    
+    window.fecharModais();
+};
 
         let tempConfig = {};
         let historicoLocal = [];
@@ -1013,39 +970,49 @@ alert("🛑 Evento Encerrado! O Ranking e o Hall da Fama foram preservados.");
         let lastEndGameTs = 0;
         let lastSoundTs = 0; 
         let lastVoiceTs = Date.now();
+        let unsubscribeListener = null;
 
-        onValue(gameRef, (snapshot) => {
-            const data = snapshot.val();
-            if(data) {
-                game = { 
-                    ...data, 
-                    timeA: data.timeA || [], timeB: data.timeB || [], 
-                    esperaGeral: data.esperaGeral || [], esperaEstrela: data.esperaEstrela || [], 
-                    ranking: data.ranking || {}, restricoes: data.restricoes || [],
-                    historicoPartidas: data.historicoPartidas || [],
-                    historicoDias: data.historicoDias || [],
-                    systemMsg: data.systemMsg || { text:"AGUARDANDO", sub:"...", ts: 0 }, 
-                    matchLog: data.matchLog || [], 
-                    lastAnim: data.lastAnim || { ts: 0 }, 
-                    lastVoice: data.lastVoice || { text: "", ts: 0 },
-                    endGameAnim: data.endGameAnim || { active: false, ts: 0 }, 
-                    nextGameReason: data.nextGameReason || 'default', 
-                    publicRanking: data.publicRanking || false, 
-                    requests: data.requests || [], deniedRequests: data.deniedRequests || [], 
-                    currentMatchStats: data.currentMatchStats || {},
-                    soundTrigger: data.soundTrigger || 0,
-                    weights: { ...game.weights, ...(data.weights || {}) },
-                    diaIniciado: typeof data.diaIniciado !== 'undefined' ? data.diaIniciado : true
-                };
-                ensureRankingConsistency();
-                render();
-                
-                // Atualiza em tempo real o modal aberto se for do dia corrente
-                if (document.getElementById('modalHistorico').classList.contains('hidden') === false && modoHistoricoVisivel === 'atual') {
-                    window.renderizarListaPartidasEstatica(game.historicoPartidas || []);
+        function bindFirebaseListener() {
+            if (unsubscribeListener) unsubscribeListener(); // Desconecta o escutador anterior se existir
+        
+            unsubscribeListener = onValue(gameRef, (snapshot) => {
+                const data = snapshot.val();
+                if(data) {
+                    game = { 
+                        ...data, 
+                        timeA: data.timeA || [], timeB: data.timeB || [], 
+                        esperaGeral: data.esperaGeral || [], esperaEstrela: data.esperaEstrela || [], 
+                        ranking: data.ranking || {}, restricoes: data.restricoes || [],
+                        historicoPartidas: data.historicoPartidas || [],
+                        historicoDias: data.historicoDias || [],
+                        systemMsg: data.systemMsg || { text:"AGUARDANDO", sub:"...", ts: 0 }, 
+                        matchLog: data.matchLog || [], 
+                        lastAnim: data.lastAnim || { ts: 0 }, 
+                        lastVoice: data.lastVoice || { text: "", ts: 0 },
+                        endGameAnim: data.endGameAnim || { active: false, ts: 0 }, 
+                        nextGameReason: data.nextGameReason || 'default', 
+                        publicRanking: data.publicRanking || false, 
+                        requests: data.requests || [], deniedRequests: data.deniedRequests || [], 
+                        currentMatchStats: data.currentMatchStats || {},
+                        soundTrigger: data.soundTrigger || 0,
+                        weights: { ...game.weights, ...(data.weights || {}) },
+                        diaIniciado: typeof data.diaIniciado !== 'undefined' ? data.diaIniciado : true
+                    };
+                    ensureRankingConsistency();
+                    render();
+                    
+                    if (document.getElementById('modalHistorico').classList.contains('hidden') === false && modoHistoricoVisivel === 'atual') {
+                        window.renderizarListaPartidasEstatica(game.historicoPartidas || []);
+                    }
+                } else { 
+                    // Nó novo no Firebase! Inicializa carregando a lista fixa do código
+                    initGameData(); 
                 }
-            } else { initGameData(); }
-        });
+            });
+        }
+        
+        // Inicializa a escuta no carregamento
+        bindFirebaseListener();
 
         function ensureRankingConsistency() {
             const allPlayers = [...game.esperaGeral, ...game.esperaEstrela, ...game.timeA, ...game.timeB];
