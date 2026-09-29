@@ -1,30 +1,9 @@
-Com base nas tuas indicações, ajustei o fluxo para que o sistema não force a entrada num evento automaticamente e passe a trabalhar com **Instâncias de Evento**, o que permite manter o histórico organizado por ID e Data (ex: `5CAT_29092026_01`).
-
-Aqui estão as principais mudanças implementadas:
-
-1. **Fim da Entrada Automática:** A Splash Screen agora exige que o Visitante insira o ID para visualizar o painel. O Administrador, após o login, também fica na tela inicial e o painel "Painel de Eventos" é aberto automaticamente para ele escolher se quer **Criar**, **Gerenciar** ou **Acessar por ID**.
-2. **Organização do Menu Gerenciar Eventos:**
-* O botão **Encerrar Evento Atual** agora é a primeira opção no menu (visível apenas se já estiveres dentro de um evento).
-* A opção **Gerenciar Eventos Criados** agora abre uma tela de busca vazia. O sistema *não lista* eventos ativos até que pesquises especificamente pelo ID.
-* Ao encerrar um evento, és direcionado automaticamente para o menu de escolha (Criar, Gerenciar ou Buscar).
-
-
-3. **Histórico e Múltiplas Instâncias (Ex: `5CAT_29092026_01`):**
-* O ID que partilhas com os jogadores continua a ser o curto (ex: `5CAT`).
-* No entanto, nos bastidores, o sistema gera uma instância com data e contador (ex: `5CAT_29092026_01`). Se abrires e encerrares, e depois abrires um novo `5CAT` no mesmo dia, ele criará o `5CAT_29092026_02`.
-* Restaurei o botão de **Histórico de Dias Anteriores**, que lista todas as sessões passadas com a formatação das datas e instâncias para fácil consulta.
-
-
-
-Aqui está o código completo atualizado. Substitua no teu `index.html`:
-
-```html
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V3.1.0</title>
+    <title>Vôlei Hub PRO - V3.1.1</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -92,7 +71,7 @@ Aqui está o código completo atualizado. Substitua no teu `index.html`:
         <div id="splashGuestPanel" class="w-full max-w-xs mt-8">
             <p class="text-[10px] text-slate-400 uppercase font-bold text-center mb-2">Informe o ID do evento para entrar:</p>
             <div class="flex gap-2 px-4 mb-8">
-                <input type="text" id="idSplashInput" placeholder="ID (ex: 5CAT)" maxlength="8" class="config-input h-12 uppercase text-center flex-1 text-lg">
+                <input type="text" id="idSplashInput" maxlength="8" class="config-input h-12 uppercase text-center flex-1 text-lg">
                 <button onclick="window.entrarComoVisitante()" class="bg-blue-600 px-6 rounded-xl font-black uppercase shadow-lg text-xs hover:bg-blue-500">Entrar</button>
             </div>
             <button onclick="window.abrirModalAdminMenu()" class="text-[10px] text-slate-500 font-bold uppercase hover:text-slate-400 transition underline underline-offset-4">Acesso Administrador</button>
@@ -251,11 +230,10 @@ Aqui está o código completo atualizado. Substitua no teu `index.html`:
     <div id="modalNovoEvento" class="modal-global hidden" style="z-index: 3001;">
         <div class="bg-slate-800 w-full max-w-sm rounded-3xl p-6 border border-emerald-500">
             <h2 class="text-xl font-black text-emerald-400 uppercase mb-4 italic">Novo Evento</h2>
-            <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">ID Curto do Evento (Até 8 chars):</label>
-            <input type="text" id="idNovoEvento" maxlength="8" placeholder="Ex: 5CAT" class="config-input mb-3 h-12 text-sm uppercase">
+            <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">ID do Evento (Até 8 caracteres):</label>
+            <input type="text" id="idNovoEvento" maxlength="8" class="config-input mb-3 h-12 text-sm uppercase">
             <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Nome do Evento:</label>
             <input type="text" id="nomeNovoEvento" placeholder="Ex: Vôlei de Sábado" class="config-input mb-6 h-12 text-sm">
-            <p class="text-[10px] text-slate-500 mb-4 italic">* Dica: Usar ID "5CAT" importará a configuração da 5ª Categoria. O histórico agrupará pela data.</p>
             <button onclick="window.criarNovoEvento()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-4 rounded-xl uppercase text-xs font-black text-white shadow-lg mb-2">Criar e Iniciar</button>
             <button onclick="document.getElementById('modalNovoEvento').classList.add('hidden'); document.getElementById('modalAdminChoice').classList.remove('hidden')" class="w-full bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600 text-white">Voltar</button>
         </div>
