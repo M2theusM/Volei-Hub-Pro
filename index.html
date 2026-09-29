@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V2.1.9</title>
+    <title>Vôlei Hub PRO - V2.2.0</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -183,6 +183,66 @@
         </section>
     </main>
 
+    <!-- Modais de Alerta e Confirmação Customizados -->
+    <div id="modalCustomAlert" class="modal-global hidden" style="z-index: 9999;">
+        <div class="bg-slate-800 w-full max-w-xs rounded-3xl p-6 border border-orange-500 text-center">
+            <h3 class="font-black text-orange-500 uppercase text-lg italic mb-4">Vôlei Hub</h3>
+            <p id="customAlertMsg" class="text-sm text-slate-300 mb-6"></p>
+            <button onclick="document.getElementById('modalCustomAlert').classList.add('hidden')" class="w-full bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600 text-white">OK</button>
+        </div>
+    </div>
+
+    <div id="modalCustomConfirm" class="modal-global hidden" style="z-index: 9999;">
+        <div class="bg-slate-800 w-full max-w-xs rounded-3xl p-6 border border-red-500 text-center">
+            <h3 class="font-black text-red-500 uppercase text-lg italic mb-4">Atenção</h3>
+            <p id="customConfirmMsg" class="text-sm text-slate-300 mb-6"></p>
+            <div class="flex gap-2">
+                <button id="btnConfirmYes" class="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded-xl uppercase text-xs font-black text-white">Sim</button>
+                <button onclick="document.getElementById('modalCustomConfirm').classList.add('hidden')" class="flex-1 bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600 text-white">Não</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modais de Gestão de Eventos (Admin) -->
+    <div id="modalAdminLogin" class="modal-global hidden" style="z-index: 3000;">
+        <div class="bg-slate-800 w-full max-w-sm rounded-3xl p-6 border border-blue-500">
+            <h2 class="text-xl font-black text-blue-400 uppercase mb-4 italic">Login Admin</h2>
+            <input type="email" id="adminEmail" placeholder="E-mail" class="config-input mb-3 h-12 text-sm">
+            <input type="password" id="adminSenha" placeholder="Senha" class="config-input mb-6 h-12 text-sm">
+            <button onclick="window.confirmLoginAdmin()" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-xl uppercase text-xs font-black text-white shadow-lg mb-2">Entrar</button>
+            <button onclick="document.getElementById('modalAdminLogin').classList.add('hidden')" class="w-full bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600 text-white">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="modalAdminChoice" class="modal-global hidden" style="z-index: 3000;">
+        <div class="bg-slate-800 w-full max-w-sm rounded-3xl p-6 border border-emerald-500">
+            <h2 class="text-xl font-black text-emerald-400 uppercase mb-4 italic">Painel de Eventos</h2>
+            <div class="space-y-3">
+                <button onclick="window.abrirNovoEvento()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-4 rounded-xl uppercase text-xs font-black text-white shadow-lg">▶️ Iniciar Novo Evento</button>
+                <button onclick="window.abrirGerenciarEventos()" class="w-full bg-slate-700 hover:bg-slate-600 py-4 rounded-xl uppercase text-xs font-black text-white shadow-lg border border-slate-600">📋 Gerenciar Eventos Criados</button>
+            </div>
+            <button onclick="window.fecharModais()" class="w-full mt-6 py-2 text-slate-500 text-[10px] font-bold uppercase">Fechar Configs</button>
+        </div>
+    </div>
+    
+    <div id="modalNovoEvento" class="modal-global hidden" style="z-index: 3001;">
+        <div class="bg-slate-800 w-full max-w-sm rounded-3xl p-6 border border-emerald-500">
+            <h2 class="text-xl font-black text-emerald-400 uppercase mb-4 italic">Novo Evento</h2>
+            <input type="text" id="nomeNovoEvento" placeholder="Ex: Vôlei de Sábado" class="config-input mb-6 h-12 text-sm">
+            <button onclick="window.criarNovoEvento()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-4 rounded-xl uppercase text-xs font-black text-white shadow-lg mb-2">Criar e Iniciar</button>
+            <button onclick="document.getElementById('modalNovoEvento').classList.add('hidden'); document.getElementById('modalAdminChoice').classList.remove('hidden')" class="w-full bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600 text-white">Voltar</button>
+        </div>
+    </div>
+
+    <div id="modalGerenciarEventos" class="modal-global hidden" style="z-index: 3001;">
+        <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-blue-500 overflow-y-auto max-h-[90vh]">
+            <h2 class="text-xl font-black text-blue-400 uppercase mb-4 italic">Eventos Ativos</h2>
+            <div id="listaEventosAdmin" class="space-y-2 mb-6 max-h-[300px] overflow-y-auto pr-1"></div>
+            <button onclick="document.getElementById('modalGerenciarEventos').classList.add('hidden'); document.getElementById('modalAdminChoice').classList.remove('hidden')" class="w-full bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600 text-white">Voltar</button>
+        </div>
+    </div>
+
+    <!-- Modais Originais -->
     <div id="modalWeights" class="modal-global hidden">
         <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border-2 border-blue-500 overflow-y-auto max-h-[90vh]">
             <h2 class="text-xl font-black text-blue-400 uppercase mb-6 italic">Pesos do Score</h2>
@@ -296,7 +356,7 @@
                 <button onclick="window.abrirBloqueioDuplas()" class="w-full bg-slate-700 text-red-400 p-3 rounded-xl font-black uppercase text-[10px] border border-slate-600 mb-6">🚫 Bloqueio Duplas</button>
 
                 <div class="border-t border-slate-600 pt-6 space-y-2">
-                    <button id="btnControleDia" onclick="window.toggleEstadoDia()" class="w-full p-3 rounded-xl font-black uppercase text-[10px] shadow-lg transition"></button>
+                    <button id="btnControleDia" onclick="window.abrirOpcoesEvento()" class="w-full bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-xl font-black uppercase text-[10px] border border-blue-500 shadow-lg transition">📋 GERENCIAR EVENTOS (TROCAR / NOVO)</button>
                     <button onclick="window.forcarBalanceamentoManual()" class="w-full bg-purple-600 hover:bg-purple-500 text-white p-3 rounded-xl font-black uppercase text-[10px] border border-purple-500 shadow-lg">🤖 Forçar Balanceamento (IA)</button>
                     <button onclick="window.limparSistema()" class="w-full text-red-600 hover:text-red-400 text-[10px] font-black uppercase py-2 mt-4">⚠️ Resetar Sistema Completo</button>
                 </div>
@@ -405,7 +465,7 @@
             </div>
             
             <div id="seletorDiaHistoricoContainer" class="mb-4">
-                <label class="text-[10px] font-black uppercase text-slate-400 block mb-1">Selecionar Dia:</label>
+                <label class="text-[10px] font-black uppercase text-slate-400 block mb-1">Selecionar Dia / Evento:</label>
                 <select id="selHistoricoDia" onchange="window.carregarDadosDiaHistorico()" class="config-input h-10 text-xs w-full"></select>
             </div>
 
@@ -416,12 +476,12 @@
                 </div>
                 
                 <div id="wrapperRankingRetroativo" class="hidden">
-                    <h3 class="text-xs font-black uppercase text-orange-400 mb-2 border-b border-slate-700 pb-1">🏆 Ranking Fechado</h3>
+                    <h3 class="text-xs font-black uppercase text-orange-400 mb-2 border-b border-slate-700 pb-1">🏆 Ranking Deste Evento</h3>
                     <div id="rankingHistoricoContainer" class="space-y-1 text-xs"></div>
                 </div>
 
                 <div id="wrapperHallRetroativo" class="hidden">
-                    <h3 class="text-xs font-black uppercase text-purple-400 mb-2 border-b border-slate-700 pb-1">⚡ Hall da Fama Deste Dia</h3>
+                    <h3 class="text-xs font-black uppercase text-purple-400 mb-2 border-b border-slate-700 pb-1">⚡ Hall da Fama Deste Evento</h3>
                     <div id="hallHistoricoContainer" class="space-y-2"></div>
                 </div>
             </div>
@@ -442,7 +502,7 @@
     </div>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue, remove, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -467,10 +527,34 @@
             return `${day}${month}${year}`;
         }
 
-        let currentSession = parseInt(localStorage.getItem('voleihub_session_id')) || 1;
-        let currentPath = `partida/${getFormattedDate()}_${currentSession}`;
-        
+        window.customAlert = (msg) => {
+            document.getElementById('customAlertMsg').innerText = msg;
+            document.getElementById('modalCustomAlert').classList.remove('hidden');
+        };
+
+        window.customConfirm = (msg, callback) => {
+            document.getElementById('customConfirmMsg').innerText = msg;
+            document.getElementById('btnConfirmYes').onclick = () => {
+                document.getElementById('modalCustomConfirm').classList.add('hidden');
+                callback();
+            };
+            document.getElementById('modalCustomConfirm').classList.remove('hidden');
+        };
+
+        let currentPath = `partida/inicializacao_temporaria`; 
         let gameRef = ref(db, currentPath);
+        let unsubscribeListener = null;
+
+        function startGlobalListener() {
+            const globalRef = ref(db, 'configGeral/eventoAtivo');
+            onValue(globalRef, (snap) => {
+                const ativo = snap.val();
+                if(ativo) {
+                    updateGameReference(`partida/${ativo}`);
+                }
+            });
+        }
+        startGlobalListener();
         
         function updateGameReference(newPath) {
             currentPath = newPath;
@@ -488,6 +572,7 @@
         let isAdmin = false;
         let filtroPeriodoAtual = 'atual'; 
         let modoHistoricoVisivel = 'atual';
+        let authResolved = false;
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -496,24 +581,38 @@
             } else {
                 isAdmin = false;
                 document.body.classList.remove('is-admin');
+                if (!authResolved && !localStorage.getItem('voleihub_meunome')) {
+                    setTimeout(() => window.acaoMeuPerfil(), 1000);
+                }
             }
+            authResolved = true;
             render(); 
         });
 
-        window.fazerLoginAdmin = () => {
-            const email = prompt("E-mail do Administrador:");
-            if (!email) return;
-            const senha = prompt("Senha:");
-            if (!senha) return;
+        window.abrirModalAdminMenu = () => {
+            document.getElementById('adminEmail').value = '';
+            document.getElementById('adminSenha').value = '';
+            document.getElementById('modalAdminLogin').classList.remove('hidden');
+        };
+
+        window.confirmLoginAdmin = () => {
+            const email = document.getElementById('adminEmail').value;
+            if (!email) return customAlert("Insira o e-mail!");
+            const senha = document.getElementById('adminSenha').value;
+            if (!senha) return customAlert("Insira a senha!");
 
             signInWithEmailAndPassword(auth, email, senha)
-                .then(() => { alert("Acesso de Administrador Liberado! 🔐"); })
-                .catch((error) => { alert("Erro de acesso: Usuário ou senha incorretos."); });
+                .then(() => { 
+                    document.getElementById('modalAdminLogin').classList.add('hidden');
+                    document.getElementById('modalAdminChoice').classList.remove('hidden');
+                    customAlert("Acesso de Administrador Liberado! 🔐");
+                })
+                .catch((error) => { customAlert("Erro de acesso: Usuário ou senha incorretos."); });
         };
 
         const params = new URLSearchParams(window.location.search);
         if (params.get('login') === 'admin') {
-            setTimeout(window.fazerLoginAdmin, 800); 
+            setTimeout(() => { document.getElementById('modalAdminLogin').classList.remove('hidden'); }, 800); 
         }
 
         let audioCtx;
@@ -538,7 +637,7 @@
             if (jogador) {
                 jogador.bloqueado = true;
                 salvarState();
-                alert("Você foi bloqueado na fila.");
+                customAlert("Você foi bloqueado na fila.");
             }
             window.deslogarIdentidade();
         };
@@ -591,11 +690,11 @@
             historicoPartidas: [], historicoDias: [], ranking: {}, saqueLado: null, idxA: null, idxB: null,
             weights: { atqG: 1, blqG: 1, aceG: 1.5, atqE: 1.5, blqE: 1.5, aceE: 2, err: -0.5, vit: 3, team: 0.5 },
             config: { size: 4, stars: 1, elites: 2, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' },
-            bloqueios: {}, diaIniciado: true
+            bloqueios: {}
         };
 
         window.forcarBalanceamentoManual = () => {
-            const todos = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela];
+            const todos = [...(game.timeA||[]), ...(game.timeB||[]), ...(game.esperaGeral||[]), ...(game.esperaEstrela||[])];
             let avaliaveis = [];
             todos.forEach(p => {
                 let r = game.ranking[p.nome];
@@ -611,7 +710,7 @@
             });
 
             if (avaliaveis.length < 5) {
-                alert("Poucos jogadores com dados suficientes (mín 2 sets) para a IA balancear.");
+                customAlert("Poucos jogadores com dados suficientes (mín 2 sets) para a IA balancear.");
                 return;
             }
 
@@ -640,7 +739,7 @@
 
             let novaGeral = [];
             let novaEstrela = [];
-            [...game.esperaGeral, ...game.esperaEstrela].forEach(p => {
+            [...(game.esperaGeral||[]), ...(game.esperaEstrela||[])].forEach(p => {
                 if(p.estrela) novaEstrela.push(p);
                 else novaGeral.push(p);
             });
@@ -648,42 +747,61 @@
             game.esperaEstrela = novaEstrela;
 
             salvarState();
-            alert('Balanceamento IA Concluído! Filas e Rankings Atualizados.');
+            customAlert('Balanceamento IA Concluído! Filas e Rankings Atualizados.');
         };
 
-        window.toggleEstadoDia = () => {
-            if (!isAdmin) return;
+        window.abrirOpcoesEvento = () => {
+            window.fecharModais();
+            document.getElementById('modalAdminChoice').classList.remove('hidden');
+        };
+
+        window.abrirNovoEvento = () => {
+            document.getElementById('modalAdminChoice').classList.add('hidden');
+            document.getElementById('modalNovoEvento').classList.remove('hidden');
+        };
+
+        window.criarNovoEvento = async () => {
+            const inputNome = document.getElementById('nomeNovoEvento').value;
+            const nome = inputNome || `Evento ${getFormattedDate()}`;
+            const eventId = getFormattedDate() + '_' + Date.now().toString().slice(-4);
             
-            if (game.diaIniciado) {
-                if (!confirm(`Deseja encerrar a sessão atual (${currentPath})?\n\n- Os dados ficarão salvos neste nó no Firebase.\n- A quadra será limpa para o próximo evento.`)) return;
+            const evtData = { id: eventId, nome: nome, data: new Date().toLocaleDateString('pt-BR'), timestamp: Date.now() };
+            
+            await set(ref(db, `listaEventos/${eventId}`), evtData);
+            await set(ref(db, 'configGeral/eventoAtivo'), eventId);
+            
+            document.getElementById('modalNovoEvento').classList.add('hidden');
+            customAlert(`Evento "${nome}" iniciado com sucesso!`);
+        };
 
-                game.diaIniciado = false;
-                salvarState();
-
-                alert(`🛑 Sessão ${currentPath} Encerrada com sucesso!`);
-                render();
-
+        window.abrirGerenciarEventos = async () => {
+            const snap = await get(ref(db, 'listaEventos'));
+            const eventos = snap.val() || {};
+            const container = document.getElementById('listaEventosAdmin');
+            
+            if(Object.keys(eventos).length === 0) {
+                container.innerHTML = '<div class="text-slate-500 text-xs italic text-center py-4">Nenhum evento encontrado.</div>';
             } else {
-                if (!confirm("Deseja iniciar um novo evento/dia de jogos?")) return;
-
-                const hojeStr = getFormattedDate();
-                const dataUltimaSessao = currentPath.split('/')[1]?.split('_')[0];
-
-                if (dataUltimaSessao === hojeStr) {
-                    currentSession++;
-                } else {
-                    currentSession = 1;
-                }
-
-                localStorage.setItem('voleihub_session_id', currentSession);
-                const novoPath = `partida/${hojeStr}_${currentSession}`;
-
-                updateGameReference(novoPath);
-
-                alert(`▶️ Nova sessão iniciada no banco: ${novoPath}`);
+                const lista = Object.values(eventos).sort((a,b) => b.timestamp - a.timestamp);
+                container.innerHTML = lista.map(e => `
+                    <div class="bg-slate-700/50 p-3 rounded-xl border border-slate-600 flex justify-between items-center">
+                        <div class="truncate mr-2">
+                            <div class="font-black text-white uppercase text-xs truncate">${e.nome}</div>
+                            <div class="text-[10px] text-slate-400 italic">${e.data}</div>
+                        </div>
+                        <button onclick="window.selecionarEventoExistente('${e.id}')" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded font-bold uppercase text-[10px] shadow transition">Carregar</button>
+                    </div>
+                `).join('');
             }
             
-            window.fecharModais();
+            document.getElementById('modalAdminChoice').classList.add('hidden');
+            document.getElementById('modalGerenciarEventos').classList.remove('hidden');
+        };
+
+        window.selecionarEventoExistente = async (eventId) => {
+            await set(ref(db, 'configGeral/eventoAtivo'), eventId);
+            document.getElementById('modalGerenciarEventos').classList.add('hidden');
+            customAlert(`Evento alterado com sucesso!`);
         };
 
         let tempConfig = {};
@@ -735,7 +853,7 @@
             }
         };
 
-        window.abrirHistoricoModal = (modo) => {
+        window.abrirHistoricoModal = async (modo) => {
             modoHistoricoVisivel = modo;
             const titleEl = document.getElementById('tituloModalHistorico');
             const subPartidasEl = document.getElementById('labelSubtituloPartidas');
@@ -758,21 +876,26 @@
                 wrapperRank.classList.remove('hidden');
                 wrapperHall.classList.remove('hidden');
 
+                const snap = await get(ref(db, 'listaEventos'));
+                const eventos = snap.val() || {};
                 const selDia = document.getElementById('selHistoricoDia');
-                if (!game.historicoDias || game.historicoDias.length === 0) {
-                    selDia.innerHTML = '<option value="">Nenhum dia fechado disponível</option>';
-                    document.getElementById('listaHistoricoContainer').innerHTML = '<div class="text-center text-slate-500 text-xs italic py-6">Sem registros de dias anteriores.</div>';
+
+                if (Object.keys(eventos).length === 0) {
+                    selDia.innerHTML = '<option value="">Nenhum evento gravado disponível</option>';
+                    document.getElementById('listaHistoricoContainer').innerHTML = '<div class="text-center text-slate-500 text-xs italic py-6">Sem registros de eventos anteriores.</div>';
                     document.getElementById('rankingHistoricoContainer').innerHTML = '';
                     document.getElementById('hallHistoricoContainer').innerHTML = '';
                 } else {
-                    selDia.innerHTML = game.historicoDias.map((d, index) => `<option value="${index}">${d.data}</option>`).join('');
+                    const lista = Object.values(eventos).sort((a,b) => b.timestamp - a.timestamp);
+                    window.listaEventosHistorico = lista;
+                    selDia.innerHTML = lista.map((e) => `<option value="${e.id}">${e.data} - ${e.nome}</option>`).join('');
                     window.carregarDadosDiaHistorico();
                 }
             }
             document.getElementById('modalHistorico').classList.remove('hidden');
         };
 
-        window.renderizarListaPartidasEstatica = (partidasPool, diaIdx = null) => {
+        window.renderizarListaPartidasEstatica = (partidasPool, evtId = null) => {
             const containerPartidas = document.getElementById('listaHistoricoContainer');
             if (!partidasPool || partidasPool.length === 0) {
                 containerPartidas.innerHTML = '<div class="text-slate-500 text-[10px] italic py-4 text-center">Nenhuma partida gravada neste período.</div>';
@@ -780,8 +903,8 @@
             }
 
             containerPartidas.innerHTML = partidasPool.map(p => {
-                const acaoClick = diaIdx !== null 
-                    ? `window.abrirDetalhePartidaRetroativo('${diaIdx}', ${p.id})`
+                const acaoClick = evtId !== null 
+                    ? `window.abrirDetalhePartidaRetroativo('${evtId}', ${p.id})`
                     : `window.abrirDetalhePartidaAtiva(${p.id})`;
 
                 return `
@@ -791,24 +914,34 @@
                             <span class="text-xl font-black text-white">${p.scoreA} x ${p.scoreB}</span>
                         </div>
                         <div class="flex justify-between text-[8px] font-bold text-slate-400 uppercase">
-                            <div class="w-1/2">${p.timeA.join(', ')}</div>
-                            <div class="w-1/2 text-right border-l border-slate-600 pl-1">${p.timeB.join(', ')}</div>
+                            <div class="w-1/2">${(p.timeA||[]).join(', ')}</div>
+                            <div class="w-1/2 text-right border-l border-slate-600 pl-1">${(p.timeB||[]).join(', ')}</div>
                         </div>
                     </div>
                 `;
             }).join('');
         };
 
-        window.carregarDadosDiaHistorico = () => {
+        window.carregarDadosDiaHistorico = async () => {
             if (modoHistoricoVisivel !== 'retroativo') return;
-            const idx = document.getElementById('selHistoricoDia').value;
-            if (idx === "") return;
-            const diaSnapshot = game.historicoDias[idx];
+            const evtId = document.getElementById('selHistoricoDia').value;
+            if (!evtId) return;
             
-            window.renderizarListaPartidasEstatica(diaSnapshot.partidas || [], idx);
+            const snap = await get(ref(db, `partida/${evtId}`));
+            const data = snap.val();
+            
+            if(!data) {
+                document.getElementById('listaHistoricoContainer').innerHTML = '<div class="text-center text-slate-500 text-xs italic py-6">Sem registros de partidas para este evento.</div>';
+                document.getElementById('rankingHistoricoContainer').innerHTML = '';
+                document.getElementById('hallHistoricoContainer').innerHTML = '';
+                return;
+            }
+
+            window.tempHistoricoRetroativo = data.historicoPartidas || [];
+            window.renderizarListaPartidasEstatica(window.tempHistoricoRetroativo, evtId);
 
             const rkContainer = document.getElementById('rankingHistoricoContainer');
-            const rkFechado = Object.entries(diaSnapshot.rankingFinal || {}).map(([n, s]) => {
+            const rkFechado = Object.entries(data.ranking || {}).map(([n, s]) => {
                 const score = calcularScoreComPesos(s);
                 return { n, ...s, score: parseFloat(score) };
             }).filter(x => x.score > 0).sort((a,b) => b.score - a.score);
@@ -859,12 +992,8 @@
             }).join('');
         };
 
-        window.abrirDetalhePartidaRetroativo = (diaIdx, matchId) => {
-            const diaSnapshot = game.historicoDias[diaIdx];
-            if (!diaSnapshot) return;
-            const p = diaSnapshot.partidas.find(x => x.id === matchId);
-            if (!p) return;
-            window.abrirDetalhePartida(p.id, diaSnapshot.partidas);
+        window.abrirDetalhePartidaRetroativo = (evtId, matchId) => {
+            window.abrirDetalhePartida(matchId, window.tempHistoricoRetroativo || []);
         };
 
         window.abrirDetalhePartidaAtiva = (matchId) => {
@@ -872,20 +1001,20 @@
         };
 
         window.abrirDetalhePartida = (id, pool = game.historicoPartidas) => {
-            const p = pool.find(x => x.id === id);
+            const p = (pool||[]).find(x => x.id === id);
             if (!p) return;
             
             document.getElementById('detalhePartidaScore').innerHTML = `
                 <div class="text-center w-2/5">
                     <div class="text-[9px] text-blue-500 font-black mb-1 uppercase">Time A</div>
                     <div class="text-4xl font-black text-white leading-none">${p.scoreA}</div>
-                    <div class="text-[9px] uppercase font-bold text-blue-300/70 mt-2 leading-tight">${p.timeA.join('<br>')}</div>
+                    <div class="text-[9px] uppercase font-bold text-blue-300/70 mt-2 leading-tight">${(p.timeA||[]).join('<br>')}</div>
                 </div>
                 <div class="text-slate-600 font-black italic text-xl">VS</div>
                 <div class="text-center w-2/5">
                     <div class="text-[9px] text-orange-500 font-black mb-1 uppercase">Time B</div>
                     <div class="text-4xl font-black text-white leading-none">${p.scoreB}</div>
-                    <div class="text-[9px] uppercase font-bold text-orange-300/70 mt-2 leading-tight">${p.timeB.join('<br>')}</div>
+                    <div class="text-[9px] uppercase font-bold text-orange-300/70 mt-2 leading-tight">${(p.timeB||[]).join('<br>')}</div>
                 </div>
             `;
             
@@ -905,9 +1034,9 @@
                 if(liberar) {
                     let list = null;
                     let p = null;
-                    if (game.esperaGeral.some(x => x.nome === val)) {
+                    if ((game.esperaGeral||[]).some(x => x.nome === val)) {
                         list = game.esperaGeral; p = list.find(x => x.nome === val);
-                    } else if (game.esperaEstrela.some(x => x.nome === val)) {
+                    } else if ((game.esperaEstrela||[]).some(x => x.nome === val)) {
                         list = game.esperaEstrela; p = list.find(x => x.nome === val);
                     }
                     
@@ -929,7 +1058,7 @@
                 window.fecharModais();
                 render();
             } else {
-                alert("Selecione um nome na lista!");
+                customAlert("Selecione um nome na lista!");
             }
         };
 
@@ -943,7 +1072,7 @@
             document.getElementById('novoMeuNome').value = '';
             window.fecharModais();
             render();
-            alert(`Bem-vindo, ${n}!`);
+            customAlert(`Bem-vindo, ${n}!`);
         };
 
         window.deslogarIdentidade = () => {
@@ -962,7 +1091,6 @@
         let lastEndGameTs = 0;
         let lastSoundTs = 0; 
         let lastVoiceTs = Date.now();
-        let unsubscribeListener = null;
 
         function bindFirebaseListener() {
             if (unsubscribeListener) unsubscribeListener(); 
@@ -976,11 +1104,12 @@
                         esperaGeral: data.esperaGeral || [], esperaEstrela: data.esperaEstrela || [], 
                         ranking: data.ranking || {}, restricoes: data.restricoes || [],
                         historicoPartidas: data.historicoPartidas || [],
-                        historicoDias: data.historicoDias || [],
                         scoreA: data.scoreA || 0,
                         scoreB: data.scoreB || 0,
                         winsConsecA: data.winsConsecA || 0,
                         winsConsecB: data.winsConsecB || 0,
+                        idxA: typeof data.idxA === 'number' && !isNaN(data.idxA) ? data.idxA : 0,
+                        idxB: typeof data.idxB === 'number' && !isNaN(data.idxB) ? data.idxB : 0,
                         systemMsg: data.systemMsg || { text: "AGUARDANDO", sub: "...", streak: false, ts: 0 }, 
                         matchLog: data.matchLog || [], 
                         lastAnim: data.lastAnim || { ts: 0 }, 
@@ -991,8 +1120,7 @@
                         requests: data.requests || [], deniedRequests: data.deniedRequests || [], 
                         currentMatchStats: data.currentMatchStats || {},
                         soundTrigger: data.soundTrigger || 0,
-                        weights: { ...game.weights, ...(data.weights || {}) },
-                        diaIniciado: typeof data.diaIniciado !== 'undefined' ? data.diaIniciado : true
+                        weights: { ...game.weights, ...(data.weights || {}) }
                     };
                     ensureRankingConsistency();
                     render();
@@ -1005,11 +1133,9 @@
                 }
             });
         }
-        
-        bindFirebaseListener();
 
         function ensureRankingConsistency() {
-            const allPlayers = [...game.esperaGeral, ...game.esperaEstrela, ...game.timeA, ...game.timeB];
+            const allPlayers = [...(game.esperaGeral||[]), ...(game.esperaEstrela||[]), ...(game.timeA||[]), ...(game.timeB||[])];
             allPlayers.forEach(p => { 
                 if (typeof p.elite === 'undefined') {
                     p.elite = INITIAL_ELITE.includes(p.nome);
@@ -1033,7 +1159,6 @@
 
         function initGameData() {
             game.esperaGeral = []; game.esperaEstrela = [];
-            game.historicoDias = [];
             game.historicoPartidas = [];
             game.ranking = {};
             game.scoreA = 0; 
@@ -1042,7 +1167,6 @@
             game.winsConsecB = 0;
             game.systemMsg = { text: "AGUARDANDO", sub: "...", streak: false, ts: 0 };
             game.matchLog = [];
-            game.diaIniciado = true;
             
             INITIAL_GERAL.forEach(n => adicionarLocal(n, false));
             INITIAL_ESTRELA.forEach(n => adicionarLocal(n, true));
@@ -1054,7 +1178,7 @@
                 }
             });
 
-            const all = [...game.esperaGeral, ...game.esperaEstrela];
+            const all = [...(game.esperaGeral||[]), ...(game.esperaEstrela||[])];
             game.restricoes = [];
             DEFAULT_RESTRICTIONS.forEach(pair => { 
                 const p1 = all.find(p => p.nome === pair[0]); 
@@ -1062,13 +1186,15 @@
                 if(p1 && p2) game.restricoes.push([p1.id, p2.id]); 
             });
             
-            game.esperaGeral.forEach(p => p.bloqueado = true);
-            game.esperaEstrela.forEach(p => p.bloqueado = true);
+            (game.esperaGeral||[]).forEach(p => p.bloqueado = true);
+            (game.esperaEstrela||[]).forEach(p => p.bloqueado = true);
             
             game.partidaAtiva = true; 
             game.saqueLado = 'A'; 
             game.jaSacouA = true; 
             game.jaSacouB = false;
+            game.idxA = 0;
+            game.idxB = 0;
 
             salvarState();
         }
@@ -1078,7 +1204,7 @@
             const isElite = INITIAL_ELITE.includes(nome); 
             const obj = { id, nome, estrela: isEstrela, elite: isElite, bloqueado: false };
             if(!game.ranking[nome]) game.ranking[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: isEstrela, elite: isElite };
-            const lista = isEstrela ? game.esperaEstrela : game.esperaGeral;
+            const lista = isEstrela ? (game.esperaEstrela||[]) : (game.esperaGeral||[]);
             let idx = 0;
             for(let i=0; i<lista.length; i++) { const s = game.ranking[lista[i].nome]; if(s && (s.v + s.d) === 0) idx = i + 1; }
             lista.splice(idx, 0, obj);
@@ -1090,7 +1216,7 @@
         }
 
         window.limparSistema = () => {
-            if(confirm("⚠️ RESETAR PARA PADRÃO DE FÁBRICA? Isso apagará todo o histórico e jogadores adicionados.")) {
+            window.customConfirm("⚠️ RESETAR PARA PADRÃO DE FÁBRICA? Isso apagará todo o histórico e jogadores adicionados neste evento.", () => {
                 game.timeA = []; game.timeB = [];
                 game.partidaAtiva = true; game.setupLocked = true; 
                 game.scoreA = 0; game.scoreB = 0;
@@ -1098,21 +1224,20 @@
                 game.ranking = {}; 
                 game.matchLog = [];
                 game.historicoPartidas = [];
-                game.historicoDias = [];
-                game.diaIniciado = true;
                 historicoLocal = []; 
                 game.nextGameReason = 'default';
                 game.publicRanking = false;
                 game.currentMatchStats = {};
                 game.requests = []; game.deniedRequests = [];
-                game.config = { size: 4, stars: 1, elites: 2, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' },
+                game.config = { size: 4, stars: 1, elites: 2, points: 12, desempate: '3direto', maxWins: 3, reaction: 'dividir' };
                 game.weights = { atqG: 1.0, blqG: 1.25, aceG: 1.5, atqE: 1.5, blqE: 2.0, aceE: 2.0, err: 0.10, vit: 3.0, wTeam: 0.25 };
                 
                 initGameData(); 
                 setSystemMessage("SISTEMA REINICIADO", "Configurações Padrão Restauradas", false);
                 window.fecharModais(); 
                 render();
-            }
+                customAlert("Sistema limpo com sucesso!");
+            });
         };
 
         window.adminTriggerWhistle = () => {
@@ -1132,7 +1257,7 @@
         }
 
         function setSystemMessage(title, sub, streak) { game.systemMsg = { text: title, sub: sub, streak: streak, ts: Date.now() }; }
-        function addToLog(text, type) { const entry = { text, type, ts: Date.now() }; game.matchLog.unshift(entry); if(game.matchLog.length > 40) game.matchLog.pop(); }
+        function addToLog(text, type) { const entry = { text, type, ts: Date.now() }; if(!game.matchLog) game.matchLog=[]; game.matchLog.unshift(entry); if(game.matchLog.length > 40) game.matchLog.pop(); }
         function triggerEmoji(type) { game.lastAnim = { type: type, ts: Date.now() }; }
         function showEndGameOverlay() { game.endGameAnim = { active: true, ts: Date.now() }; }
 
@@ -1152,15 +1277,17 @@
             if (periodo === '3') qtdParaSomar = 2;
             else if (periodo === '5') qtdParaSomar = 4;
             else if (periodo === '10') qtdParaSomar = 9;
-            else if (periodo === 'tudo') qtdParaSomar = game.historicoDias ? game.historicoDias.length : 0;
+            else if (periodo === 'tudo' && window.listaEventosHistorico) qtdParaSomar = window.listaEventosHistorico.length;
 
-            if (game.historicoDias && qtdParaSomar > 0) {
-                const eventosFiltrados = game.historicoDias.slice(0, qtdParaSomar);
+            if (window.listaEventosHistorico && qtdParaSomar > 0) {
+                const eventosFiltrados = window.listaEventosHistorico.slice(0, qtdParaSomar);
                 
-                eventosFiltrados.forEach(evento => {
-                    if (!evento.rankingFinal) return;
+                eventosFiltrados.forEach(async (evento) => {
+                    const snap = await get(ref(db, `partida/${evento.id}/ranking`));
+                    const rankingEvento = snap.val();
+                    if (!rankingEvento) return;
                     
-                    Object.entries(evento.rankingFinal).forEach(([nome, stats]) => {
+                    Object.entries(rankingEvento).forEach(([nome, stats]) => {
                         if (!rankingConsolidado[nome]) {
                             rankingConsolidado[nome] = { v: 0, d: 0, ptsAtaque: 0, ptsBloqueio: 0, ptsAce: 0, ptsErroAdversario: 0, ptsAcertoTime: 0, estrela: stats.estrela, elite: stats.elite };
                         }
@@ -1174,35 +1301,8 @@
                     });
                 });
             }
-
             return rankingConsolidado;
         };
-
-        function calcularContagemInsigniasHall(nomeJogador) {
-            let conquistas = { topScore: 0, matador: 0, paredao: 0, ace: 0 };
-            if (!game.historicoDias) return conquistas;
-
-            game.historicoDias.forEach(dia => {
-                const playersDia = Object.entries(dia.rankingFinal || {}).map(([n, s]) => {
-                    const score = calcularScoreComPesos(s);
-                    return { n, ...s, score: parseFloat(score) };
-                }).filter(x => x.score > 0);
-
-                if (playersDia.length === 0) return;
-
-                const maxScore = Math.max(...playersDia.map(p => p.score), 0);
-                const maxAtq = Math.max(...playersDia.map(p => p.ptsAtaque || 0), 0);
-                const maxBlq = Math.max(...playersDia.map(p => p.ptsBloqueio || 0), 0);
-                const maxAce = Math.max(...playersDia.map(p => p.ptsAce || 0), 0);
-
-                if (maxScore > 0 && playersDia.some(p => p.n === nomeJogador && p.score === maxScore)) conquistas.topScore++;
-                if (maxAtq > 0 && playersDia.some(p => p.n === nomeJogador && (p.ptsAtaque || 0) === maxAtq)) conquistas.matador++;
-                if (maxBlq > 0 && playersDia.some(p => p.n === nomeJogador && (p.ptsBloqueio || 0) === maxBlq)) conquistas.paredao++;
-                if (maxAce > 0 && playersDia.some(p => p.n === nomeJogador && (p.ptsAce || 0) === maxAce)) conquistas.ace++;
-            });
-
-            return conquistas;
-        }
 
         function render() {
             checkAndPlaySound();
@@ -1226,10 +1326,10 @@
             document.getElementById('msg-title').innerText = msg.text;
             document.getElementById('msg-sub').innerText = msg.sub;
             const streakEl = document.getElementById('msg-streak');
-            if(game.systemMsg.streak) streakEl.classList.remove('hidden'); else streakEl.classList.add('hidden');
+            if(game.systemMsg && game.systemMsg.streak) streakEl.classList.remove('hidden'); else streakEl.classList.add('hidden');
 
             const logBox = document.getElementById('match-log-box');
-            logBox.innerHTML = game.matchLog.length ? game.matchLog.map(l => `<div class="log-item log-${l.type}">${l.text}</div>`).join('') : '<div class="text-center text-slate-500 italic py-2">Histórico vazio...</div>';
+            logBox.innerHTML = (game.matchLog||[]).length ? game.matchLog.map(l => `<div class="log-item log-${l.type}">${l.text}</div>`).join('') : '<div class="text-center text-slate-500 italic py-2">Histórico vazio...</div>';
 
             const infoPanel = document.getElementById('info-panel');
             const placarDiv = document.getElementById('placarDisplay');
@@ -1241,25 +1341,25 @@
             infoPanel.classList.remove('hidden');
             
             const bell = document.getElementById('admin-notif-bell');
-            if(isAdmin && game.requests.length > 0) bell.classList.remove('hidden'); else bell.classList.add('hidden');
+            if(isAdmin && (game.requests||[]).length > 0) bell.classList.remove('hidden'); else bell.classList.add('hidden');
 
-            document.getElementById('scoreA').innerText = game.scoreA;
-            document.getElementById('scoreB').innerText = game.scoreB;
-            document.getElementById('winsA').innerText = `Sets: ${game.winsConsecA}`;
-            document.getElementById('winsB').innerText = `Sets: ${game.winsConsecB}`;
+            document.getElementById('scoreA').innerText = game.scoreA || 0;
+            document.getElementById('scoreB').innerText = game.scoreB || 0;
+            document.getElementById('winsA').innerText = `Sets: ${game.winsConsecA || 0}`;
+            document.getElementById('winsB').innerText = `Sets: ${game.winsConsecB || 0}`;
 
-            const drawTeam = (l) => (l === 'A' ? game.timeA : game.timeB).map((p, i) => `
+            const drawTeam = (l) => (l === 'A' ? (game.timeA||[]) : (game.timeB||[])).map((p, i) => `
                 <div class="jogador-card bg-slate-800 p-3 rounded-xl border-l-4 ${l==='A'?'border-l-blue-500':'border-l-orange-500'} ${game.partidaAtiva && game.saqueLado===l && (l==='A'?game.idxA:game.idxB)===i?'sacando':''} ${p.estrela?'is-estrela':''}" onclick="window.abrirPontoTecnico('${l}', ${i})" data-id="${p.id}">
                     <div class="uppercase font-black text-[10px] truncate"><span class="bola-saque mr-1">🏐</span> ${p.estrela?'⭐ ':''}${p.elite?'💎 ':''}${p.nome}</div>
                 </div>`).join('');
             document.getElementById('areaA').innerHTML = drawTeam('A');
             document.getElementById('areaB').innerHTML = drawTeam('B');
             
-            const sumScore = (team) => team.reduce((acc, p) => acc + parseFloat(getScore(p.nome)), 0).toFixed(2);
+            const sumScore = (team) => (team||[]).reduce((acc, p) => acc + parseFloat(getScore(p.nome)), 0).toFixed(2);
             document.getElementById('labelTimeA').innerText = `TIME A - Score: ${sumScore(game.timeA)}`;
             document.getElementById('labelTimeB').innerText = `TIME B - Score: ${sumScore(game.timeB)}`;
 
-            const f = filaTab === 'geral' ? game.esperaGeral : game.esperaEstrela;
+            const f = filaTab === 'geral' ? (game.esperaGeral||[]) : (game.esperaEstrela||[]);
             let countLib = 0;
             document.getElementById('esperaContainer').innerHTML = f.length ? f.map((p, i) => {
                 let dest = "";
@@ -1270,9 +1370,9 @@
                 </div>`;
             }).join('') : '<div class="text-center text-slate-600 text-[10px] py-4 italic">Fila vazia...</div>';
 
-            const todos = [...game.timeA, ...game.timeB];
-            const cGeral = game.esperaGeral.filter(j=>!j.bloqueado).length + todos.filter(j=>!j.estrela).length;
-            const cStar = game.esperaEstrela.filter(j=>!j.bloqueado).length + todos.filter(j=>j.estrela).length;
+            const todos = [...(game.timeA||[]), ...(game.timeB||[])];
+            const cGeral = (game.esperaGeral||[]).filter(j=>!j.bloqueado).length + todos.filter(j=>!j.estrela).length;
+            const cStar = (game.esperaEstrela||[]).filter(j=>!j.bloqueado).length + todos.filter(j=>j.estrela).length;
             document.getElementById('countGeral').innerText = cGeral;
             document.getElementById('countEstrela').innerText = cStar;
             document.getElementById('tabGeral').className = `text-[10px] font-black uppercase px-4 py-2 rounded-lg transition ${filaTab === 'geral' ? 'tab-active shadow-lg' : 'bg-slate-700 hover:bg-slate-600'}`;
@@ -1302,17 +1402,6 @@
             const hallFamaSec = document.getElementById('hallFamaSection');
             if (hallFamaSec) {
                 hallFamaSec.classList.remove('hidden');
-            }
-
-            const btnDia = document.getElementById('btnControleDia');
-            if (btnDia) {
-                if (game.diaIniciado) {
-                    btnDia.innerText = "🛑 Encerrar Dia Atual";
-                    btnDia.className = "w-full bg-red-600 hover:bg-red-500 text-white p-3 rounded-xl font-black uppercase text-[10px] border border-red-500 shadow-lg mt-4 transition";
-                } else {
-                    btnDia.innerText = "▶️ Iniciar Novo Dia";
-                    btnDia.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white p-3 rounded-xl font-black uppercase text-[10px] border border-emerald-500 shadow-lg mt-4 transition";
-                }
             }
 
             const visitorControls = document.getElementById('visitor-controls');
@@ -1362,7 +1451,7 @@
             
             if(isErro) {
                 game.lastVoice = { text: "Ponto por erro", ts: Date.now() }; 
-                const beneficiados = lado === 'A' ? game.timeA : game.timeB;
+                const beneficiados = lado === 'A' ? (game.timeA||[]) : (game.timeB||[]);
                 beneficiados.forEach(p => game.ranking[p.nome].ptsErroAdversario++);
                 addToLog(`PONTO TIME ${lado} - ERRO ADVERSÁRIO`, lado);
                 setSystemMessage(`TIME ${lado}`, "PONTO POR ERRO", false);
@@ -1370,8 +1459,14 @@
 
             if(game.saqueLado !== lado) {
                 game.saqueLado = lado;
-                if(lado === 'A') { if(!game.jaSacouA) game.jaSacouA = true; else game.idxA = (game.idxA + 1) % game.timeA.length; }
-                else { if(!game.jaSacouB) game.jaSacouB = true; else game.idxB = (game.idxB + 1) % game.timeB.length; }
+                if(lado === 'A') { 
+                    if(!game.jaSacouA || game.idxA === null || isNaN(game.idxA)) { game.jaSacouA = true; game.idxA = 0; }
+                    else { game.idxA = (game.idxA + 1) % game.timeA.length; } 
+                }
+                else { 
+                    if(!game.jaSacouB || game.idxB === null || isNaN(game.idxB)) { game.jaSacouB = true; game.idxB = 0; }
+                    else { game.idxB = (game.idxB + 1) % game.timeB.length; } 
+                }
             }
             if(lado === 'A') game.scoreA++; else game.scoreB++;
             
@@ -1418,7 +1513,7 @@
             if(tipo==='ataque') {
                 game.lastVoice = { text: "Ponto de Ataque", ts: Date.now() }; 
                 game.ranking[p.nome].ptsAtaque++;
-                const timeAtual = modalCtx.lado === 'A' ? game.timeA : game.timeB;
+                const timeAtual = modalCtx.lado === 'A' ? (game.timeA||[]) : (game.timeB||[]);
                 timeAtual.forEach(companheiro => {
                     if(companheiro.id !== p.id) {
                         game.ranking[companheiro.nome].ptsAcertoTime++;
@@ -1489,9 +1584,9 @@
                 vencedor: venceu,
                 scoreA: game.scoreA,
                 scoreB: game.scoreB,
-                timeA: game.timeA.map(p => p.nome),
-                timeB: game.timeB.map(p => p.nome),
-                log: [...game.matchLog] 
+                timeA: (game.timeA||[]).map(p => p.nome),
+                timeB: (game.timeB||[]).map(p => p.nome),
+                log: [...(game.matchLog||[])] 
             };
             game.historicoPartidas.unshift(matchSnapshot); 
             if(game.historicoPartidas.length > 30) game.historicoPartidas.pop(); 
@@ -1536,8 +1631,8 @@
                 game.winsConsecA = 0; game.winsConsecB = 0;
             }
 
-            const originalA = [...game.timeA];
-            const originalB = [...game.timeB];
+            const originalA = [...(game.timeA||[])];
+            const originalB = [...(game.timeB||[])];
 
             const fillBothTeams = () => {
                 while (game.timeA.length < game.config.size || game.timeB.length < game.config.size) {
@@ -1570,7 +1665,7 @@
                         const isValidFallback = (x) => !x.bloqueado && (!x.elite || podeElite);
                         p = game.esperaGeral.find(isValidFallback) || game.esperaEstrela.find(isValidFallback);
                     }
-                    if(!p) p = game.esperaGeral.find(x => !x.bloqueado) || game.esperaEstrela.find(x => !x.bloqueado); 
+                    if(!p) p = (game.esperaGeral||[]).find(x => !x.bloqueado) || (game.esperaEstrela||[]).find(x => !x.bloqueado); 
 
                     if(!p) break; 
                     const f = p.estrela ? game.esperaEstrela : game.esperaGeral; 
@@ -1708,20 +1803,20 @@
 
         window.solicitarTrocaCategoria = () => {
             const p = modalCtx.pFila;
-            if(game.deniedRequests.includes(p.id)) { alert("Alteração Negada pelo Admin."); return; }
+            if(game.deniedRequests.includes(p.id)) { customAlert("Alteração Negada pelo Admin."); return; }
             const reqId = p.id + '_cat'; 
             
             if(!game.requests.some(r => r.reqId === reqId)) {
                 game.requests.push({ reqId: reqId, id: p.id, nome: p.nome, tipo: 'categoria', solicitante: (meuNome || 'Visitante Anônimo') });
-                alert("Solicitação enviada ao Admin!");
+                customAlert("Solicitação enviada ao Admin!");
                 salvarState();
-            } else { alert("Já solicitado."); }
+            } else { customAlert("Já solicitado."); }
             window.abrirEscalacao(modalCtx.tabFila, modalCtx.idxFila); 
         };
 
         window.abrirSolicitacoes = () => {
             const container = document.getElementById('listaSolicitacoes');
-            if(game.requests.length === 0) {
+            if((game.requests||[]).length === 0) {
                 container.innerHTML = '<div class="text-slate-500 text-xs italic text-center py-4">Nenhuma solicitação pendente.</div>';
             } else {
                 container.innerHTML = game.requests.map((r, i) => {
@@ -1761,7 +1856,7 @@
         window.responderSolicitacao = (idx, aprovado) => {
             const req = game.requests[idx];
             if(aprovado) {
-                const list = game.esperaGeral.some(x=>x.id===req.id) ? game.esperaGeral : game.esperaEstrela;
+                const list = (game.esperaGeral||[]).some(x=>x.id===req.id) ? game.esperaGeral : game.esperaEstrela;
                 const p = list.find(x=>x.id===req.id);
                 if(p) {
                     if (req.tipo === 'bloqueio') {
@@ -1782,8 +1877,8 @@
         };
 
         function renderLeaders() {
-            const pl = Object.entries(game.ranking).map(([n, s]) => ({ n, ...s, score: parseFloat(getScore(n)) }));
-            const cats = [{t:"Top Score",i:"🏆",f:p=>p.score},{t:"Matador",i:"🔥",f:p=>p.ptsAtaque},{t:"Paredão",i:"🚫",f:p=>p.ptsBloqueio},{t:"Ace",i:"⚡",f:p=>p.ptsAce},{t:"Vitórias",i:"🥇",f:p=>p.v}];
+            const pl = Object.entries(game.ranking || {}).map(([n, s]) => ({ n, ...s, score: parseFloat(getScore(n)) }));
+            const cats = [{t:"Top Score",i:"🏆",f:p=>p.score},{t:"Matador",i:"🔥",f:p=>p.ptsAtaque||0},{t:"Paredão",i:"🚫",f:p=>p.ptsBloqueio||0},{t:"Ace",i:"⚡",f:p=>p.ptsAce||0},{t:"Vitórias",i:"🥇",f:p=>p.v||0}];
             document.getElementById('leadersGrid').innerHTML = cats.map(c => {
                 const sort = (l) => [...l].sort((a,b)=>c.f(b)-c.f(a));
                 const listG = sort(pl.filter(x=>!x.estrela)); const listE = sort(pl.filter(x=>x.estrela));
@@ -1812,16 +1907,16 @@
             const s = game.ranking[n]; 
             if(!s) return; 
 
-            const historicoDoJogador = game.historicoPartidas.filter(p => p.timeA.includes(n) || p.timeB.includes(n));
+            const historicoDoJogador = (game.historicoPartidas||[]).filter(p => (p.timeA||[]).includes(n) || (p.timeB||[]).includes(n));
 
             let parceiros = {};
             historicoDoJogador.forEach(p => {
-                const mesmoTime = p.timeA.includes(n) ? p.timeA : p.timeB;
+                const mesmoTime = (p.timeA||[]).includes(n) ? p.timeA : p.timeB;
                 mesmoTime.forEach(c => { if(c!==n) parceiros[c] = (parceiros[c]||0) + 1; });
             });
             const melhorParceiro = Object.keys(parceiros).sort((a,b) => parceiros[b]-parceiros[a])[0] || "---";
 
-            const bag = calcularContagemInsigniasHall(n);
+            const bag = { topScore: 0, matador: 0, paredao: 0, ace: 0 }; 
             let insigniasHTML = "";
             if(bag.topScore > 0) insigniasHTML += `<span title="Maior pontuador geral: ${bag.topScore}x">🏆<sub class="text-[8px]">${bag.topScore}</sub></span>`;
             if(bag.matador > 0) insigniasHTML += `<span title="Maior pontuador de ataque: ${bag.matador}x">🔥<sub class="text-[8px]">${bag.matador}</sub></span>`;
@@ -1865,8 +1960,8 @@
 
         window.setFilaTab = (t) => { filaTab = t; render(); };
         window.setRankingTab = (t) => { rkTab = t; render(); };
-        window.abrirBloqueioDuplas = () => { const all = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela].sort((a,b)=>a.nome.localeCompare(b.nome)); const opt = `<option value="" disabled selected>- Selecione -</option>`+all.map(p=>`<option value="${p.id}">${p.nome}</option>`).join(''); document.getElementById('selJ1').innerHTML = opt; document.getElementById('selJ2').innerHTML = opt; window.renderListaRestricoes(); document.getElementById('modalRestricao').classList.remove('hidden'); };
-        window.renderListaRestricoes = () => { const all = [...game.timeA, ...game.timeB, ...game.esperaGeral, ...game.esperaEstrela]; document.getElementById('listaRestricoes').innerHTML = game.restricoes.map((r,i) => { const n1 = all.find(x=>x.id==r[0])?.nome||'?'; const n2 = all.find(x=>x.id==r[1])?.nome||'?'; return `<div class="bg-slate-800 p-2 flex justify-between text-[10px] text-red-400 border border-red-900/30"><span>${n1} 🚫 ${n2}</span><button onclick="window.removeRestricao(${i})">X</button></div>`; }).join(''); };
+        window.abrirBloqueioDuplas = () => { const all = [...(game.timeA||[]), ...(game.timeB||[]), ...(game.esperaGeral||[]), ...(game.esperaEstrela||[])].sort((a,b)=>a.nome.localeCompare(b.nome)); const opt = `<option value="" disabled selected>- Selecione -</option>`+all.map(p=>`<option value="${p.id}">${p.nome}</option>`).join(''); document.getElementById('selJ1').innerHTML = opt; document.getElementById('selJ2').innerHTML = opt; window.renderListaRestricoes(); document.getElementById('modalRestricao').classList.remove('hidden'); };
+        window.renderListaRestricoes = () => { const all = [...(game.timeA||[]), ...(game.timeB||[]), ...(game.esperaGeral||[]), ...(game.esperaEstrela||[])]; document.getElementById('listaRestricoes').innerHTML = (game.restricoes||[]).map((r,i) => { const n1 = all.find(x=>x.id==r[0])?.nome||'?'; const n2 = all.find(x=>x.id==r[1])?.nome||'?'; return `<div class="bg-slate-800 p-2 flex justify-between text-[10px] text-red-400 border border-red-900/30"><span>${n1} 🚫 ${n2}</span><button onclick="window.removeRestricao(${i})">X</button></div>`; }).join(''); };
         window.removeRestricao = (i) => { game.restricoes.splice(i,1); window.renderListaRestricoes(); salvarState(); };
         
         window.salvarWeightsEClose = () => { 
@@ -1877,9 +1972,9 @@
         };
 
         window.adicionarNovoJogador = () => { const n = document.getElementById('novoNome').value.toUpperCase().trim(); if(!n) return; adicionarLocal(n, filaTab==='estrela'); document.getElementById('novoNome').value=''; salvarState(); };
-        window.adicionarRestricao = () => { const j1 = document.getElementById('selJ1').value, j2 = document.getElementById('selJ2').value; if(j1&&j2&&j1!==j2) { game.restricoes.push([j1,j2]); window.renderListaRestricoes(); salvarState(); } };
-        window.escalarParaTime = (lado) => { const t = lado==='A'?game.timeA:game.timeB; if(t.length<game.config.size) { const l = modalCtx.tabFila==='geral'?game.esperaGeral:game.esperaEstrela; const p = l.splice(modalCtx.idxFila, 1)[0]; p.bloqueado=false; t.push(p); window.fecharModais(); salvarState(); } else alert("Time Cheio!"); };
-        function syncQuadra() { if(!isAdmin) return; const p = [...game.timeA, ...game.timeB]; const get = (id) => [...document.getElementById(id).children].map(e => p.find(x => x.id === e.dataset.id)).filter(x=>x); game.timeA = get('areaA'); game.timeB = get('areaB'); salvarState(); }
+        window.adicionarRestricao = () => { const j1 = document.getElementById('selJ1').value, j2 = document.getElementById('selJ2').value; if(j1&&j2&&j1!==j2) { if(!game.restricoes) game.restricoes=[]; game.restricoes.push([j1,j2]); window.renderListaRestricoes(); salvarState(); } };
+        window.escalarParaTime = (lado) => { const t = lado==='A'?game.timeA:game.timeB; if(t.length<game.config.size) { const l = modalCtx.tabFila==='geral'?game.esperaGeral:game.esperaEstrela; const p = l.splice(modalCtx.idxFila, 1)[0]; p.bloqueado=false; t.push(p); window.fecharModais(); salvarState(); } else customAlert("Time Cheio!"); };
+        function syncQuadra() { if(!isAdmin) return; const p = [...(game.timeA||[]), ...(game.timeB||[])]; const get = (id) => [...document.getElementById(id).children].map(e => p.find(x => x.id === e.dataset.id)).filter(x=>x); game.timeA = get('areaA'); game.timeB = get('areaB'); salvarState(); }
         function syncFila() { if(!isAdmin) return; const l = filaTab==='geral'?game.esperaGeral:game.esperaEstrela; const els = document.getElementById('esperaContainer').children; const novos = [...els].map(e => l.find(x => x.id === e.dataset.id)).filter(x=>x); if(filaTab==='geral') game.esperaGeral = novos; else game.esperaEstrela = novos; salvarState(); }
         
         window.toggleElite = () => {
@@ -1907,12 +2002,13 @@
                 const estavaBloqueado = modalCtx.pFila.bloqueado; 
                 if (!isAdmin && !estavaBloqueado) {
                     const reqId = modalCtx.pFila.id + '_block'; 
-                    if(!game.requests.some(r => r.reqId === reqId)) {
+                    if(!(game.requests||[]).some(r => r.reqId === reqId)) {
+                        if(!game.requests) game.requests = [];
                         game.requests.push({ reqId: reqId, id: modalCtx.pFila.id, nome: modalCtx.pFila.nome, tipo: 'bloqueio', acao: 'bloquear', solicitante: (meuNome || 'Visitante Anônimo') });
-                        alert("Solicitação para BLOQUEAR enviada ao Admin!");
+                        customAlert("Solicitação para BLOQUEAR enviada ao Admin!");
                         salvarState();
                     } else {
-                        alert("Já existe uma solicitação pendente para este jogador.");
+                        customAlert("Já existe uma solicitação pendente para este jogador.");
                     }
                     window.fecharModais();
                     return;
@@ -1935,9 +2031,9 @@
             }; 
 
             const btnTroca = document.getElementById('btnTrocarCategoria'); 
-            if(game.requests.some(r => r.id === modalCtx.pFila.id && (!r.tipo || r.tipo === 'categoria'))) {
+            if((game.requests||[]).some(r => r.id === modalCtx.pFila.id && (!r.tipo || r.tipo === 'categoria'))) {
                 btnTroca.innerText = "SOLICITADO..."; 
-            } else if(game.deniedRequests.includes(modalCtx.pFila.id)) { 
+            } else if((game.deniedRequests||[]).includes(modalCtx.pFila.id)) { 
                 btnTroca.innerText = "ALTERAÇÃO NEGADA"; 
                 btnTroca.classList.add('opacity-50'); 
             } else {
@@ -1946,14 +2042,14 @@
             } 
             
             if(isAdmin) { 
-                const gen = (t, side) => t.map((j, i) => `<button onclick="window.substituirJogador('${side}', ${i})" class="w-full bg-slate-700 p-2 rounded text-[9px] mb-1 uppercase border border-slate-600">Sub: ${j.nome}</button>`).join(''); 
+                const gen = (t, side) => (t||[]).map((j, i) => `<button onclick="window.substituirJogador('${side}', ${i})" class="w-full bg-slate-700 p-2 rounded text-[9px] mb-1 uppercase border border-slate-600">Sub: ${j.nome}</button>`).join(''); 
                 document.getElementById('subsA').innerHTML = gen(game.timeA, 'A'); 
                 document.getElementById('subsB').innerHTML = gen(game.timeB, 'B'); 
             } 
             document.getElementById('modalFilaEscala').classList.remove('hidden'); 
         };
         
-        window.substituirJogador = (side, idx) => { const t = side==='A'?game.timeA:game.timeB; if(estaoBloqueados(modalCtx.pFila, t[idx])) return alert("Bloqueado!"); const sai = t.splice(idx, 1)[0]; const entra = (modalCtx.tabFila==='geral'?game.esperaGeral:game.esperaEstrela).splice(modalCtx.idxFila, 1)[0]; entra.bloqueado = false; t.splice(idx, 0, entra); (sai.estrela?game.esperaEstrela:game.esperaGeral).push(sai); window.fecharModais(); salvarState(); };
+        window.substituirJogador = (side, idx) => { const t = side==='A'?game.timeA:game.timeB; if(estaoBloqueados(modalCtx.pFila, t[idx])) return customAlert("Bloqueado devido a Restrição!"); const sai = t.splice(idx, 1)[0]; const entra = (modalCtx.tabFila==='geral'?game.esperaGeral:game.esperaEstrela).splice(modalCtx.idxFila, 1)[0]; entra.bloqueado = false; t.splice(idx, 0, entra); (sai.estrela?game.esperaEstrela:game.esperaGeral).push(sai); window.fecharModais(); salvarState(); };
         window.undoLastAction = () => { if(!isAdmin || historicoLocal.length===0) return; game = JSON.parse(historicoLocal.pop()); set(gameRef, game); };
         window.definirSacadorManual = () => { game.saqueLado = modalCtx.lado; if(modalCtx.lado === 'A') { game.idxA = modalCtx.idx; game.jaSacouA = true; } else { game.idxB = modalCtx.idx; game.jaSacouB = true; } window.fecharModais(); salvarState(); };
         window.removerParaFilaManual = () => { salvarState(true); const t = modalCtx.lado==='A'?game.timeA:game.timeB; const p = t.splice(modalCtx.idx, 1)[0]; (p.estrela?game.esperaEstrela:game.esperaGeral).push(p); window.fecharModais(); salvarState(); };
@@ -1975,20 +2071,8 @@
             return calcularScoreComPesos(game.ranking[n]); 
         }
 
-        function estaoBloqueados(p1, p2) { return game.restricoes.some(d => (d[0]==p1.id && d[1]==p2.id) || (d[1]==p1.id && d[0]==p2.id)); }
+        function estaoBloqueados(p1, p2) { return (game.restricoes||[]).some(d => (d[0]==p1.id && d[1]==p2.id) || (d[1]==p1.id && d[0]==p2.id)); }
 
-        window.addEventListener('load', () => {
-            if (document.body.classList.contains('is-admin')) return;
-
-            if (!localStorage.getItem('voleihub_meunome')) {
-                setTimeout(() => {
-                    const modal = document.getElementById('modalIdentificacao');
-                    if (modal && modal.classList.contains('hidden')) {
-                        window.acaoMeuPerfil();
-                    }
-                }, 1000);
-            }
-        });
     </script>
 </body>
 </html>
