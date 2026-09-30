@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V3.5.2</title>
+    <title>Vôlei Hub PRO - V3.6.0</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -170,7 +170,7 @@
             <button onclick="window.fecharModais()" class="absolute top-4 right-4 text-slate-400 text-2xl">&times;</button>
             <h2 id="perfilNome" class="text-2xl font-black text-white uppercase italic mb-2 text-center">---</h2>
             <div id="perfilBadges" class="flex flex-wrap justify-center gap-1 mb-4"></div>
-            <div id="perfilStatus" class="text-center text-[9px] font-black uppercase text-slate-400 mb-4"></div>
+            <div id="perfilStatus" class="text-center text-[9px] font-black uppercase text-slate-400 mb-2"></div>
             <div id="perfilGuestAction" class="hidden mb-4"></div>
             
             <div class="bg-slate-900 rounded-xl p-4 border border-slate-700 mb-4 grid grid-cols-2 gap-2 text-center text-xs">
@@ -350,7 +350,7 @@
             <div id="listaSessoesDisponiveis" class="space-y-2 mb-4 hidden"></div>
             
             <div id="acoesSessaoHistorico" class="border-t border-slate-700 pt-4 hidden">
-                <button onclick="window.carregarFiltroPersonalizado()" class="w-full bg-emerald-600 py-3 rounded-xl uppercase text-xs font-black mb-2 shadow text-white">⚙️ Selecionar Manualmente (Filtros)</button>
+                <button onclick="window.carregarFiltroPersonalizado()" class="w-full bg-emerald-600 py-3 rounded-xl uppercase text-xs font-black mb-2 shadow text-white">⚙️ Relatório manual</button>
             </div>
             <button onclick="window.fecharModais()" class="w-full mt-2 bg-slate-700 py-3 rounded-xl uppercase text-xs font-black text-white">Fechar</button>
         </div>
@@ -443,7 +443,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, get, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDdX-lpFmddIHt2scaramJSyo3RnJOxtO4",
@@ -460,6 +460,8 @@
 
         let currentShortId = null, currentInstanceId = null, gameRef = null, unsubscribeListener = null;
         let isAdmin = false, meuNome = localStorage.getItem('voleihub_meunome') || '';
+        let meuNomeEvento = localStorage.getItem('voleihub_meuevento') || '';
+        let unsubscribeUnlockRequests = null;
         let filaTab = 'geral', rkTab = 'tudo', modalCtx = {};
         let game = { baseJogadores: {}, config: {}, weights: {}, esperaGeral: [], esperaEstrela: [] };
         let isHistoricalView = false, globalBadges = {}, sessionEmojis = {}, sessoesFiltradasInfo = [], historicoLocal = [], tempConfig = {};
@@ -479,6 +481,10 @@
             }; 
             document.getElementById('modalCustomConfirm').classList.remove('hidden'); 
         };
+
+        function guestIdentificadoNesteEvento() {
+            return !isAdmin && !!meuNome && meuNomeEvento === currentInstanceId;
+        }
         
         function getFormattedDate() { 
             const d = new Date(); 
@@ -490,7 +496,7 @@
         };
 
         onAuthStateChanged(auth, (user) => {
-            if (user) { 
+            if (user && !user.isAnonymous) { 
                 isAdmin = true; 
                 document.body.classList.add('is-admin'); 
                 document.getElementById('splashGuestPanel').classList.add('hidden'); 
@@ -501,6 +507,9 @@
                 document.getElementById('splashGuestPanel').classList.remove('hidden'); 
                 document.getElementById('splashAdminPanel').classList.add('hidden'); 
             }
+            const rBox = document.getElementById('reactionBox');
+            if (!guestIdentificadoNesteEvento()) { rBox.classList.add('hidden'); rBox.dataset.target = ''; }
+            if(unsubscribeUnlockRequests && !isAdmin) { unsubscribeUnlockRequests(); unsubscribeUnlockRequests = null; }
             if(!currentInstanceId && isAdmin) window.abrirOpcoesEvento();
         });
 
@@ -572,7 +581,9 @@
             if(bSnap.exists()) globalBadges = bSnap.val(); else globalBadges = {};
             renderMyTrophies();
 
-            if (unsubscribeListener) unsubscribeListener(); 
+            if (unsubscribeListener) unsubscribeListener();
+            if (unsubscribeUnlockRequests) { unsubscribeUnlockRequests(); unsubscribeUnlockRequests = null; }
+            if (meuNomeEvento !== instanceId) meuNome = '';
             gameRef = ref(db, `partida/${instanceId}`);
             unsubscribeListener = onValue(gameRef, (snapshot) => {
                 const data = snapshot.val();
@@ -599,10 +610,32 @@
                         matchStartScores: data.matchStartScores || null,
                         systemMsg: data.systemMsg || { text: "PREPARANDO EVENTO", sub: "Aguarde..." } 
                     };
-                    sessionEmojis = data.elogios || {}; 
+                    sessionEmojis = data.elogios || {};
+                    if(!game.matchStartScores && game.scoreA === 0 && game.scoreB === 0) capturarScoreInicialPartida();
                     render();
                 }
             });
+
+            if (isAdmin && !isHistoricalView) {
+                const requestsRef = ref(db, `solicitacoes_desbloqueio/${shortId}/${instanceId}`);
+                unsubscribeUnlockRequests = onValue(requestsRef, async (snap) => {
+                    if (!snap.exists() || !isAdmin) return;
+                    const requests = snap.val() || {};
+                    for (const [requestId, req] of Object.entries(requests)) {
+                        if (!req || !req.nome) {
+                            await remove(ref(db, `solicitacoes_desbloqueio/${shortId}/${instanceId}/${requestId}`));
+                            continue;
+                        }
+                        const info = localizarJogador(req.nome);
+                        if (info && info.fila && info.p.bloqueado) {
+                            info.p.bloqueado = false;
+                            reposicionarJogadorNaFila(info.p);
+                            await set(gameRef, game);
+                        }
+                        await remove(ref(db, `solicitacoes_desbloqueio/${shortId}/${instanceId}/${requestId}`));
+                    }
+                });
+            }
         };
 
         function reposicionarJogadorNaFila(p) {
@@ -645,14 +678,16 @@
             const val = document.getElementById('selMeuNome').value; 
             if (!val) return customAlert("Selecione um nome na lista!");
             meuNome = val; 
+            meuNomeEvento = currentInstanceId || '';
             localStorage.setItem('voleihub_meunome', meuNome);
+            localStorage.setItem('voleihub_meuevento', meuNomeEvento);
             
             if (desbloquear) {
                 await window.desbloquearJogadorGuest(val, true);
                 return;
             }
             
-            customAlert("Perfil salvo apenas para visualização."); 
+            customAlert("Perfil identificado. Agora você pode visualizar jogadores e enviar elogios."); 
             window.fecharModais(); 
             renderMyTrophies(); 
             render();
@@ -681,25 +716,6 @@
             customAlert(`Bem-vindo, ${n}! Você foi adicionado e desbloqueado na fila.`);
         };
 
-        window.abrirAddRapido = () => {
-            const n = prompt("Nome do jogador para adicionar à fila:");
-            if(n) {
-                const nome = n.toUpperCase().trim();
-                if(!game.baseJogadores) game.baseJogadores = {};
-                if(!game.baseJogadores[nome]) {
-                    game.baseJogadores[nome] = 'geral';
-                    const obj = { id: Math.random().toString(36).substr(2, 9), nome, estrela: false, elite: false, bloqueado: false };
-                    if(!game.ranking[nome]) {
-                        game.ranking[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: false, elite: false };
-                    }
-                    game.esperaGeral.push(obj); 
-                    reposicionarJogadorNaFila(obj);
-                    salvarState(true);
-                } else {
-                    customAlert("Jogador já existe na base.");
-                }
-            }
-        };
 
         function renderMyTrophies() {
             const b = document.getElementById('trophiesBar');
@@ -1152,13 +1168,17 @@
             return total / 4;
         }
 
-        function capturarScoreInicialPartida() {
-            if(game.scoreA !== 0 || game.scoreB !== 0 || game.matchStartScores) return;
-            game.matchStartScores = {
-                scoreA: parseFloat(calcularScoreEquipe(game.timeA).toFixed(2)),
-                scoreB: parseFloat(calcularScoreEquipe(game.timeB).toFixed(2)),
-                placar: '0 x 0'
-            };
+        function capturarScoreInicialPartida(forcar = false) {
+            if(game.scoreA !== 0 || game.scoreB !== 0) return;
+            const tamanho = Number(game.config?.size || 0);
+            if(tamanho > 0 && ((game.timeA||[]).length < tamanho || (game.timeB||[]).length < tamanho)) return;
+            if(forcar || !game.matchStartScores) {
+                game.matchStartScores = {
+                    scoreA: parseFloat(calcularScoreEquipe(game.timeA).toFixed(2)),
+                    scoreB: parseFloat(calcularScoreEquipe(game.timeB).toFixed(2)),
+                    placar: '0 x 0'
+                };
+            }
         }
 
         window.adicionarNaFila = (tab, nomeDigitado) => {
@@ -1184,7 +1204,7 @@
         // --- LÓGICA DE PONTUAÇÃO E ERRO ADVERSÁRIO ---
         window.registrarPontoSimples = (lado, hist) => { 
             if(!isAdmin || !game.partidaAtiva) return; 
-            capturarScoreInicialPartida();
+            if(!game.matchStartScores) capturarScoreInicialPartida();
             if(hist) salvarState(true); 
             
             if(game.saqueLado !== lado) { 
@@ -1209,7 +1229,7 @@
         
         window.registrarAcaoJogador = (tipo) => { 
             if(!isAdmin) return; 
-            capturarScoreInicialPartida();
+            if(!game.matchStartScores) capturarScoreInicialPartida();
             salvarState(true); 
             
             const p = (modalCtx.lado === 'A' ? game.timeA : game.timeB)[modalCtx.idx]; 
@@ -1329,6 +1349,7 @@
             
             game.scoreA = 0; game.scoreB = 0; game.idxA = 0; game.idxB = 0; game.saqueLado = venceu; 
             game.matchStartScores = null;
+            capturarScoreInicialPartida();
             game.systemMsg = { text: "FIM DE SET", sub: `Vitória do Time ${venceu}` }; 
             salvarState(); 
         }
@@ -1434,40 +1455,66 @@
             set(gameRef, game); 
         };
 
-        window.desbloquearJogadorGuest = async (nome) => {
+        window.desbloquearJogadorGuest = async (nome, fecharApos = false) => {
             if(isAdmin || isHistoricalView) return;
             const info = localizarJogador(nome);
             if(!info || !info.p) return customAlert('Jogador não encontrado.');
-            if(!info.fila) return customAlert('Este jogador já está na quadra ou não está em uma fila.');
-            if(!info.p.bloqueado) {
+            if(!info.fila) {
                 meuNome = nome;
+                meuNomeEvento = currentInstanceId || '';
                 localStorage.setItem('voleihub_meunome', meuNome);
-                customAlert('Este jogador já está desbloqueado na fila.');
+                localStorage.setItem('voleihub_meuevento', meuNomeEvento);
+                if (fecharApos) window.fecharModais();
+                return customAlert('Jogador já está em quadra. Perfil identificado para visualização.');
+            }
+            meuNome = nome;
+            meuNomeEvento = currentInstanceId || '';
+            localStorage.setItem('voleihub_meunome', meuNome);
+            localStorage.setItem('voleihub_meuevento', meuNomeEvento);
+
+            if(!info.p.bloqueado) {
+                if (fecharApos) window.fecharModais();
                 render();
-                return;
+                return customAlert('Este jogador já está desbloqueado na fila.');
             }
 
-            const filaOriginal = info.fila === 'geral' ? [...game.esperaGeral] : [...game.esperaEstrela];
-            info.p.bloqueado = false;
-            reposicionarJogadorNaFila(info.p);
+            const filaPath = info.fila === 'geral' ? 'esperaGeral' : 'esperaEstrela';
+            const bloqueadoRef = ref(db, `partida/${currentInstanceId}/${filaPath}/${info.idx}/bloqueado`);
+
+            // Some Firebase deployments allow anonymous authenticated guests. Use that identity first.
             try {
-                await set(gameRef, game);
-                meuNome = nome;
-                localStorage.setItem('voleihub_meunome', meuNome);
-                window.fecharModais();
-                customAlert(`✅ ${nome} foi desbloqueado para a quadra e está na fila.`);
+                const currentUser = auth.currentUser;
+                if(!currentUser) await signInAnonymously(auth);
+                await set(bloqueadoRef, false);
+                info.p.bloqueado = false;
                 render();
-            } catch(e) {
-                if(info.fila === 'geral') game.esperaGeral = filaOriginal;
-                else game.esperaEstrela = filaOriginal;
-                customAlert('Não foi possível salvar o desbloqueio. Verifique a permissão de acesso do evento.');
-                render();
+                if (fecharApos) window.fecharModais();
+                customAlert(`✅ ${nome} foi desbloqueado para a quadra.`);
+                return;
+            } catch (e) {
+                // Fall through to the admin approval request when direct guest write is denied.
+                console.warn('Desbloqueio direto negado; enviando solicitação ao administrador.', e);
             }
+
+            try {
+                const requestId = `${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+                await set(ref(db, `solicitacoes_desbloqueio/${currentShortId}/${currentInstanceId}/${requestId}`), {
+                    nome,
+                    instanceId: currentInstanceId,
+                    fila: info.fila,
+                    indice: info.idx,
+                    timestamp: Date.now()
+                });
+                customAlert(`Solicitação enviada ao administrador. Assim que ela for processada, ${nome} ficará liberado na fila.`);
+            } catch (reqErr) {
+                customAlert('Não foi possível enviar a solicitação. É necessário liberar no Firebase a gravação de solicitações de convidados.');
+            }
+            render();
         };
 
         window.abrirPerfilJogador = (nome) => { 
-            const s = game.ranking[nome]; 
-            if(!s) return; 
+            if(!nome) return;
+            const s = game.ranking?.[nome] || { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime:0, estrela:false, elite:false };
             const info = localizarJogador(nome);
             document.getElementById('perfilNome').innerText = nome; 
             document.getElementById('pScore').innerText = calcularScoreComPesos(s); 
@@ -1478,7 +1525,7 @@
 
             const statusEl = document.getElementById('perfilStatus');
             const actionEl = document.getElementById('perfilGuestAction');
-            if(info) {
+            if(info && info.p) {
                 const badge = info.p.bloqueado ? '🔒 BLOQUEADO' : '✅ LIBERADO';
                 statusEl.innerHTML = `<span class="text-slate-400">${info.local}</span> · <span class="${info.p.bloqueado ? 'text-red-400' : 'text-emerald-400'}">${badge}</span>`;
             } else {
@@ -1490,34 +1537,36 @@
             if(!isAdmin && !isHistoricalView && info && info.fila) {
                 actionEl.classList.remove('hidden');
                 if(info.p.bloqueado) {
-                    actionEl.innerHTML = `<button onclick='window.desbloquearJogadorGuest(${JSON.stringify(nome)})' class="w-full bg-emerald-600 hover:bg-emerald-500 p-3 rounded-xl font-black uppercase text-[10px] text-white shadow-lg">🔓 Desbloquear para a quadra</button>`;
+                    actionEl.innerHTML = `<button onclick='window.desbloquearJogadorGuest(${JSON.stringify(nome)}, true)' class="w-full bg-emerald-600 hover:bg-emerald-500 p-3 rounded-xl font-black uppercase text-[10px] text-white shadow-lg">🔓 Desbloquear para a quadra</button>`;
                 } else {
                     actionEl.innerHTML = `<div class="w-full bg-slate-700/60 border border-slate-600 p-3 rounded-xl text-center font-bold uppercase text-[9px] text-emerald-400">✅ Jogador já liberado para a quadra</div>`;
                 }
             }
 
             const bC = document.getElementById('perfilBadges'); 
-            bC.innerHTML = ""; 
-            if(!isAdmin && isHistoricalView && globalBadges[nome]) { 
+            bC.innerHTML = ''; 
+            if(isHistoricalView && globalBadges[nome]) { 
                 for(let k in badgeMap) { 
-                    if(globalBadges[nome][k] > 0) {
-                        bC.innerHTML += `<span class="badge-icon">${badgeMap[k].i} x${globalBadges[nome][k]}</span>`; 
-                    }
-                } 
-            } 
-            
+                    if(globalBadges[nome][k] > 0) bC.innerHTML += `<span class="badge-icon">${badgeMap[k].i} ${badgeMap[k].desc} x${globalBadges[nome][k]}</span>`; 
+                }
+                if(!bC.innerHTML) bC.innerHTML = `<span class="text-[9px] text-slate-500 italic">Sem insígnias nesta sessão.</span>`;
+            } else if(isHistoricalView) {
+                bC.innerHTML = `<span class="text-[9px] text-slate-500 italic">Sem insígnias nesta sessão.</span>`;
+            }
+
             const rBox = document.getElementById('reactionBox'); 
-            if(meuNome && meuNome !== nome && !isHistoricalView && !isAdmin) { 
+            if(guestIdentificadoNesteEvento() && meuNome !== nome && !isHistoricalView) { 
                 rBox.classList.remove('hidden'); 
                 rBox.dataset.target = nome; 
             } else { 
                 rBox.classList.add('hidden'); 
+                rBox.dataset.target = '';
             } 
             document.getElementById('modalPerfilJogador').classList.remove('hidden'); 
         };
-        
+
         window.enviarElogio = async (emoji) => { 
-            if(!meuNome || !currentInstanceId) return; 
+            if(!guestIdentificadoNesteEvento() || !currentInstanceId) return customAlert('Identifique-se primeiro para enviar um elogio.');
             const target = document.getElementById('reactionBox').dataset.target; 
             try { 
                 await set(ref(db, `partida/${currentInstanceId}/elogios/${target}/${meuNome}`), emoji); 
@@ -1575,7 +1624,7 @@
             document.getElementById('winsA').innerText = `Sets: ${game.winsConsecA || 0}`; 
             document.getElementById('winsB').innerText = `Sets: ${game.winsConsecB || 0}`; 
             
-            const drawTeam = (l) => (l === 'A' ? (game.timeA||[]) : (game.timeB||[])).map((p, i) => `<div class="jogador-card bg-slate-800 p-3 rounded-xl border-l-4 ${l==='A'?'border-l-blue-500':'border-l-orange-500'}${game.partidaAtiva && game.saqueLado===l && (l==='A'?game.idxA:game.idxB)===i?'sacando':''} ${p.estrela?'is-estrela':''}" onclick="window.abrirPontoTecnico('${l}', ${i})" data-id="${p.id}"><div class="uppercase font-black text-[10px] truncate"><span class="bola-saque mr-1">🏐</span> ${p.estrela?'⭐ ':''}${p.elite?'💎 ':''}${p.nome}</div></div>`).join(''); 
+            const drawTeam = (l) => (l === 'A' ? (game.timeA||[]) : (game.timeB||[])).map((p, i) => `<div data-player-name="${String(p.nome).replace(/\"/g,'&quot;')}" class="jogador-card bg-slate-800 p-3 rounded-xl border-l-4 ${l==='A'?'border-l-blue-500':'border-l-orange-500'}${game.partidaAtiva && game.saqueLado===l && (l==='A'?game.idxA:game.idxB)===i?'sacando':''} ${p.estrela?'is-estrela':''}" onclick="window.abrirPontoTecnico('${l}', ${i})" data-id="${p.id}"><div class="uppercase font-black text-[10px] truncate"><span class="bola-saque mr-1">🏐</span> ${p.estrela?'⭐ ':''}${p.elite?'💎 ':''}${p.nome}</div></div>`).join(''); 
             
             document.getElementById('areaA').innerHTML = drawTeam('A'); 
             document.getElementById('areaB').innerHTML = drawTeam('B'); 
@@ -1592,7 +1641,7 @@
                 } 
                 const blockText = p.bloqueado ? `<span class="text-[8px] text-red-400 font-bold ml-1 tracking-widest">(BLOQUEADO)</span>` : ``; 
                 const click = isAdmin ? `window.abrirEscalacao(${JSON.stringify(filaTab)}, ${i})` : `window.abrirPerfilJogador(${JSON.stringify(p.nome)})`;
-                return `<div data-id="${p.id}" onclick='${click}' class="bg-slate-800 p-3 rounded-xl flex items-center border border-slate-700 ${p.bloqueado ? 'is-bloqueado' : ''} ${dest} cursor-pointer hover:bg-slate-700/60"><div class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2">${p.estrela ? '⭐ ' : ''}${p.elite ? '💎 ' : ''}${p.nome} ${blockText}</div><div class="text-[9px] text-slate-500">❯</div></div>`; 
+                return `<div data-id="${p.id}" data-player-name="${String(p.nome).replace(/\"/g,'&quot;')}" onclick='${click}' class="bg-slate-800 p-3 rounded-xl flex items-center border border-slate-700 ${p.bloqueado ? 'is-bloqueado' : ''} ${dest} cursor-pointer hover:bg-slate-700/60"><div class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2">${p.estrela ? '⭐ ' : ''}${p.elite ? '💎 ' : ''}${p.nome} ${blockText}</div><div class="text-[9px] text-slate-500">❯</div></div>`; 
             }).join('') : '<div class="text-center text-slate-600 text-[10px] py-4 italic">Fila vazia...</div>'; 
             const placeholderFila = filaTab === 'geral' ? 'Adicionar jogador à Fila Geral — Enter' : 'Adicionar jogador à Fila Estrelas — Enter';
             if(isAdmin) {
@@ -1612,7 +1661,7 @@
             document.getElementById('rankingContainer').innerHTML = rk.map((j, i) => { 
                 let recEmojis = ""; 
                 if(!isAdmin && sessionEmojis[j.n]) recEmojis = Object.values(sessionEmojis[j.n]).slice(0,3).join(''); 
-                return `<div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 mb-1 cursor-pointer hover:bg-slate-700/50" onclick="window.abrirPerfilJogador('${j.n}')"><div class="flex items-center gap-3"><span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span><div class="rank-name uppercase text-[10px] font-bold text-slate-300">${j.estrela?'⭐ ':''}${j.elite?'💎 ':''}${j.n} <span class="ml-2 text-sm drop-shadow-lg">${recEmojis}</span></div></div><div class="text-orange-500 font-black text-xs">${j.score}</div></div>`; 
+                return `<div data-player-name="${String(j.n).replace(/\"/g,'&quot;')}" class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 mb-1 cursor-pointer hover:bg-slate-700/50" onclick='window.abrirPerfilJogador(${JSON.stringify(j.n)})'><div class="flex items-center gap-3"><span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span><div class="rank-name uppercase text-[10px] font-bold text-slate-300">${j.estrela?'⭐ ':''}${j.elite?'💎 ':''}${j.n} <span class="ml-2 text-sm drop-shadow-lg">${recEmojis}</span></div></div><div class="text-orange-500 font-black text-xs">${j.score}</div></div>`; 
             }).join(''); 
             
             renderLeaders(); 
@@ -1621,7 +1670,22 @@
             if (!isAdmin) { visitorControls.style.display = 'flex'; } 
             else { visitorControls.style.display = 'none'; } 
             renderMyTrophies();
+            if(!guestIdentificadoNesteEvento()) { const rb = document.getElementById('reactionBox'); rb.classList.add('hidden'); rb.dataset.target=''; }
         }
+
+        // Garante que cliques em jogadores da fila/ranking abram o perfil no modo visitante.
+        document.addEventListener('click', (event) => {
+            if(isAdmin) return;
+            const card = event.target.closest('[data-player-name]');
+            if(!card) return;
+            const nome = card.getAttribute('data-player-name');
+            if(nome) {
+                event.preventDefault();
+                event.stopPropagation();
+                window.abrirPerfilJogador(nome);
+            }
+        }, true);
+
     </script>
 </body>
 </html>
