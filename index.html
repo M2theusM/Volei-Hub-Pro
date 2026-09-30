@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V5.3.2</title>
+    <title>Vôlei Hub PRO - V5.3.3</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -587,76 +587,84 @@
         window.fecharModais = () => { document.querySelectorAll('.modal-global, #modalPontoTec').forEach(m => m.classList.add('hidden')); };
         function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, ch => { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]; }); }
         
-        window.iniciarApito = (e) => {
-            if (!isAdmin) return;
-            if(e && e.type === 'touchstart') e.preventDefault();
-            if(isApitoTocando) return;
-            isApitoTocando = true;
-            pressStartTime = Date.now();
-            try {
-                const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                if (!AudioCtx) return;
-                if (!apitoCtx) apitoCtx = new AudioCtx();
-                if (apitoCtx.state === 'suspended') apitoCtx.resume();
-                
-                const now = apitoCtx.currentTime;
-                const f1 = 2450;
-                const f2 = 2520;
-                
-                apitoGain = apitoCtx.createGain();
-                apitoGain.gain.setValueAtTime(0.0001, now);
-                apitoGain.gain.exponentialRampToValueAtTime(0.65, now + 0.05);
-                apitoGain.connect(apitoCtx.destination);
-
-                apitoOsc1 = apitoCtx.createOscillator();
-                apitoOsc1.type = 'triangle';
-                apitoOsc1.frequency.setValueAtTime(f1, now);
-
-                apitoOsc2 = apitoCtx.createOscillator();
-                apitoOsc2.type = 'sine';
-                apitoOsc2.frequency.setValueAtTime(f2, now);
-
-                apitoLFO = apitoCtx.createOscillator();
-                apitoLFO.frequency.setValueAtTime(22, now);
-                const lfoGain = apitoCtx.createGain();
-                lfoGain.gain.setValueAtTime(18, now);
-                apitoLFO.connect(lfoGain);
-                lfoGain.connect(apitoOsc1.frequency);
-                lfoGain.connect(apitoOsc2.frequency);
-
-                apitoLFO.start(now);
-                apitoOsc1.start(now);
-                apitoOsc2.start(now);
-            } catch(e) { console.warn('Apito indisponível', e); }
-        };
-        
-        window.pararApito = (e) => {
-            if (!isApitoTocando) return;
-            if (e && (e.type === 'touchend' || e.type === 'touchcancel')) e.preventDefault();
-            const duration = Date.now() - pressStartTime;
-            if (duration < 300) { setTimeout(() => doStopApito(), 300 - duration); } else { doStopApito(); }
-        };
-        
-        function doStopApito() {
-            isApitoTocando = false;
-            if(!apitoGain) return;
-            try {
-                const now = apitoCtx.currentTime;
-                apitoGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
-                const o1 = apitoOsc1, o2 = apitoOsc2, lfo = apitoLFO;
-                setTimeout(() => {
-                    try {
-                        if(o1) o1.stop();
-                        if(o2) o2.stop();
-                        if(lfo) lfo.stop();
-                        if(o1) o1.disconnect();
-                        if(o2) o2.disconnect();
-                        if(lfo) lfo.disconnect();
-                    } catch(e){}
-                }, 150);
-                apitoGain = null; apitoOsc1 = null; apitoOsc2 = null; apitoLFO = null;
-            } catch(e) {}
+            window.iniciarApito = (e) => {
+        if (!isAdmin) return;
+        if(e && e.type === 'touchstart') e.preventDefault();
+        if(isApitoTocando) return;
+        isApitoTocando = true;
+        pressStartTime = Date.now();
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) { isApitoTocando = false; return; }
+            if (!apitoCtx) apitoCtx = new AudioCtx();
+            if (apitoCtx.state === 'suspended') apitoCtx.resume();
+            
+            const now = apitoCtx.currentTime;
+            
+            apitoGain = apitoCtx.createGain();
+            apitoGain.gain.setValueAtTime(0.0001, now);
+            apitoGain.gain.exponentialRampToValueAtTime(0.65, now + 0.05);
+            apitoGain.connect(apitoCtx.destination);
+    
+            apitoOsc1 = apitoCtx.createOscillator();
+            apitoOsc1.type = 'triangle';
+            apitoOsc1.frequency.setValueAtTime(2450, now);
+    
+            apitoOsc2 = apitoCtx.createOscillator();
+            apitoOsc2.type = 'sine';
+            apitoOsc2.frequency.setValueAtTime(2520, now);
+    
+            apitoLFO = apitoCtx.createOscillator();
+            apitoLFO.frequency.setValueAtTime(22, now);
+            const lfoGain = apitoCtx.createGain();
+            lfoGain.gain.setValueAtTime(18, now);
+            apitoLFO.connect(lfoGain);
+            lfoGain.connect(apitoOsc1.frequency);
+            lfoGain.connect(apitoOsc2.frequency);
+            
+            // CORREÇÃO: Estas duas linhas haviam sumido, elas mandam o som pra saída!
+            apitoOsc1.connect(apitoGain);
+            apitoOsc2.connect(apitoGain);
+    
+            apitoLFO.start(now);
+            apitoOsc1.start(now);
+            apitoOsc2.start(now);
+        } catch(e) { 
+            console.warn('Apito indisponível', e);
+            isApitoTocando = false; 
         }
+    };
+    
+    window.pararApito = (e) => {
+        if (!isApitoTocando) return;
+        if (e && (e.type === 'touchend' || e.type === 'touchcancel')) e.preventDefault();
+        const duration = Date.now() - pressStartTime;
+        if (duration < 300) { setTimeout(() => doStopApito(), 300 - duration); } else { doStopApito(); }
+    };
+    
+    function doStopApito() {
+        isApitoTocando = false;
+        if(!apitoGain) return;
+        try {
+            const now = apitoCtx.currentTime;
+            apitoGain.gain.cancelScheduledValues(now); // Evita falhas no celular
+            apitoGain.gain.setValueAtTime(apitoGain.gain.value, now);
+            apitoGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+            
+            const o1 = apitoOsc1, o2 = apitoOsc2, lfo = apitoLFO;
+            setTimeout(() => {
+                try {
+                    if(o1) o1.stop();
+                    if(o2) o2.stop();
+                    if(lfo) lfo.stop();
+                    if(o1) o1.disconnect();
+                    if(o2) o2.disconnect();
+                    if(lfo) lfo.disconnect();
+                } catch(e){}
+            }, 150);
+            apitoGain = null; apitoOsc1 = null; apitoOsc2 = null; apitoLFO = null;
+        } catch(e) {}
+    }
 
         onAuthStateChanged(auth, (user) => {
             if (user && !user.isAnonymous) { 
@@ -1445,57 +1453,59 @@
             }
         };
 
-        window.registrarPontoSimples = (lado, hist) => {
-            if(!isAdmin || !game.partidaAtiva) return;
-            if(!game.matchStartScores) capturarScoreInicialPartida();
-            if(hist) salvarState(true);
-            if(game.saqueLado !== lado) {
-                game.saqueLado = lado;
-                if(lado === 'A') {
-                    if (game.firstServeA) game.firstServeA = false;
-                    else game.idxA = (game.idxA+1) % (game.timeA.length||1);
-                } else {
-                    if (game.firstServeB) game.firstServeB = false;
-                    else game.idxB = (game.idxB+1) % (game.timeB.length||1);
+                    window.registrarPontoSimples = (lado, hist) => {
+                if(!isAdmin || !game.partidaAtiva) return;
+                if(!game.matchStartScores) capturarScoreInicialPartida();
+                if(hist) salvarState(true);
+                
+                // Lógica inteligente de rodízio de saque
+                if(game.saqueLado !== lado) {
+                    game.saqueLado = lado;
+                    if(lado === 'A') {
+                        game.idxA = (game.idxA+1) % (game.timeA.length||1);
+                    } else {
+                        game.idxB = (game.idxB+1) % (game.timeB.length||1);
+                    }
                 }
-            }
-            if(lado === 'A') game.scoreA++; else game.scoreB++;
-            if(!game.matchLog) game.matchLog = [];
-            game.matchLog.unshift({ text: "PONTO TIME " + lado + " - Erro Adv", type: lado });
-            if(game.matchLog.length > 40) game.matchLog.pop();
-            game.systemMsg = { text: "PONTO TIME " + lado, sub: "Placar: " + game.scoreA + " x " + game.scoreB };
-            verificarFimDeSet();
-            salvarState(false);
-        };
-
-        window.registrarAcaoJogador = (tipo) => {
-            if(!isAdmin) return;
-            if(!game.matchStartScores) capturarScoreInicialPartida();
-            salvarState(true);
-            const p = (modalCtx.lado === 'A' ? game.timeA : game.timeB)[modalCtx.idx];
-            let logText = tipo.toUpperCase() + " - " + p.nome;
-            if(tipo === 'ataque') game.ranking[p.nome].ptsAtaque++;
-            if(tipo === 'bloqueio') game.ranking[p.nome].ptsBloqueio++;
-            if(tipo === 'saque') game.ranking[p.nome].ptsAce++;
-            if(!game.matchLog) game.matchLog=[];
-            game.matchLog.unshift({text: logText, type: modalCtx.lado});
-            if(game.matchLog.length>40) game.matchLog.pop();
-            window.fecharModais();
-            if(game.saqueLado !== modalCtx.lado) {
-                game.saqueLado = modalCtx.lado;
-                if(modalCtx.lado === 'A') {
-                    if (game.firstServeA) game.firstServeA = false;
-                    else game.idxA = (game.idxA+1) % (game.timeA.length||1);
-                } else {
-                    if (game.firstServeB) game.firstServeB = false;
-                    else game.idxB = (game.idxB+1) % (game.timeB.length||1);
+                
+                if(lado === 'A') game.scoreA++; else game.scoreB++;
+                if(!game.matchLog) game.matchLog = [];
+                game.matchLog.unshift({ text: "PONTO TIME " + lado + " - Erro Adv", type: lado });
+                if(game.matchLog.length > 40) game.matchLog.pop();
+                game.systemMsg = { text: "PONTO TIME " + lado, sub: "Placar: " + game.scoreA + " x " + game.scoreB };
+                verificarFimDeSet();
+                salvarState(false);
+            };
+            
+            window.registrarAcaoJogador = (tipo) => {
+                if(!isAdmin) return;
+                if(!game.matchStartScores) capturarScoreInicialPartida();
+                salvarState(true);
+                const p = (modalCtx.lado === 'A' ? game.timeA : game.timeB)[modalCtx.idx];
+                let logText = tipo.toUpperCase() + " - " + p.nome;
+                if(tipo === 'ataque') game.ranking[p.nome].ptsAtaque++;
+                if(tipo === 'bloqueio') game.ranking[p.nome].ptsBloqueio++;
+                if(tipo === 'saque') game.ranking[p.nome].ptsAce++;
+                if(!game.matchLog) game.matchLog=[];
+                game.matchLog.unshift({text: logText, type: modalCtx.lado});
+                if(game.matchLog.length>40) game.matchLog.pop();
+                window.fecharModais();
+                
+                // Lógica inteligente de rodízio de saque
+                if(game.saqueLado !== modalCtx.lado) {
+                    game.saqueLado = modalCtx.lado;
+                    if(modalCtx.lado === 'A') {
+                        game.idxA = (game.idxA+1) % (game.timeA.length||1);
+                    } else {
+                        game.idxB = (game.idxB+1) % (game.timeB.length||1);
+                    }
                 }
-            }
-            if(modalCtx.lado === 'A') game.scoreA++; else game.scoreB++;
-            game.systemMsg = { text: "PONTO TIME " + modalCtx.lado, sub: "Placar: " + game.scoreA + " x " + game.scoreB };
-            verificarFimDeSet();
-            salvarState(false);
-        };
+                
+                if(modalCtx.lado === 'A') game.scoreA++; else game.scoreB++;
+                game.systemMsg = { text: "PONTO TIME " + modalCtx.lado, sub: "Placar: " + game.scoreA + " x " + game.scoreB };
+                verificarFimDeSet();
+                salvarState(false);
+            };
 
         function verificarFimDeSet() {
             const limit = game.config.points;
@@ -1518,7 +1528,7 @@
             if(vencedor) finalizarPartida(vencedor);
         }
 
-        function finalizarPartida(venceu) {
+                function finalizarPartida(venceu) {
             if(!game.historicoPartidas) game.historicoPartidas=[];
             game.historicoPartidas.unshift({
                 id: Date.now(),
@@ -1536,11 +1546,14 @@
             const tD = venceu === 'A' ? game.timeB : game.timeA;
             tV.forEach(j => game.ranking[j.nome].v++);
             tD.forEach(j => { game.ranking[j.nome].d++; reposicionarJogadorNaFila(j); });
-            if(vencedor === 'A') {
+            
+            // CORREÇÃO APLICADA AQUI: Era 'vencedor' e o correto é 'venceu'
+            if(venceu === 'A') {
                 game.timeB=[]; game.winsConsecA++; game.winsConsecB=0;
             } else {
                 game.timeA=[]; game.winsConsecB++; game.winsConsecA=0;
             }
+            
             if(game.config.maxWins > 0 && (game.winsConsecA >= game.config.maxWins || game.winsConsecB >= game.config.maxWins)) {
                 if(game.config.reaction === 'dividir'){
                     const pool = [...tV];
@@ -1570,16 +1583,16 @@
             };
             if(game.timeA.length < game.config.size) fillTeam(game.timeA);
             if(game.timeB.length < game.config.size) fillTeam(game.timeB);
+            
             game.scoreA = 0; game.scoreB = 0; game.idxA = 0; game.idxB = 0;
             game.saqueLado = venceu;
-            game.firstServeA = (venceu !== 'A');
-            game.firstServeB = (venceu !== 'B');
             game.matchStartScores = null;
             capturarScoreInicialPartida();
             game.systemMsg = { text: "FIM DE SET", sub: "Vitória do Time " + venceu };
             salvarState();
+            
             document.getElementById('endMatchText').innerText = "VITÓRIA DO TIME " + venceu + "!";
-            const emojis = ['🏐','🥇','🔥','👏','🎉','🏆'];
+            const emojis = ['🏐','🏆','🔥','👏','🎉','🥇'];
             let emojiHtml = [];
             for(let i = 0; i < 30; i++) {
                 const left = Math.random() * 100;
