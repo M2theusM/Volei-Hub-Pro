@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V5.3.0</title>
+    <title>Vôlei Hub PRO - V5.3.1</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -959,27 +959,75 @@
         window.abrirOpcoesEvento = () => { window.fecharModais(); const btnEnc = document.getElementById('btnMenuEncerrar'); if(currentInstanceId && !isHistoricalView) btnEnc.classList.remove('hidden'); else btnEnc.classList.add('hidden'); document.getElementById('modalAdminChoice').classList.remove('hidden'); };
         window.abrirNovoEvento = () => { document.getElementById('modalAdminChoice').classList.add('hidden'); document.getElementById('idNovoEvento').value = ''; document.getElementById('nomeNovoEvento').value = ''; document.getElementById('modalNovoEvento').classList.remove('hidden'); };
 
-        window.criarNovoEvento = async () => {
-            const sId = document.getElementById('idNovoEvento').value.toUpperCase().trim();
-            const nom = document.getElementById('nomeNovoEvento').value.trim();
-            if(!sId) return customAlert("Defina um ID.");
-            if((await get(ref(db, "eventos_ativos/" + sId))).exists()) return customAlert("ID já ativo. Encerre-o antes.");
-            let fNom = nom || ("Evento " + sId); 
-            let dataH = getFormattedDate(), count = 1, instId = sId + "_" + dataH + "_" + String(count).padStart(2,'0');
-            while((await get(ref(db, "listaEventos/" + instId))).exists()) { count++; instId = sId + "_" + dataH + "_" + String(count).padStart(2,'0'); }
-            let bc = {size:'',stars:0,elites:0,points:12,desempate:'3direto',maxWins:'',reaction:'',hideScoreboard:false};
-            let bw = {atqG:1,blqG:1,aceG:1,atqE:1,blqE:3,aceE:1,err:0.1,vit:0,wTeam:0};
-            let bj = {};
-            let bg = [], be = [], rk = {};
-            Object.entries(bj).forEach(([n, c]) => { const isE = (c==='estrela'), isEl = (c==='diamante'); const obj = { id: Math.random().toString(36).substr(2, 9), nome: n, estrela: isE, elite: isEl, bloqueado: true }; rk[n] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: isE, elite: isEl }; if(isE) be.push(obj); else bg.push(obj); });
-            await set(ref(db, "partida/" + instId), { baseJogadores: bj, config: bc, weights: bw, publicRanking: true, partidaAtiva: true, scoreA: 0, scoreB: 0, winsConsecA: 0, winsConsecB: 0, saqueLado: 'A', firstServeA: true, firstServeB: true, historicoPartidas: [], matchLog: [], ranking: rk, esperaGeral: bg, esperaEstrela: be, matchStartScores: null, systemMsg: { text: "NOVA PARTIDA", sub: "Placar: 0 x 0" } });
-            await set(ref(db, "eventos_ativos/" + sId), instId); 
-            await set(ref(db, "listaEventos/" + instId), { id: instId, baseId: sId, nome: fNom, data: new Date().toLocaleDateString('pt-BR'), timestamp: Date.now(), isClosed: false });
-            document.getElementById('modalNovoEvento').classList.add('hidden'); 
-            window.joinEvent(sId, instId, false);
-            customAlert("Evento #" + sId + " Criado!"); 
-            setTimeout(() => { window.abrirConfig(); }, 1000);
-        };
+            window.criarNovoEvento = async () => {
+        const sId = document.getElementById('idNovoEvento').value.toUpperCase().trim();
+        const nom = document.getElementById('nomeNovoEvento').value.trim();
+        if(!sId) return customAlert("Defina um ID.");
+        if((await get(ref(db, "eventos_ativos/" + sId))).exists()) return customAlert("ID já ativo. Encerre-o antes.");
+        
+        let fNom = nom || ("Evento " + sId); 
+        let dataH = getFormattedDate(), count = 1, instId = sId + "_" + dataH + "_" + String(count).padStart(2,'0');
+        while((await get(ref(db, "listaEventos/" + instId))).exists()) { count++; instId = sId + "_" + dataH + "_" + String(count).padStart(2,'0'); }
+        
+        // 1. DADOS PADRÕES ZERADOS (Caso seja realmente um evento novo)
+        let bc = {size:'',stars:0,elites:0,points:12,desempate:'3direto',maxWins:'',reaction:'',hideScoreboard:false};
+        let bw = {atqG:1,blqG:1,aceG:1,atqE:1,blqE:3,aceE:1,err:0.1,vit:0,wTeam:0};
+        let bj = {};
+    
+        // 2. BUSCAR DADOS DA ÚLTIMA SESSÃO (Para Herdar Base, Configs e Pesos)
+        try {
+            const sSnap = await get(ref(db, 'listaEventos'));
+            if(sSnap.exists()) {
+                const list = Object.values(sSnap.val())
+                    .filter(e => e.baseId === sId)
+                    .sort((a,b) => b.timestamp - a.timestamp); // Mais recentes primeiro
+                
+                // Procura a última sessão que tenha pelo menos 1 jogador salvo
+                for(let session of list) {
+                    const snap = await get(ref(db, "partida/" + session.id));
+                    if(snap.exists()) {
+                        const data = snap.val();
+                        // Checa se essa sessão antiga tinha jogadores
+                        if(data.baseJogadores && Object.keys(data.baseJogadores).length > 0) {
+                            if(data.config) bc = data.config;
+                            if(data.weights) bw = data.weights;
+                            bj = data.baseJogadores;
+                            break; // Achou a base válida, para a busca!
+                        }
+                    }
+                }
+            }
+        } catch(e) {
+            console.error("Erro ao tentar puxar o histórico", e);
+        }
+    
+        // 3. MONTAR A FILA INICIAL BLOQUEADA BASEADA NOS JOGADORES HERDADOS
+        let bg = [], be = [], rk = {};
+        Object.entries(bj).forEach(([n, c]) => { 
+            const isE = (c==='estrela'), isEl = (c==='diamante'); 
+            const obj = { id: Math.random().toString(36).substr(2, 9), nome: n, estrela: isE, elite: isEl, bloqueado: true }; 
+            rk[n] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: isE, elite: isEl }; 
+            if(isE) be.push(obj); else bg.push(obj); 
+        });
+        
+        // 4. SALVAR A NOVA INSTÂNCIA
+        await set(ref(db, "partida/" + instId), { 
+            baseJogadores: bj, config: bc, weights: bw, publicRanking: true, partidaAtiva: true, 
+            scoreA: 0, scoreB: 0, winsConsecA: 0, winsConsecB: 0, saqueLado: 'A', firstServeA: true, 
+            firstServeB: true, historicoPartidas: [], matchLog: [], ranking: rk, 
+            esperaGeral: bg, esperaEstrela: be, matchStartScores: null, 
+            systemMsg: { text: "NOVA PARTIDA", sub: "Placar: 0 x 0" } 
+        });
+        
+        await set(ref(db, "eventos_ativos/" + sId), instId); 
+        await set(ref(db, "listaEventos/" + instId), { id: instId, baseId: sId, nome: fNom, data: new Date().toLocaleDateString('pt-BR'), timestamp: Date.now(), isClosed: false });
+        
+        document.getElementById('modalNovoEvento').classList.add('hidden'); 
+        window.joinEvent(sId, instId, false);
+        
+        customAlert("Evento #" + sId + " Criado! Dados anteriores recuperados."); 
+        setTimeout(() => { window.abrirConfig(); }, 1000);
+    };
 
         window.encerrarEventoAtivo = async () => {
             if(!currentInstanceId) return;
