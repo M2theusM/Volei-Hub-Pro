@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V4.0.0</title>
+    <title>Vôlei Hub PRO - V4.1.0</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -547,7 +547,7 @@
         </div>
     </div>
 
-    <!-- Scripts formatados para evitar quebras de linha acidentais -->
+    <!-- Scripts com strings movidas para atributos Data (Totalmente seguro) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, get, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -923,13 +923,14 @@
             for (let [id, n] of list) {
                 const pend = n?.status === 'pending';
                 const when = n?.timestamp ? new Date(n.timestamp).toLocaleString('pt-BR') : '';
+                const safeId = escapeHtml(id);
                 
                 if (n?.tipo === 'bloqueio_solicitado') {
                     const statusText = pend ? 'Solicitação de bloqueio aguardando aprovação.' : `Status: ${escapeHtml(n.status || '')}`;
                     const btnHtml = pend ? `
                         <div class="flex gap-2 mt-3">
-                            <button onclick='window.aprovarBloqueio(${JSON.stringify(id)})' class="flex-1 bg-red-600 hover:bg-red-500 py-2 rounded-lg text-[9px] font-black uppercase">Bloquear</button>
-                            <button onclick='window.recusarBloqueio(${JSON.stringify(id)})' class="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-lg text-[9px] font-black uppercase">Recusar</button>
+                            <button data-notif-id="${safeId}" onclick="window.aprovarBloqueio(this.getAttribute('data-notif-id'))" class="flex-1 bg-red-600 hover:bg-red-500 py-2 rounded-lg text-[9px] font-black uppercase">Bloquear</button>
+                            <button data-notif-id="${safeId}" onclick="window.recusarBloqueio(this.getAttribute('data-notif-id'))" class="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-lg text-[9px] font-black uppercase">Recusar</button>
                         </div>` : '';
                     
                     htmlParts.push(`
@@ -1353,19 +1354,21 @@
                     let htmlParts = [];
                     list.forEach(e => {
                         const isAtivo = (isActive && activeInstance === e.id); 
+                        const safeId = escapeHtml(e.id);
+                        const safeNome = escapeHtml(e.nome);
                         const acaoClick = isAtivo 
-                            ? `window.joinEvent('${shortId}', '${e.id}', false); window.fecharModais();` 
-                            : `window.joinEvent('${shortId}', '${e.id}', true); window.fecharModais();`; 
+                            ? `window.joinEvent('${shortId}', this.getAttribute('data-session-id'), false); window.fecharModais();` 
+                            : `window.joinEvent('${shortId}', this.getAttribute('data-session-id'), true); window.fecharModais();`; 
                         const bColor = isAtivo ? "bg-emerald-600 hover:bg-emerald-500" : "bg-blue-600 hover:bg-blue-500"; 
                         const bText = isAtivo ? "Entrar (Ativo)" : "Leitura"; 
                         
                         htmlParts.push(`
                             <div class="bg-slate-700/50 p-3 rounded-xl border border-slate-600 flex justify-between items-center mb-2">
                                 <div class="truncate mr-2 w-2/3">
-                                    <div class="font-black text-white uppercase text-xs truncate">${e.data} -${e.nome}</div>
-                                    <div class="text-[10px] text-slate-400 italic">Sessão: ${e.id}</div>
+                                    <div class="font-black text-white uppercase text-xs truncate">${e.data} -${safeNome}</div>
+                                    <div class="text-[10px] text-slate-400 italic">Sessão: ${safeId}</div>
                                 </div>
-                                <button onclick="${acaoClick}" class="${bColor} px-4 py-2 rounded font-bold uppercase text-[9px] shadow transition">${bText}</button>
+                                <button data-session-id="${safeId}" onclick="${acaoClick}" class="${bColor} px-4 py-2 rounded font-bold uppercase text-[9px] shadow transition">${bText}</button>
                             </div>
                         `);
                     });
@@ -1403,8 +1406,8 @@
             sessoesFiltradasInfo.forEach((s) => {
                 htmlParts.push(`
                     <label class="flex items-center gap-2 bg-slate-800 p-2 rounded mb-1">
-                        <input type="checkbox" class="chkSessao w-4 h-4" value="${s.id}" onchange="window.atualizarJogadoresFiltro()" checked> 
-                        <span class="uppercase font-bold text-slate-300 text-[10px]">${s.data} (${s.nome})</span>
+                        <input type="checkbox" class="chkSessao w-4 h-4" value="${escapeHtml(s.id)}" onchange="window.atualizarJogadoresFiltro()" checked> 
+                        <span class="uppercase font-bold text-slate-300 text-[10px]">${escapeHtml(s.data)} (${escapeHtml(s.nome)})</span>
                     </label>
                 `);
             });
@@ -1429,10 +1432,11 @@
             if (jSet.size > 0) { 
                 let parts = [];
                 Array.from(jSet).sort().forEach(n => {
+                    const safeName = escapeHtml(n);
                     parts.push(`
                         <label class="flex items-center gap-1 bg-slate-800 p-1.5 rounded">
-                            <input type="checkbox" class="chkJogador w-3 h-3" value="${n}" checked> 
-                            <span class="uppercase font-bold truncate text-slate-300">${n}</span>
+                            <input type="checkbox" class="chkJogador w-3 h-3" value="${safeName}" checked> 
+                            <span class="uppercase font-bold truncate text-slate-300">${safeName}</span>
                         </label>
                     `);
                 });
@@ -1491,7 +1495,7 @@
                             <div class="flex items-center gap-3">
                                 <span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span>
                                 <div class="uppercase text-[10px] font-bold text-slate-300">
-                                    ${j.n} <span class="text-[8px] text-slate-500 ml-1">(V:${j.v} A:${j.ptsAtaque} B:${j.ptsBloqueio})</span>
+                                    ${escapeHtml(j.n)} <span class="text-[8px] text-slate-500 ml-1">(V:${j.v} A:${j.ptsAtaque} B:${j.ptsBloqueio})</span>
                                 </div>
                             </div>
                             <div class="text-orange-500 font-black text-sm">${j.score}</div>
@@ -1616,10 +1620,11 @@
                 let parts = [];
                 arr.forEach(([nome, cat]) => {
                     let badge = cat==='estrela' ? "⭐ Estrela" : cat==='diamante' ? "💎 Diamante" : "Geral"; 
+                    const safeName = escapeHtml(nome);
                     parts.push(`
                         <div class="flex justify-between items-center bg-slate-900/50 p-2 rounded border border-slate-700/50 mb-1">
-                            <div class="text-[10px] font-black uppercase text-white">${nome} <span class="text-slate-500 ml-1">(${badge})</span></div>
-                            <button onclick="window.removeBaseJogador('${nome}')" class="text-red-500 font-bold px-2 hover:bg-red-900/30 rounded">X</button>
+                            <div class="text-[10px] font-black uppercase text-white">${safeName} <span class="text-slate-500 ml-1">(${badge})</span></div>
+                            <button data-nome="${safeName}" onclick="window.removeBaseJogador(this.getAttribute('data-nome'))" class="text-red-500 font-bold px-2 hover:bg-red-900/30 rounded">X</button>
                         </div>
                     `);
                 });
@@ -2056,7 +2061,7 @@
             const gen = (t, side) => {
                 let parts = [];
                 (t||[]).forEach((j, i) => {
-                    parts.push(`<button onclick="window.substituirJogador('${side}',${i})" class="w-full bg-slate-700 p-2 rounded text-[9px] mb-1 uppercase border border-slate-600">Sub: ${j.nome}</button>`);
+                    parts.push(`<button onclick="window.substituirJogador('${side}',${i})" class="w-full bg-slate-700 p-2 rounded text-[9px] mb-1 uppercase border border-slate-600">Sub: ${escapeHtml(j.nome)}</button>`);
                 });
                 return parts.join('');
             };
@@ -2173,12 +2178,14 @@
 
             actionEl.classList.add('hidden');
             actionEl.innerHTML = '';
+            
+            const safeNome = escapeHtml(nome);
             if(!isAdmin && !isHistoricalView && info && info.fila) {
                 actionEl.classList.remove('hidden');
                 if(info.p.bloqueado) {
-                    actionEl.innerHTML = `<button onclick='window.desbloquearJogadorGuest(${JSON.stringify(nome)}, true)' class="w-full bg-emerald-600 hover:bg-emerald-500 p-3 rounded-xl font-black uppercase text-[10px] text-white shadow-lg">Desbloquear</button>`;
+                    actionEl.innerHTML = `<button data-nome="${safeNome}" onclick="window.desbloquearJogadorGuest(this.getAttribute('data-nome'), true)" class="w-full bg-emerald-600 hover:bg-emerald-500 p-3 rounded-xl font-black uppercase text-[10px] text-white shadow-lg">Desbloquear</button>`;
                 } else {
-                    actionEl.innerHTML = `<button onclick='window.enviarSolicitacaoBloqueio(${JSON.stringify(nome)}, true)' class="w-full bg-red-600 hover:bg-red-500 p-3 rounded-xl font-black uppercase text-[10px] text-white shadow-lg">Bloquear</button>`;
+                    actionEl.innerHTML = `<button data-nome="${safeNome}" onclick="window.enviarSolicitacaoBloqueio(this.getAttribute('data-nome'), true)" class="w-full bg-red-600 hover:bg-red-500 p-3 rounded-xl font-black uppercase text-[10px] text-white shadow-lg">Bloquear</button>`;
                 }
             }
 
@@ -2284,8 +2291,8 @@
                 
                 if(maxG === 0 && maxE === 0) return; 
                 
-                const winnersG = listG.filter(p => c.f(p) === maxG).map(p => p.n).join(', '); 
-                const winnersE = listE.filter(p => c.f(p) === maxE).map(p => p.n).join(', '); 
+                const winnersG = listG.filter(p => c.f(p) === maxG).map(p => escapeHtml(p.n)).join(', '); 
+                const winnersE = listE.filter(p => c.f(p) === maxE).map(p => escapeHtml(p.n)).join(', '); 
                 
                 htmlParts.push(`
                     <div class="bg-slate-800 p-3 rounded mb-2">
@@ -2315,7 +2322,7 @@
             if ((game.matchLog||[]).length) {
                 let logParts = [];
                 game.matchLog.forEach(l => {
-                    logParts.push(`<div class="log-item log-${l.type}">${l.text}</div>`);
+                    logParts.push(`<div class="log-item log-${l.type}">${escapeHtml(l.text)}</div>`);
                 });
                 document.getElementById('match-log-box').innerHTML = logParts.join('');
             } else {
@@ -2336,7 +2343,7 @@
                 let parts = [];
                 team.forEach((p, i) => {
                     const isSacando = game.partidaAtiva && game.saqueLado === l && (l === 'A' ? game.idxA : game.idxB) === i;
-                    const safeName = String(p.nome).replace(/\"/g,'&quot;');
+                    const safeName = escapeHtml(p.nome);
                     const bColor = l === 'A' ? 'border-l-blue-500' : 'border-l-orange-500';
                     const sacandoClass = isSacando ? 'sacando' : '';
                     const starClass = p.estrela ? 'is-estrela' : '';
@@ -2354,7 +2361,7 @@
                              ondragover="event.preventDefault()" 
                              ondrop="window.drop(event, '${l}',${i})">
                             <div class="uppercase font-black text-[10px] flex justify-between items-center overflow-hidden w-full">
-                                <span>${starIcon}${eliteIcon}${p.nome}</span>${saqueIcon}
+                                <span>${starIcon}${eliteIcon}${safeName}</span>${saqueIcon}
                             </div>
                         </div>
                     `);
@@ -2380,14 +2387,21 @@
                         if(countLib <= 3) dest="is-proximo"; 
                     } 
                     const blockText = p.bloqueado ? `<span class="text-[8px] text-red-400 font-bold ml-1 tracking-widest">(BLOQUEADO)</span>` : ``; 
-                    const clickAction = isAdmin ? `window.abrirEscalacao('${filaTab}', ${i})` : `window.abrirPerfilJogador('${String(p.nome).replace(/\'/g, "\\'")}')`;
+                    const safeName = escapeHtml(p.nome);
+                    
+                    // Delegação de evento via Data Attributes
+                    let eventClick = "";
+                    if (isAdmin) {
+                        eventClick = `onclick="window.abrirEscalacao('${filaTab}', ${i})"`;
+                    } else {
+                        eventClick = `onclick="window.abrirPerfilJogador(this.getAttribute('data-player-name'))"`;
+                    }
                     
                     fParts.push(`
-                        <div data-id="${p.id}" data-player-name="${String(p.nome).replace(/\"/g,'&quot;')}" 
-                             onclick="${clickAction}" 
+                        <div data-id="${p.id}" data-player-name="${safeName}" ${eventClick}
                              class="bg-slate-800 p-3 rounded-xl flex items-center border border-slate-700 ${p.bloqueado ? 'is-bloqueado' : ''} ${dest} cursor-pointer hover:bg-slate-700/60">
                             <div class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2">
-                                ${p.estrela ? '⭐ ' : ''}${p.elite ? '💎 ' : ''}${p.nome} ${blockText}
+                                ${p.estrela ? '⭐ ' : ''}${p.elite ? '💎 ' : ''}${safeName} ${blockText}
                             </div>
                             <div class="text-[9px] text-slate-500">❯</div>
                         </div>
@@ -2434,12 +2448,14 @@
             rk.forEach((j, i) => { 
                 let recEmojis = ""; 
                 if(sessionEmojis[j.n]) recEmojis = formatarElogios(j.n); 
+                const safeName = escapeHtml(j.n);
+                
                 rkParts.push(`
-                    <div data-player-name="${String(j.n).replace(/\"/g,'&quot;')}" class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 mb-1 cursor-pointer hover:bg-slate-700/50" onclick="window.abrirPerfilJogador('${String(j.n).replace(/\'/g, "\\'")}')">
+                    <div data-player-name="${safeName}" class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 mb-1 cursor-pointer hover:bg-slate-700/50" onclick="window.abrirPerfilJogador(this.getAttribute('data-player-name'))">
                         <div class="flex items-center gap-3">
                             <span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span>
                             <div class="rank-name uppercase text-[10px] font-bold text-slate-300">
-                                ${j.estrela?'⭐ ':''}${j.elite?'💎 ':''}${j.n} <span class="ml-2 text-sm drop-shadow-lg">${recEmojis}</span>
+                                ${j.estrela?'⭐ ':''}${j.elite?'💎 ':''}${safeName} <span class="ml-2 text-sm drop-shadow-lg">${recEmojis}</span>
                             </div>
                         </div>
                         <div class="text-orange-500 font-black text-xs">${j.score}</div>
@@ -2459,10 +2475,15 @@
             atualizarBotaoMeuPerfil();
         }
 
+        // Listener Global de fallback para eventos que precisam do nome do jogador
         document.addEventListener('click', (event) => {
             if(isAdmin) return;
             const card = event.target.closest('[data-player-name]');
             if(!card) return;
+            
+            // Verifica se o clique já foi tratado por um onclick direto
+            if(card.hasAttribute('onclick')) return; 
+            
             const nome = card.getAttribute('data-player-name');
             if(nome) {
                 event.preventDefault();
