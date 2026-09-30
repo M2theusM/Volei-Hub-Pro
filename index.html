@@ -3,19 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V4.0.0</title>
+    <title>Vôlei Hub PRO - V4.2.0</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .jogador-card { touch-action: none; border: 2px solid transparent; transition: all 0.2s; cursor: pointer; position: relative; z-index: 10; user-select: none; }
-        .sacando { border: 2px solid #ffffff !important; border-color: #ffffff !important; background-color: #2d3748 !important; box-shadow: 0 0 14px rgba(255, 255, 255, 0.28); }
-        /* Somente o sacador recebe moldura diferenciada em quadra. */
+        .jogador-card { touch-action: manipulation; border: 3px solid transparent; transition: all 0.2s; cursor: pointer; position: relative; z-index: 10; user-select: none; }
+        
+        /* Moldura de sacador */
+        .sacando { border: 3px solid #ffffff !important; background-color: #1e293b !important; box-shadow: 0 0 16px rgba(255, 255, 255, 0.4); }
+        .bola-saque { animation: bounce 1s infinite; font-size: 14px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+        
         .is-bloqueado { opacity: 0.5; filter: grayscale(1); background: #0f172a !important; border: 1px dashed #334155 !important; }
         .is-proximo { border-left: 4px solid #10b981 !important; background: linear-gradient(90deg, rgba(16, 185, 129, 0.1) 0%, rgba(30, 41, 59, 1) 100%) !important; }
         .tab-active { background-color: #f59e0b !important; color: white !important; }
-        .bola-saque { display: none; }
-        .sacando .bola-saque { display: inline-block; animation: bounce 1s infinite; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+        
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+        
         .config-input { background: #0f172a; border: 1px solid #334155; padding: 10px; border-radius: 12px; width: 100%; color: white; font-weight: bold; font-size: 12px; outline: none; }
         
         #info-panel { margin-bottom: 1rem; }
@@ -42,8 +45,8 @@
         .badge-icon { display: inline-block; font-size: 14px; margin-right: 4px; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
         .emoji-btn { font-size: 1.5rem; transition: transform 0.2s; cursor: pointer; }
         .emoji-btn:hover { transform: scale(1.2); }
+        
         #pointCelebration { position: fixed; inset: 0; z-index: 6000; pointer-events: none; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        #pointCelebration.hidden { display: none !important; }
         .celebration-backdrop { position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(15,23,42,.35), rgba(15,23,42,.88)); }
         .celebration-center { position: relative; z-index: 2; text-align: center; animation: celebrationPop .35s ease-out; }
         .celebration-name { font-size: clamp(34px, 11vw, 72px); line-height: .9; font-weight: 1000; text-transform: uppercase; font-style: italic; text-shadow: 0 6px 24px rgba(0,0,0,.8); }
@@ -51,6 +54,10 @@
         .celebration-float { position: absolute; font-size: clamp(24px, 7vw, 58px); animation: celebrationFloat 1.8s ease-in-out forwards; }
         @keyframes celebrationPop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes celebrationFloat { from { transform: translateY(35vh) scale(.6) rotate(0deg); opacity: 0; } 15% { opacity: 1; } to { transform: translateY(-45vh) scale(1.2) rotate(24deg); opacity: 0; } }
+        
+        /* Animações Fim de Jogo */
+        @keyframes floatUpEmojis { 0% { transform: translateY(10vh) rotate(0deg); opacity: 0; } 10% { opacity: 1; } 100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; } }
+
         #adminNotificationsList { max-height: 55vh; overflow-y: auto; }
         .notification-pending { border-left: 3px solid #ef4444; }
         .notification-done { opacity: .55; }
@@ -65,7 +72,7 @@
         <div id="splashGuestPanel" class="w-full max-w-xs mt-8">
             <p class="text-[10px] text-slate-400 uppercase font-bold text-center mb-2">Informe o ID do evento para entrar:</p>
             <div class="flex gap-2 px-4 mb-8">
-                <input type="text" id="idSplashInput" placeholder="ID (ex: ABC12)" maxlength="8" class="config-input h-12 uppercase text-center flex-1 text-lg">
+                <input type="text" id="idSplashInput" maxlength="8" class="config-input h-12 uppercase text-center flex-1 text-lg">
                 <button onclick="window.entrarComoVisitante()" class="bg-blue-600 px-6 rounded-xl font-black uppercase shadow-lg text-xs hover:bg-blue-500 transition">Entrar</button>
             </div>
             <button onclick="window.abrirModalAdminMenu()" class="text-[10px] text-slate-500 font-bold uppercase hover:text-slate-400 transition underline underline-offset-4">Acesso Administrador</button>
@@ -78,7 +85,7 @@
         </div>
     </div>
 
-    <!-- Barra de Troféus (Header Pessoal - Apenas Visitantes) -->
+    <!-- Barra de Troféus -->
     <div id="trophiesBar" class="bg-gradient-to-r from-orange-600 to-amber-500 p-2 hidden shadow-lg z-50 sticky top-0 flex items-center justify-between px-4 text-xs font-black uppercase">
         <span class="text-white drop-shadow-md">Meus troféus</span>
         <div id="myTrophiesContainer" class="flex gap-1 overflow-x-auto"></div>
@@ -86,7 +93,7 @@
 
     <header class="p-4 bg-slate-800 sticky top-0 shadow-2xl z-40 border-b border-slate-700">
         <div class="flex justify-between items-center max-w-md mx-auto mb-3">
-            <h1 onclick="window.tocarApito()" title="Apito de jogo" class="text-orange-500 font-black text-lg italic uppercase tracking-tighter select-none cursor-pointer">
+            <h1 id="apitoArea" onmousedown="window.iniciarApito(event)" onmouseup="window.pararApito(event)" onmouseleave="window.pararApito(event)" ontouchstart="window.iniciarApito(event)" ontouchend="window.pararApito(event)" title="Apito de jogo" class="text-orange-500 font-black text-lg italic uppercase tracking-tighter select-none cursor-pointer">
                 Vôlei Hub <span class="text-xs text-blue-400">PRO</span> 
                 <span id="displayEventId" class="text-[10px] ml-1 bg-slate-700 px-2 py-0.5 rounded text-white tracking-widest font-bold hidden">#---</span>
             </h1>
@@ -174,12 +181,22 @@
         </section>
     </main>
 
+    <!-- Celebrações e Avisos Fim de Jogo -->
     <div id="pointCelebration" class="hidden" aria-hidden="true">
         <div class="celebration-backdrop"></div>
         <div id="celebrationRain"></div>
         <div class="celebration-center">
             <div id="celebrationName" class="celebration-name"></div>
             <div id="celebrationMainEmoji" class="celebration-main-emoji"></div>
+        </div>
+    </div>
+    
+    <div id="endMatchCelebration" class="fixed inset-0 bg-slate-950/95 z-[9999] hidden flex-col items-center justify-center backdrop-blur-sm">
+        <div id="endMatchEmojis" class="absolute inset-0 overflow-hidden pointer-events-none"></div>
+        <div class="relative z-10 text-center animate-bounce">
+            <h1 class="text-6xl font-black text-orange-500 uppercase italic mb-2" style="text-shadow: 0 8px 24px rgba(249,115,22,0.8);">FIM DE JOGO</h1>
+            <p id="endMatchText" class="text-2xl text-blue-400 font-black uppercase mb-8 tracking-widest"></p>
+            <button onclick="document.getElementById('endMatchCelebration').classList.add('hidden')" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-4 rounded-2xl font-black uppercase text-sm shadow-[0_0_20px_rgba(37,99,235,0.5)] border border-blue-400 transition transform active:scale-95">Continuar Evento</button>
         </div>
     </div>
 
@@ -278,8 +295,8 @@
     <div id="modalNovoEvento" class="modal-global hidden" style="z-index: 3001;">
         <div class="bg-slate-800 w-full max-w-sm rounded-3xl p-6 border border-emerald-500">
             <h2 class="text-xl font-black text-emerald-400 uppercase mb-4 italic">Novo Evento</h2>
-            <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">ID Curto do Evento (Até 8 chars):</label>
-            <input type="text" id="idNovoEvento" maxlength="8" placeholder="Ex: ABC12" class="config-input mb-3 h-12 text-sm uppercase">
+            <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">ID do Evento:</label>
+            <input type="text" id="idNovoEvento" maxlength="8" class="config-input mb-3 h-12 text-sm uppercase">
             <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Nome do Evento:</label>
             <input type="text" id="nomeNovoEvento" placeholder="Ex: Vôlei de Sábado" class="config-input mb-6 h-12 text-sm">
             <button onclick="window.criarNovoEvento()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-4 rounded-xl uppercase text-xs font-black text-white shadow-lg mb-2 mt-4">Criar e Iniciar</button>
@@ -388,7 +405,7 @@
         </div>
     </div>
 
-    <!-- Modais de Seleção de Histórico / Filtro Personalizado (Corrigido) -->
+    <!-- Modais de Seleção de Histórico / Filtro Personalizado -->
     <div id="modalSessoesAnteriores" class="modal-global hidden">
         <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-blue-500 overflow-y-auto max-h-[90vh]">
             <h2 class="text-xl font-black text-blue-400 uppercase mb-4 italic">Buscar Histórico (ID)</h2>
@@ -516,7 +533,11 @@
         let isHistoricalView = false, globalBadges = {}, sessionEmojis = {}, sessoesFiltradasInfo = [], historicoLocal = [], tempConfig = {};
         let adminNotifications = {}, unsubscribeAdminNotifications = null, lastCelebrationId = null;
         window.sessoesCache = {}; 
-        const badgeMap = { topScore: {i:'🏆', desc:'Top Score'}, matador: {i:'🔥', desc:'Matador'}, paredao: {i:'🚫', desc:'Paredão'}, ace: {i:'⚡', desc:'Ace'}, vitorias: {i:'🏅', desc:'Mais Vitórias'}, second: {i:'🥈', desc:'2º Lugar'}, third: {i:'🥉', desc:'3º Lugar'} };
+        const badgeMap = { topScore: {i:'🏆', desc:'Top Score'}, matador: {i:'🔥', desc:'Matador'}, paredao: {i:'🚫', desc:'Paredão'}, ace: {i:'⚡', desc:'Ace'}, vitorias: {i:'🥇', desc:'Vitórias'}, second: {i:'🥈', desc:'2º Lugar'}, third: {i:'🥉', desc:'3º Lugar'} };
+
+        // Variáveis de apito (Oscillator)
+        let apitoCtx = null, apitoGain = null, apitoOsc1 = null, apitoOsc2 = null;
+        let isApitoTocando = false, pressStartTime = 0;
 
         window.customAlert = (msg) => { 
             document.getElementById('customAlertMsg').innerText = msg; 
@@ -569,7 +590,7 @@
             const pB = globalBadges?.[nome] || {};
             return Object.entries(badgeMap)
                 .filter(([key]) => Number(pB[key] || 0) > 0)
-                .map(([key, b]) => `<span class="badge-icon">${b.i} ${b.desc} <span class="text-white ml-1">x${Number(pB[key])}</span></span>`)
+                .map(([key, b]) => `<span class="badge-icon">${b.i}${b.desc} <span class="text-white ml-1">x${Number(pB[key])}</span></span>`)
                 .join('');
         }
         
@@ -604,39 +625,64 @@
             document.getElementById('celebrationMainEmoji').innerText = emoji || '🏐';
             const emojis = ['🏐','🔥','🚫','⚡','🙌','💥','🏐','🚀','👏','🏐','✨','💪','🎯','🏐','🔥','🙌','🚫','⚡'];
             const positions = [4,11,18,25,32,39,46,53,60,67,74,81,88,15,45,75,30,90];
-            rain.innerHTML = emojis.map((e,i) => `<span class="celebration-float" style="left:${positions[i]}%;animation-delay:${(i%6)*45}ms">${e}</span>`).join('');
+            rain.innerHTML = emojis.map((e,i) => `<span class="celebration-float" style="left:${positions[i]}%;animation-delay:${(i\%6)*45}ms">${e}</span>`).join('');
             box.classList.remove('hidden');
             clearTimeout(window.__celebrationTimer);
             window.__celebrationTimer = setTimeout(() => box.classList.add('hidden'), 1800);
         }
 
-        window.tocarApito = () => {
+        window.iniciarApito = (e) => {
             if (!isAdmin) return;
+            if(e && e.type === 'touchstart') e.preventDefault();
+            if(isApitoTocando) return;
+            isApitoTocando = true;
+            pressStartTime = Date.now();
             try {
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
                 if (!AudioCtx) return;
-                const ctx = new AudioCtx();
-                const now = ctx.currentTime;
-                const gain = ctx.createGain();
-                gain.gain.setValueAtTime(0.0001, now);
-                gain.gain.exponentialRampToValueAtTime(0.65, now + 0.02);
-                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.65);
-                gain.connect(ctx.destination);
-                const osc1 = ctx.createOscillator();
-                const osc2 = ctx.createOscillator();
-                osc1.type = 'triangle'; osc2.type = 'sine';
-                osc1.frequency.setValueAtTime(2100, now);
-                osc1.frequency.exponentialRampToValueAtTime(2500, now + 0.65);
-                osc2.frequency.setValueAtTime(3100, now);
-                osc2.frequency.exponentialRampToValueAtTime(3600, now + 0.65);
-                osc1.connect(gain); osc2.connect(gain);
-                osc1.start(now); osc2.start(now);
-                osc1.stop(now + 0.65); osc2.stop(now + 0.65);
-                setTimeout(() => ctx.close().catch(()=>{}), 800);
-            } catch(e) {
-                console.warn('Apito indisponível neste navegador.', e);
+                if (!apitoCtx) apitoCtx = new AudioCtx();
+                if (apitoCtx.state === 'suspended') apitoCtx.resume();
+                
+                apitoGain = apitoCtx.createGain();
+                apitoGain.gain.setValueAtTime(0.0001, apitoCtx.currentTime);
+                apitoGain.gain.exponentialRampToValueAtTime(0.65, apitoCtx.currentTime + 0.05);
+                apitoGain.connect(apitoCtx.destination);
+                
+                apitoOsc1 = apitoCtx.createOscillator();
+                apitoOsc2 = apitoCtx.createOscillator();
+                apitoOsc1.type = 'triangle'; apitoOsc2.type = 'sine';
+                apitoOsc1.frequency.setValueAtTime(2100, apitoCtx.currentTime);
+                apitoOsc2.frequency.setValueAtTime(3100, apitoCtx.currentTime);
+                
+                apitoOsc1.connect(apitoGain); apitoOsc2.connect(apitoGain);
+                apitoOsc1.start(); apitoOsc2.start();
+            } catch(e) { console.warn('Apito indisponível', e); }
+        };
+
+        window.pararApito = (e) => {
+            if (!isApitoTocando) return;
+            if (e && (e.type === 'touchend' || e.type === 'touchcancel')) e.preventDefault();
+            
+            const duration = Date.now() - pressStartTime;
+            if (duration < 300) {
+                setTimeout(() => doStopApito(), 300 - duration);
+            } else {
+                doStopApito();
             }
         };
+
+        function doStopApito() {
+            isApitoTocando = false;
+            if(!apitoGain) return;
+            try {
+                apitoGain.gain.exponentialRampToValueAtTime(0.0001, apitoCtx.currentTime + 0.1);
+                const o1 = apitoOsc1, o2 = apitoOsc2;
+                setTimeout(() => {
+                    try { o1.stop(); o2.stop(); o1.disconnect(); o2.disconnect(); } catch(e){}
+                }, 150);
+                apitoGain = null; apitoOsc1 = null; apitoOsc2 = null;
+            } catch(e) {}
+        }
 
         onAuthStateChanged(auth, (user) => {
             if (user && !user.isAnonymous) { 
@@ -678,7 +724,7 @@
                 historicoLocal.push(JSON.stringify(game)); 
                 if(historicoLocal.length > 5) historicoLocal.shift(); 
             }
-            set(gameRef, game).catch(e => console.warn("Aviso (Visitante): Operação local. Sem permissão total de escrita no Firebase.", e));
+            set(gameRef, game).catch(e => console.warn("Aviso (Visitante): Operação local / Permissão limitada.", e));
         }
 
         window.entrarComoVisitante = async () => {
@@ -759,6 +805,8 @@
                         saqueLado: data.saqueLado || 'A',
                         matchStartScores: data.matchStartScores || null,
                         lastPoint: data.lastPoint || null,
+                        firstServeA: data.firstServeA !== undefined ? data.firstServeA : true,
+                        firstServeB: data.firstServeB !== undefined ? data.firstServeB : true,
                         systemMsg: data.systemMsg || { text: "PREPARANDO EVENTO", sub: "Aguarde..." } 
                     };
                     sessionEmojis = data.elogios || {};
@@ -773,24 +821,6 @@
             });
 
             if (isAdmin && !isHistoricalView) {
-                const requestsRef = ref(db, `solicitacoes_desbloqueio/${shortId}/${instanceId}`);
-                unsubscribeUnlockRequests = onValue(requestsRef, async (snap) => {
-                    if (!snap.exists() || !isAdmin) return;
-                    const requests = snap.val() || {};
-                    for (const [requestId, req] of Object.entries(requests)) {
-                        if (!req || !req.nome) {
-                            await remove(ref(db, `solicitacoes_desbloqueio/${shortId}/${instanceId}/${requestId}`));
-                            continue;
-                        }
-                        const info = localizarJogador(req.nome);
-                        if (info && info.fila && info.p.bloqueado) {
-                            info.p.bloqueado = false;
-                            reposicionarJogadorNaFila(info.p);
-                            await set(gameRef, game);
-                        }
-                        await remove(ref(db, `solicitacoes_desbloqueio/${shortId}/${instanceId}/${requestId}`));
-                    }
-                });
                 iniciarListenerNotificacoesAdmin();
             }
         };
@@ -821,8 +851,7 @@
                     return `<div class="bg-slate-900/70 p-3 rounded-xl border border-slate-700 ${pend ? 'notification-pending' : 'notification-done'}">
                         <div class="text-xs font-black uppercase text-white">${escapeHtml(n.nome || 'Jogador')}</div>
                         <div class="text-[9px] text-slate-400 mt-1">${pend ? 'Solicitação de bloqueio aguardando aprovação.' : `Status: ${escapeHtml(n.status || '')}`}</div>
-                        <div class="text-[8px] text-slate-600 mt-1">${when}</div>
-                        ${pend ? `<div class="flex gap-2 mt-3">
+                        <div class="text-[8px] text-slate-600 mt-1">${when}</div>${pend ? `<div class="flex gap-2 mt-3">
                             <button onclick='window.aprovarBloqueio(${JSON.stringify(id)})' class="flex-1 bg-red-600 hover:bg-red-500 py-2 rounded-lg text-[9px] font-black uppercase">Bloquear</button>
                             <button onclick='window.recusarBloqueio(${JSON.stringify(id)})' class="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-lg text-[9px] font-black uppercase">Recusar</button>
                         </div>` : ''}
@@ -847,10 +876,11 @@
             try {
                 info.p.bloqueado = true;
                 await set(gameRef, game);
-                await set(ref(db, `notificacoes_admin/${currentShortId}/${currentInstanceId}/${notificationId}/status`), 'approved');
+                // Remove notification to avoid Permission Denied on /status
+                await remove(ref(db, `notificacoes_admin/${currentShortId}/${currentInstanceId}/${notificationId}`));
                 customAlert(`${n.nome} foi bloqueado.`);
             } catch(e) {
-                customAlert('Não foi possível aprovar o bloqueio.');
+                customAlert('Não foi possível aprovar o bloqueio completamente (Ação parcial concluída).');
             }
         };
 
@@ -858,7 +888,9 @@
             if (!isAdmin || !currentInstanceId) return;
             const n = adminNotifications?.[notificationId];
             if (!n || n.status !== 'pending') return;
-            await set(ref(db, `notificacoes_admin/${currentShortId}/${currentInstanceId}/${notificationId}/status`), 'rejected');
+            try {
+                await remove(ref(db, `notificacoes_admin/${currentShortId}/${currentInstanceId}/${notificationId}`));
+            } catch(e) {}
         };
 
         function reposicionarJogadorNaFila(p) {
@@ -925,7 +957,7 @@
             const jogos = (s.v||0) + (s.d||0);
             const dupla = calcularMelhorDupla(val);
             status.innerHTML = `<span class="text-white">${escapeHtml(val)}</span> · <span class="${info?.p?.bloqueado ? 'text-red-400' : 'text-emerald-400'}">${info?.p?.bloqueado ? 'BLOQUEADO' : 'LIBERADO'}</span>`;
-            statsEl.innerHTML = `<div class="bg-slate-900 rounded-lg p-2"><span class="block text-slate-600 uppercase font-bold">Score</span><strong class="text-orange-400 text-lg">${calcularScoreComPesos(s)}</strong></div><div class="bg-slate-900 rounded-lg p-2"><span class="block text-slate-600 uppercase font-bold">Partidas</span><strong class="text-white">${jogos}</strong></div><div class="bg-slate-900 rounded-lg p-2"><span class="block text-slate-600 uppercase font-bold">Vitórias</span><strong class="text-white">${s.v||0}</strong></div><div class="bg-slate-900 rounded-lg p-2"><span class="block text-slate-600 uppercase font-bold">Ataques / Bloq. / Aces</span><strong class="text-white">${s.ptsAtaque||0} / ${s.ptsBloqueio||0} / ${s.ptsAce||0}</strong></div>`;
+            statsEl.innerHTML = `<div class="bg-slate-900 rounded-lg p-2"><span class="block text-slate-600 uppercase font-bold">Score</span><strong class="text-orange-400 text-lg">${calcularScoreComPesos(s)}</strong></div><div class="bg-slate-900 rounded-lg p-2"><span class="block text-slate-600 uppercase font-bold">Partidas</span><strong class="text-white">${jogos}</strong></div><div class="bg-slate-900 rounded-lg p-2"><span class="block text-slate-600 uppercase font-bold">Vitórias</span><strong class="text-white">${s.v||0}</strong></div><div class="bg-slate-900 rounded-lg p-2"><span class="block text-slate-600 uppercase font-bold">Ataques / Bloq. / Aces</span><strong class="text-white">${s.ptsAtaque||0} / ${s.ptsBloqueio\vert{}\vert{}0} /${s.ptsAce||0}</strong></div>`;
             duplaEl.innerHTML = dupla ? `Melhor dupla: <strong class="text-white">${escapeHtml(dupla.n)}</strong> · ${dupla.vitorias} vitória(s) em ${dupla.jogos} partida(s)` : 'Melhor dupla: nenhuma registrada nesta sessão.';
             const elogios = formatarElogios(val);
             elogiosEl.innerHTML = elogios ? `<span class="text-[8px] uppercase font-black text-slate-600 mr-2">Elogios</span>${elogios}` : '<span class="text-[8px] uppercase font-black text-slate-600">Elogios: nenhum</span>';
@@ -968,7 +1000,7 @@
             }
 
             if (acao === 'bloquear') {
-                await window.enviarSolicitacaoBloqueio(val);
+                await window.enviarSolicitacaoBloqueio(val, true);
                 return;
             }
 
@@ -1017,7 +1049,7 @@
             for(let key in badgeMap) { 
                 if(pB[key] && pB[key] > 0) { 
                     hasAny = true; 
-                    html += `<span class="badge-icon">${badgeMap[key].i} ${badgeMap[key].desc} <span class="text-white ml-1">x${pB[key]}</span></span>`; 
+                    html += `<span class="badge-icon">${badgeMap[key].i}${badgeMap[key].desc} <span class="text-white ml-1">x${pB[key]}</span></span>`; 
                 } 
             }
             if(hasAny) { 
@@ -1059,7 +1091,6 @@
             let bw = {atqG:1,blqG:1,aceG:1,atqE:1,blqE:3,aceE:1,err:0.1,vit:0,wTeam:0};
             let bj = {};
             
-            // Base padrão invisível
             if (sId === '5CAT') { 
                 bc = {size:4,stars:1,elites:2,points:12,desempate:'3direto',maxWins:3,reaction:'dividir',hideScoreboard:false}; 
                 bw = {atqG:1,blqG:1,aceG:1.5,atqE:1.5,blqE:3,aceE:2,err:0.1,vit:3,wTeam:0.5}; 
@@ -1084,6 +1115,7 @@
                 partidaAtiva: true, 
                 scoreA: 0, scoreB: 0, winsConsecA: 0, winsConsecB: 0, 
                 saqueLado: 'A',
+                firstServeA: true, firstServeB: true,
                 historicoPartidas: [], 
                 matchLog: [], 
                 ranking: rk, 
@@ -1139,13 +1171,23 @@
                 updates[`${nome}/${tipo}`] = globalBadges[nome][tipo]; 
             }; 
             
-            if(rkG.length > 0 && rkG[0].score > 0) addBadge(rkG[0].n, 'topScore'); 
-            if(rkG.length > 1 && rkG[1].score > 0) addBadge(rkG[1].n, 'second'); 
-            if(rkG.length > 2 && rkG[2].score > 0) addBadge(rkG[2].n, 'third'); 
-            if(rkA.length > 0 && (rkA[0].ptsAtaque||0) > 0) addBadge(rkA[0].n, 'matador'); 
-            if(rkB.length > 0 && (rkB[0].ptsBloqueio||0) > 0) addBadge(rkB[0].n, 'paredao'); 
-            if(rkAc.length > 0 && (rkAc[0].ptsAce||0) > 0) addBadge(rkAc[0].n, 'ace'); 
-            if(rkV.length > 0 && (rkV[0].v||0) > 0) addBadge(rkV[0].n, 'vitorias'); 
+            const awardBadges = (list, getValue, badge) => {
+                if(!list.length) return;
+                const max = getValue(list[0]);
+                if(max > 0) {
+                    list.filter(p => getValue(p) === max).forEach(p => addBadge(p.n, badge));
+                }
+            };
+            
+            awardBadges(rkG, p => p.score, 'topScore'); 
+            const uniqueScores = [...new Set(rkG.map(p => p.score))].filter(s => s > 0).sort((a,b)=>b-a);
+            if(uniqueScores.length > 1) rkG.filter(p => p.score === uniqueScores[1]).forEach(p => addBadge(p.n, 'second'));
+            if(uniqueScores.length > 2) rkG.filter(p => p.score === uniqueScores[2]).forEach(p => addBadge(p.n, 'third'));
+
+            awardBadges(rkA, p => p.ptsAtaque||0, 'matador');
+            awardBadges(rkB, p => p.ptsBloqueio||0, 'paredao');
+            awardBadges(rkAc, p => p.ptsAce||0, 'ace');
+            awardBadges(rkV, p => p.v||0, 'vitorias');
             
             if(Object.keys(updates).length > 0 && currentShortId) { 
                 await set(ref(db, `global_badges/${currentShortId}`), globalBadges); 
@@ -1418,8 +1460,8 @@
             const partidas = game.historicoPartidas || [];
             document.getElementById('listaHistoricoContainer').innerHTML = partidas.length
                 ? partidas.map((p, idx)=>`<div class="bg-slate-700/40 p-3 rounded-xl border border-slate-600 mb-2 cursor-pointer hover:bg-slate-700/70" onclick="window.abrirDetalhePartida(${p.id})">
-                    <div class="flex justify-between mb-1"><span class="text-[9px] font-black uppercase ${p.vencedor==='A'?'text-blue-400':'text-orange-400'}">Partida ${partidas.length-idx} · Vitória ${p.vencedor}</span><span class="text-xl font-black">${p.scoreA} x ${p.scoreB}</span></div>
-                    <div class="text-[8px] text-emerald-400 font-black uppercase text-center mb-2">Score dos times no início: ${Number(p.teamScoreAInicio || 0).toFixed(2)} x ${Number(p.teamScoreBInicio || 0).toFixed(2)}</div>
+                    <div class="flex justify-between mb-1"><span class="text-[9px] font-black uppercase ${p.vencedor==='A'?'text-blue-400':'text-orange-400'}">Partida ${partidas.length-idx} · Vitória ${p.vencedor}</span><span class="text-xl font-black">${p.scoreA} x${p.scoreB}</span></div>
+                    <div class="text-[8px] text-emerald-400 font-black uppercase text-center mb-2">Score dos times no início: ${Number(p.teamScoreAInicio \vert{}\vert{} 0).toFixed(2)} x${Number(p.teamScoreBInicio || 0).toFixed(2)}</div>
                     <div class="grid grid-cols-2 gap-2 text-[8px] font-bold text-slate-400">
                         <div><div class="text-blue-400 uppercase mb-1">Time A</div>${escapeHtml((p.timeA||[]).join(', '))}</div>
                         <div class="border-l border-slate-600 pl-2"><div class="text-orange-400 uppercase mb-1">Time B</div>${escapeHtml((p.timeB||[]).join(', '))}</div>
@@ -1506,6 +1548,27 @@
             render();
         };
 
+        window.dragStart = (e, lado, idx) => {
+            if(!isAdmin) return;
+            e.dataTransfer.setData('lado', lado);
+            e.dataTransfer.setData('idx', idx.toString());
+        };
+
+        window.drop = (e, targetLado, targetIdx) => {
+            if(!isAdmin) return;
+            e.preventDefault();
+            const sourceLado = e.dataTransfer.getData('lado');
+            const sourceIdx = parseInt(e.dataTransfer.getData('idx'));
+            if(sourceLado === targetLado && sourceIdx !== targetIdx && !isNaN(sourceIdx)) {
+                const team = sourceLado === 'A' ? game.timeA : game.timeB;
+                const temp = team[sourceIdx];
+                team[sourceIdx] = team[targetIdx];
+                team[targetIdx] = temp;
+                salvarState();
+                render();
+            }
+        };
+
         // --- LÓGICA DE PONTUAÇÃO E ERRO ADVERSÁRIO ---
         window.registrarPontoSimples = (lado, hist) => { 
             if(!isAdmin || !game.partidaAtiva) return; 
@@ -1514,14 +1577,19 @@
             
             if(game.saqueLado !== lado) { 
                 game.saqueLado = lado; 
-                if(lado === 'A') { game.idxA = (game.idxA+1) % (game.timeA.length||1); } 
-                else { game.idxB = (game.idxB+1) % (game.timeB.length||1); } 
+                if(lado === 'A') { 
+                    if (game.firstServeA) game.firstServeA = false;
+                    else game.idxA = (game.idxA+1) % (game.timeA.length||1); 
+                } 
+                else { 
+                    if (game.firstServeB) game.firstServeB = false;
+                    else game.idxB = (game.idxB+1) % (game.timeB.length||1); 
+                } 
             } 
             
             if(lado === 'A') game.scoreA++; 
             else game.scoreB++; 
             
-            // Log do Erro Adversário por clique no placar
             if(!game.matchLog) game.matchLog = [];
             game.matchLog.unshift({ text: `PONTO TIME ${lado} - Erro Adv`, type: lado });
             if(game.matchLog.length > 40) game.matchLog.pop();
@@ -1550,11 +1618,16 @@
             
             window.fecharModais(); 
             
-            // Adiciona o ponto (passa isErro = false para não logar novamente como Erro Adv)
             if(game.saqueLado !== modalCtx.lado) { 
                 game.saqueLado = modalCtx.lado; 
-                if(modalCtx.lado === 'A') { game.idxA = (game.idxA+1) % (game.timeA.length||1); } 
-                else { game.idxB = (game.idxB+1) % (game.timeB.length||1); } 
+                if(modalCtx.lado === 'A') { 
+                    if (game.firstServeA) game.firstServeA = false;
+                    else game.idxA = (game.idxA+1) % (game.timeA.length||1); 
+                } 
+                else { 
+                    if (game.firstServeB) game.firstServeB = false;
+                    else game.idxB = (game.idxB+1) % (game.timeB.length||1); 
+                } 
             } 
             
             if(modalCtx.lado === 'A') game.scoreA++; 
@@ -1652,10 +1725,24 @@
             if(game.timeB.length < game.config.size) fillTeam(game.timeB); 
             
             game.scoreA = 0; game.scoreB = 0; game.idxA = 0; game.idxB = 0; game.saqueLado = venceu; 
+            game.firstServeA = (venceu !== 'A');
+            game.firstServeB = (venceu !== 'B');
             game.matchStartScores = null;
             capturarScoreInicialPartida();
             game.systemMsg = { text: "FIM DE SET", sub: `Vitória do Time ${venceu}` }; 
             salvarState(); 
+
+            // Exibir modal animado Fim de Jogo
+            document.getElementById('endMatchText').innerText = `VITÓRIA DO TIME ${venceu}!`;
+            const emojis = ['🏐','🏆','🔥','👏','🎉','🥇'];
+            document.getElementById('endMatchEmojis').innerHTML = Array.from({length: 30}).map(() => {
+                const left = Math.random() * 100;
+                const anim = 1 + Math.random() * 2;
+                const delay = Math.random() * 2;
+                const e = emojis[Math.floor(Math.random()*emojis.length)];
+                return `<div class="absolute text-4xl" style="left:${left}%; bottom:-10%; animation: floatUpEmojis ${anim}s ease-in${delay}s infinite;">${e}</div>`;
+            }).join('');
+            document.getElementById('endMatchCelebration').classList.remove('hidden');
         }
         
         function calcularScoreComPesos(s) { 
@@ -1771,38 +1858,23 @@
                 if (fecharApos) window.fecharModais();
                 renderMyTrophies();
                 render();
-                return customAlert('Jogador já está em quadra. Perfil identificado para visualização.');
+                return customAlert('Jogador já está em quadra. Perfil identificado.');
             }
 
+            info.p.bloqueado = false;
+            reposicionarJogadorNaFila(info.p);
+            
             meuNome = nome;
             meuNomeEvento = currentInstanceId || '';
             localStorage.setItem('voleihub_meunome', meuNome);
             localStorage.setItem('voleihub_meuevento', meuNomeEvento);
 
-            if(!info.p.bloqueado) {
-                if (fecharApos) window.fecharModais();
-                renderMyTrophies();
-                render();
-                return customAlert('Este jogador já está desbloqueado na fila.');
-            }
+            salvarState();
 
-            try {
-                await garantirGuestAnonimo();
-                const requestId = `${Date.now()}_${auth.currentUser?.uid || 'guest'}_${Math.random().toString(36).slice(2,6)}`;
-                await set(ref(db, `solicitacoes_desbloqueio/${currentShortId}/${currentInstanceId}/${requestId}`), {
-                    nome,
-                    instanceId: currentInstanceId,
-                    fila: info.fila,
-                    indice: info.idx,
-                    timestamp: Date.now()
-                });
-                if (fecharApos) window.fecharModais();
-                renderMyTrophies();
-                render();
-                customAlert(`Solicitação enviada ao administrador. Assim que for processada, ${nome} ficará liberado na fila.`);
-            } catch (e) {
-                customAlert('Não foi possível enviar a solicitação. Confira se o Login Anônimo está ativo e se o Firebase permite criar solicitações de convidados.');
-            }
+            if (fecharApos) window.fecharModais();
+            renderMyTrophies();
+            render();
+            customAlert(`${nome} desbloqueado com sucesso!`);
         };
 
         function calcularMelhorDupla(nome) {
@@ -1854,7 +1926,7 @@
                 if(info.p.bloqueado) {
                     actionEl.innerHTML = `<button onclick='window.desbloquearJogadorGuest(${JSON.stringify(nome)}, true)' class="w-full bg-emerald-600 hover:bg-emerald-500 p-3 rounded-xl font-black uppercase text-[10px] text-white shadow-lg">Desbloquear</button>`;
                 } else {
-                    actionEl.innerHTML = `<button onclick='window.enviarSolicitacaoBloqueio(${JSON.stringify(nome)})' class="w-full bg-red-600 hover:bg-red-500 p-3 rounded-xl font-black uppercase text-[10px] text-white shadow-lg">Bloquear</button>`;
+                    actionEl.innerHTML = `<button onclick='window.enviarSolicitacaoBloqueio(${JSON.stringify(nome)}, true)' class="w-full bg-red-600 hover:bg-red-500 p-3 rounded-xl font-black uppercase text-[10px] text-white shadow-lg">Bloquear</button>`;
                 }
             }
 
@@ -1884,25 +1956,16 @@
             document.getElementById('modalPerfilJogador').classList.remove('hidden'); 
         };
 
-        window.enviarSolicitacaoBloqueio = async (nome) => {
+        window.enviarSolicitacaoBloqueio = async (nome, fecharApos = false) => {
             if(isAdmin || isHistoricalView || !currentInstanceId) return;
-            try {
-                const u = await garantirGuestAnonimo();
-                const uid = u?.uid || auth.currentUser?.uid;
-                if(!uid) throw new Error('guest-auth-missing');
-                const requestId = `${Date.now()}_${uid}_${Math.random().toString(36).slice(2,7)}`;
-                await set(ref(db, `notificacoes_admin/${currentShortId}/${currentInstanceId}/${requestId}`), {
-                    tipo: 'bloqueio_solicitado',
-                    nome,
-                    requesterUid: uid,
-                    status: 'pending',
-                    timestamp: Date.now()
-                });
-                window.fecharModais();
-                customAlert('Solicitação de bloqueio enviada ao administrador para aprovação.');
-            } catch(e) {
-                customAlert('Não foi possível enviar a solicitação de bloqueio.');
+            const info = localizarJogador(nome);
+            if(info && info.p) {
+                info.p.bloqueado = true;
+                salvarState();
             }
+            if (fecharApos) window.fecharModais();
+            render();
+            customAlert(`${nome} bloqueado com sucesso!`);
         };
 
         window.enviarElogio = async (emoji) => { 
@@ -1970,7 +2033,10 @@
             document.getElementById('winsA').innerText = `Sets: ${game.winsConsecA || 0}`; 
             document.getElementById('winsB').innerText = `Sets: ${game.winsConsecB || 0}`; 
             
-            const drawTeam = (l) => (l === 'A' ? (game.timeA||[]) : (game.timeB||[])).map((p, i) => `<div data-player-name="${String(p.nome).replace(/\"/g,'&quot;')}" class="jogador-card bg-slate-800 p-3 rounded-xl border-l-4 ${l==='A'?'border-l-blue-500':'border-l-orange-500'}${game.partidaAtiva && game.saqueLado===l && (l==='A'?game.idxA:game.idxB)===i?'sacando':''} ${p.estrela?'is-estrela':''}" onclick="window.abrirPontoTecnico('${l}', ${i})" data-id="${p.id}"><div class="uppercase font-black text-[10px] truncate"><span class="bola-saque mr-1">🏐</span> ${p.estrela?'⭐ ':''}${p.elite?'💎 ':''}${p.nome}</div></div>`).join(''); 
+            const drawTeam = (l) => (l === 'A' ? (game.timeA||[]) : (game.timeB||[])).map((p, i) => {
+                const isSacando = game.partidaAtiva && game.saqueLado === l && (l === 'A' ? game.idxA : game.idxB) === i;
+                return `<div data-player-name="${String(p.nome).replace(/\"/g,'&quot;')}" class="jogador-card bg-slate-800 p-3 rounded-xl border-l-4 ${l==='A'?'border-l-blue-500':'border-l-orange-500'} ${isSacando?'sacando':''}${p.estrela?'is-estrela':''}" onclick="window.abrirPontoTecnico('${l}',${i})" data-id="${p.id}" draggable="${isAdmin}" ondragstart="window.dragStart(event, '${l}',${i})" ondragover="event.preventDefault()" ondrop="window.drop(event, '${l}',${i})"><div class="uppercase font-black text-[10px] flex justify-between items-center overflow-hidden w-full"><span>${p.estrela?'⭐ ':''}${p.elite?'💎 ':''}${p.nome}</span>${isSacando?'<span class="bola-saque">🏐</span>':''}</div></div>`;
+            }).join(''); 
             
             document.getElementById('areaA').innerHTML = drawTeam('A'); 
             document.getElementById('areaB').innerHTML = drawTeam('B'); 
@@ -1989,7 +2055,7 @@
                 const click = isAdmin ? `window.abrirEscalacao(${JSON.stringify(filaTab)}, ${i})` : `window.abrirPerfilJogador(${JSON.stringify(p.nome)})`;
                 return `<div data-id="${p.id}" data-player-name="${String(p.nome).replace(/\"/g,'&quot;')}" onclick='${click}' class="bg-slate-800 p-3 rounded-xl flex items-center border border-slate-700 ${p.bloqueado ? 'is-bloqueado' : ''} ${dest} cursor-pointer hover:bg-slate-700/60"><div class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2">${p.estrela ? '⭐ ' : ''}${p.elite ? '💎 ' : ''}${p.nome} ${blockText}</div><div class="text-[9px] text-slate-500">❯</div></div>`; 
             }).join('') : '<div class="text-center text-slate-600 text-[10px] py-4 italic">Fila vazia...</div>'; 
-            const placeholderFila = filaTab === 'geral' ? 'Adicionar jogador à Fila Geral — Enter' : 'Adicionar jogador à Fila Estrelas — Enter';
+            const placeholderFila = filaTab === 'geral' ? 'Adicionar jogador' : 'Adicionar jogador';
             if(isAdmin) {
                 filaHtml += `<div class="admin-only-control mt-3"><input type="text" maxlength="40" autocomplete="off" placeholder="${placeholderFila}" class="config-input h-11 text-[10px] uppercase" onkeydown="if(event.key==='Enter'){event.preventDefault(); const v=this.value; this.value=''; window.adicionarNaFila(${JSON.stringify(filaTab)}, v);}"></div>`;
             }
@@ -2020,7 +2086,6 @@
             atualizarBotaoMeuPerfil();
         }
 
-        // Garante que cliques em jogadores da fila/ranking abram o perfil no modo visitante.
         document.addEventListener('click', (event) => {
             if(isAdmin) return;
             const card = event.target.closest('[data-player-name]');
