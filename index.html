@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V5.2.8</title>
+    <title>Vôlei Hub PRO - V5.3.0</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -542,6 +542,7 @@
         let game = { baseJogadores: {}, config: {}, weights: {}, esperaGeral: [], esperaEstrela: [] };
         let isHistoricalView = false, globalBadges = {}, sessionEmojis = {}, sessoesFiltradasInfo = [], historicoLocal = [], tempConfig = {};
         let adminNotifications = {}, unsubscribeAdminNotifications = null, lastCelebrationId = null;
+        let unlockRequests = {};
         window.sessoesCache = {}; 
         
         const badgeMap = { topScore: {i:'🏆', desc:'Top Score'}, matador: {i:'🔥', desc:'Matador'}, paredao: {i:'🚫', desc:'Paredão'}, ace: {i:'⚡', desc:'Ace'}, vitorias: {i:'🥇', desc:'Vitórias'}, second: {i:'🥈', desc:'2º Lugar'}, third: {i:'🥉', desc:'3º Lugar'} };
@@ -737,36 +738,57 @@
             if (isAdmin && !isHistoricalView) { iniciarListenerNotificacoesAdmin(); }
         };
 
-        function iniciarListenerNotificacoesAdmin() {
+                function iniciarListenerNotificacoesAdmin() {
             if (!isAdmin || !currentShortId || !currentInstanceId || isHistoricalView) return;
+            
+            // Listener de Bloqueios
             if (unsubscribeAdminNotifications) unsubscribeAdminNotifications();
             const nRef = ref(db, "notificacoes_admin/" + currentShortId + "/" + currentInstanceId);
             unsubscribeAdminNotifications = onValue(nRef, (snap) => {
                 adminNotifications = snap.exists() ? (snap.val() || {}) : {};
                 renderAdminNotifications();
             });
+        
+            // Listener de Desbloqueios
+            if (unsubscribeUnlockRequests) unsubscribeUnlockRequests();
+            const reqRef = ref(db, "solicitacoes_desbloqueio/" + currentShortId + "/" + currentInstanceId);
+            unsubscribeUnlockRequests = onValue(reqRef, (snap) => {
+                unlockRequests = snap.exists() ? (snap.val() || {}) : {};
+                renderAdminNotifications();
+            });
         }
 
-        function renderAdminNotifications() {
-            const list = Object.entries(adminNotifications || {}).sort((a,b) => (b[1]?.timestamp||0) - (a[1]?.timestamp||0));
-            const pending = list.filter(([_,n]) => n?.status === 'pending');
+                function renderAdminNotifications() {
+            // Mescla as duas listas de solicitações
+            const listBloqueios = Object.entries(adminNotifications || {}).map(([id, n]) => ({ id, ...n, tipoReq: 'bloqueio' }));
+            const listDesbloqueios = Object.entries(unlockRequests || {}).map(([id, n]) => ({ id, ...n, tipoReq: 'desbloqueio' }));
+            
+            const listAll = [...listBloqueios, ...listDesbloqueios].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            const pending = listAll.filter(n => n.status === 'pending' || n.tipoReq === 'desbloqueio'); 
+            
             document.getElementById('adminNotifCount').innerText = pending.length;
             const c = document.getElementById('adminNotificationsList');
-            if (!list.length) { c.innerHTML = '<div class="text-center text-slate-500 text-xs italic py-6">Nenhuma notificação.</div>'; return; }
+            if (!listAll.length) { c.innerHTML = '<div class="text-center text-slate-500 text-xs italic py-6">Nenhuma notificação.</div>'; return; }
+            
             let htmlParts = [];
-            for (let [id, n] of list) {
-                const pend = n?.status === 'pending';
-                const when = n?.timestamp ? new Date(n.timestamp).toLocaleString('pt-BR') : '';
-                const safeId = escapeHtml(id);
-                if (n?.tipo === 'bloqueio_solicitado') {
+            for (let n of listAll) {
+                const pend = n.status === 'pending' || n.tipoReq === 'desbloqueio';
+                const when = n.timestamp ? new Date(n.timestamp).toLocaleString('pt-BR') : '';
+                const safeId = escapeHtml(n.id);
+                const safeNome = escapeHtml(n.nome || 'Jogador');
+                
+                if (n.tipoReq === 'bloqueio') {
                     const statusText = pend ? 'Solicitação de bloqueio aguardando aprovação.' : "Status: " + escapeHtml(n.status || '');
                     let btnHtml = "";
                     if (pend) {
                         btnHtml = '<div class="flex gap-2 mt-3"><button data-notif-id="' + safeId + '" onclick="window.aprovarBloqueio(this.getAttribute(\'data-notif-id\'))" class="flex-1 bg-red-600 hover:bg-red-500 py-2 rounded-lg text-[9px] font-black uppercase">Bloquear</button><button data-notif-id="' + safeId + '" onclick="window.recusarBloqueio(this.getAttribute(\'data-notif-id\'))" class="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-lg text-[9px] font-black uppercase">Recusar</button></div>';
                     }
-                    htmlParts.push('<div class="bg-slate-900/70 p-3 rounded-xl border border-slate-700 ' + (pend ? 'notification-pending' : 'notification-done') + '"><div class="text-xs font-black uppercase text-white">' + escapeHtml(n.nome || 'Jogador') + '</div><div class="text-[9px] text-slate-400 mt-1">' + statusText + '</div><div class="text-[8px] text-slate-600 mt-1">' + when + '</div>' + btnHtml + '</div>');
+                    htmlParts.push('<div class="bg-slate-900/70 p-3 rounded-xl border border-slate-700 ' + (pend ? 'notification-pending' : 'notification-done') + '"><div class="text-xs font-black uppercase text-white">🔒 ' + safeNome + '</div><div class="text-[9px] text-slate-400 mt-1">' + statusText + '</div><div class="text-[8px] text-slate-600 mt-1">' + when + '</div>' + btnHtml + '</div>');
                 } else {
-                    htmlParts.push('<div class="bg-slate-900/70 p-3 rounded-xl border border-slate-700 notification-done"><div class="text-xs font-black uppercase text-white">' + escapeHtml(n.nome || 'Notificação') + '</div><div class="text-[9px] text-slate-400 mt-1">' + escapeHtml(n.status || '') + '</div></div>');
+                    const statusText = 'Solicitação de identificação (Desbloqueio).';
+                    let btnHtml = '<div class="flex gap-2 mt-3"><button data-notif-id="' + safeId + '" onclick="window.aprovarDesbloqueio(this.getAttribute(\'data-notif-id\'))" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg text-[9px] font-black uppercase">Desbloquear</button><button data-notif-id="' + safeId + '" onclick="window.recusarDesbloqueio(this.getAttribute(\'data-notif-id\'))" class="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-lg text-[9px] font-black uppercase">Recusar</button></div>';
+                    
+                    htmlParts.push('<div class="bg-slate-900/70 p-3 rounded-xl border border-emerald-500/50 notification-pending"><div class="text-xs font-black uppercase text-white">✅ ' + safeNome + '</div><div class="text-[9px] text-slate-400 mt-1">' + statusText + '</div><div class="text-[8px] text-slate-600 mt-1">' + when + '</div>' + btnHtml + '</div>');
                 }
             }
             c.innerHTML = htmlParts.join('');
@@ -789,7 +811,38 @@
         };
 
         window.recusarBloqueio = async (notificationId) => { if (!isAdmin || !currentInstanceId) return; const n = adminNotifications?.[notificationId]; if (!n || n.status !== 'pending') return; try { await remove(ref(db, "notificacoes_admin/" + currentShortId + "/" + currentInstanceId + "/" + notificationId)); } catch(e) {} };
-
+        window.aprovarDesbloqueio = async (solicitacaoId) => {
+            if (!isAdmin || !currentInstanceId) return;
+            const req = unlockRequests?.[solicitacaoId];
+            if (!req) return;
+            
+            const info = localizarJogador(req.nome);
+            if (!info || !info.p) return customAlert('Jogador não encontrado nesta sessão.');
+            
+            try {
+                // Altera o estado do jogador na partida (na memória)
+                info.p.bloqueado = false;
+                reposicionarJogadorNaFila(info.p);
+                
+                // 1. Salva o novo estado da partida na raiz (o admin tem permissão para isso)
+                await set(gameRef, game); 
+                
+                // 2. Apaga a solicitação da fila (para sumir da tela de notificações)
+                await remove(ref(db, "solicitacoes_desbloqueio/" + currentShortId + "/" + currentInstanceId + "/" + solicitacaoId));
+                
+                customAlert(req.nome + " foi desbloqueado e agora pode enviar elogios e jogar!");
+            } catch(e) {
+                console.error(e);
+                customAlert('Erro ao aprovar o desbloqueio. Verifique as permissões.');
+            }
+        };
+        
+        window.recusarDesbloqueio = async (solicitacaoId) => {
+            if (!isAdmin || !currentInstanceId) return;
+            try {
+                await remove(ref(db, "solicitacoes_desbloqueio/" + currentShortId + "/" + currentInstanceId + "/" + solicitacaoId));
+            } catch(e) {}
+        };
         function reposicionarJogadorNaFila(p) {
             const fila = p.estrela ? game.esperaEstrela : game.esperaGeral;
             const idx = fila.findIndex(x => x.nome === p.nome);
@@ -1593,8 +1646,8 @@
             set(gameRef, game);
         };
 
-        window.desbloquearJogadorGuest = async (nome, fecharApos = false) => {
-            if(isAdmin || isHistoricalView) return;
+                window.desbloquearJogadorGuest = async (nome, fecharApos = false) => {
+            if(isAdmin || isHistoricalView || !currentInstanceId) return;
             const info = localizarJogador(nome);
             if(!info || !info.p) return customAlert('Jogador não encontrado.');
             if(!info.fila) {
@@ -1604,15 +1657,33 @@
                 renderMyTrophies(); render();
                 return customAlert('Jogador já está em quadra. Perfil identificado.');
             }
-            info.p.bloqueado = false;
-            reposicionarJogadorNaFila(info.p);
-            meuNome = nome; meuNomeEvento = currentInstanceId || '';
-            localStorage.setItem('voleihub_meunome', meuNome);
-            localStorage.setItem('voleihub_meuevento', meuNomeEvento);
-            salvarState();
-            if (fecharApos) window.fecharModais();
-            renderMyTrophies(); render();
-            customAlert(nome + " desbloqueado com sucesso!");
+        
+            try {
+                await garantirGuestAnonimo();
+                const solicitacaoId = Date.now().toString();
+                const reqRef = ref(db, "solicitacoes_desbloqueio/" + currentShortId + "/" + currentInstanceId + "/" + solicitacaoId);
+        
+                // Grava no nó permitido pelas regras
+                await set(reqRef, {
+                    nome: nome,
+                    instanceId: currentInstanceId,
+                    fila: info.fila,
+                    indice: info.idx,
+                    timestamp: Date.now()
+                });
+        
+                // Salva a identificação localmente
+                meuNome = nome; meuNomeEvento = currentInstanceId || '';
+                localStorage.setItem('voleihub_meunome', meuNome);
+                localStorage.setItem('voleihub_meuevento', meuNomeEvento);
+        
+                if (fecharApos) window.fecharModais();
+                renderMyTrophies(); render();
+                customAlert("Solicitação de desbloqueio enviada! Aguarde a aprovação do admin.");
+            } catch (e) {
+                console.error(e);
+                customAlert("Erro ao solicitar desbloqueio.");
+            }
         };
 
         function calcularMelhorDupla(nome) {
@@ -1693,16 +1764,29 @@
             document.getElementById('modalPerfilJogador').classList.remove('hidden');
         };
 
-        window.enviarSolicitacaoBloqueio = async (nome, fecharApos = false) => {
+            window.enviarSolicitacaoBloqueio = async (nome, fecharApos = false) => {
             if(isAdmin || isHistoricalView || !currentInstanceId) return;
-            const info = localizarJogador(nome);
-            if(info && info.p) {
-                info.p.bloqueado = true;
-                salvarState();
+            
+            try {
+                const user = await garantirGuestAnonimo();
+                const notificacaoId = Date.now().toString(); 
+                const notifRef = ref(db, "notificacoes_admin/" + currentShortId + "/" + currentInstanceId + "/" + notificacaoId);
+        
+                // Grava no nó permitido pelas regras
+                await set(notifRef, {
+                    tipo: 'bloqueio_solicitado',
+                    nome: nome,
+                    requesterUid: user.uid,
+                    status: 'pending',
+                    timestamp: Date.now()
+                });
+        
+                if (fecharApos) window.fecharModais();
+                customAlert("Solicitação de bloqueio enviada para aprovação do administrador!");
+            } catch (e) {
+                console.error(e);
+                customAlert("Erro ao solicitar bloqueio.");
             }
-            if (fecharApos) window.fecharModais();
-            render();
-            customAlert(nome + " bloqueado com sucesso!");
         };
 
         window.enviarElogio = async (emoji) => {
