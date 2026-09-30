@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V3.6.0</title>
+    <title>Vôlei Hub PRO - V3.6.2</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .jogador-card { touch-action: none; border: 2px solid transparent; transition: all 0.2s; cursor: pointer; position: relative; z-index: 10; user-select: none; }
-        .sacando { border-color: #f59e0b !important; background-color: #2d3748 !important; box-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
-        /* Jogador estrela não recebe moldura diferente em quadra; a estrela fica no nome. */
+        .sacando { border: 2px solid #ffffff !important; border-color: #ffffff !important; background-color: #2d3748 !important; box-shadow: 0 0 14px rgba(255, 255, 255, 0.28); }
+        /* Somente o sacador recebe moldura diferenciada em quadra. */
         .is-bloqueado { opacity: 0.5; filter: grayscale(1); background: #0f172a !important; border: 1px dashed #334155 !important; }
         .is-proximo { border-left: 4px solid #10b981 !important; background: linear-gradient(90deg, rgba(16, 185, 129, 0.1) 0%, rgba(30, 41, 59, 1) 100%) !important; }
         .tab-active { background-color: #f59e0b !important; color: white !important; }
@@ -19,7 +19,6 @@
         .config-input { background: #0f172a; border: 1px solid #334155; padding: 10px; border-radius: 12px; width: 100%; color: white; font-weight: bold; font-size: 12px; outline: none; }
         
         #info-panel { margin-bottom: 1rem; }
-        #live-message-box { min-height: 60px; background: #0f172a; border: 1px solid #334155; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 10px; margin-bottom: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         #match-log-box { max-height: 120px; overflow-y: auto; background: rgba(15, 23, 42, 0.5); border-radius: 8px; padding: 5px; font-size: 10px; border: 1px solid #1e293b; }
         .log-item { padding: 4px 8px; border-radius: 4px; margin-bottom: 2px; font-weight: bold; text-transform: uppercase; display: flex; justify-content: space-between; }
         .log-A { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-left: 2px solid #3b82f6; }
@@ -69,7 +68,7 @@
 
     <!-- Barra de Troféus (Header Pessoal - Apenas Visitantes) -->
     <div id="trophiesBar" class="bg-gradient-to-r from-orange-600 to-amber-500 p-2 hidden shadow-lg z-50 sticky top-0 flex items-center justify-between px-4 text-xs font-black uppercase">
-        <span class="text-white drop-shadow-md">Meus Troféus:</span>
+        <span class="text-white drop-shadow-md">Meus troféus</span>
         <div id="myTrophiesContainer" class="flex gap-1 overflow-x-auto"></div>
     </div>
 
@@ -111,10 +110,6 @@
         </div>
 
         <div id="info-panel">
-            <div id="live-message-box">
-                <h2 id="msg-title" class="text-lg font-black uppercase italic text-white leading-none mb-1">---</h2>
-                <p id="msg-sub" class="text-orange-400 font-bold uppercase text-[10px] tracking-widest">---</p>
-            </div>
             <div id="match-log-box"><div class="text-center text-slate-500 italic py-2">Histórico vazio...</div></div>
         </div>
 
@@ -169,7 +164,8 @@
         <div class="bg-slate-800 w-full max-w-sm rounded-3xl p-6 border border-slate-600 shadow-2xl relative">
             <button onclick="window.fecharModais()" class="absolute top-4 right-4 text-slate-400 text-2xl">&times;</button>
             <h2 id="perfilNome" class="text-2xl font-black text-white uppercase italic mb-2 text-center">---</h2>
-            <div id="perfilBadges" class="flex flex-wrap justify-center gap-1 mb-4"></div>
+            <div id="perfilBadges" class="flex flex-wrap justify-center gap-1 mb-3"></div>
+            <div id="perfilElogios" class="flex flex-wrap justify-center gap-1 mb-4"></div>
             <div id="perfilStatus" class="text-center text-[9px] font-black uppercase text-slate-400 mb-2"></div>
             <div id="perfilGuestAction" class="hidden mb-4"></div>
             
@@ -300,7 +296,7 @@
             <p class="text-[10px] text-slate-400 mb-2 uppercase font-bold">Selecione seu nome na lista da quadra:</p>
             <select id="selMeuNome" class="config-input mb-4 h-10"></select>
             <div class="flex gap-2 mb-6">
-                <button onclick="window.salvarIdentificacao(false)" class="flex-1 bg-slate-600 hover:bg-slate-500 p-3 rounded-xl font-bold uppercase text-[9px] shadow-lg transition">Apenas Visualizar</button>
+                <button onclick="window.salvarIdentificacao(false)" class="flex-1 bg-slate-600 hover:bg-slate-500 p-3 rounded-xl font-bold uppercase text-[9px] shadow-lg transition">Visualizar</button>
                 <button onclick="window.salvarIdentificacao(true)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 p-3 rounded-xl font-bold uppercase text-[9px] shadow-lg transition text-white">Desbloquear p/ Jogar</button>
             </div>
             <div class="border-t border-slate-700 pt-4">
@@ -485,6 +481,43 @@
         function guestIdentificadoNesteEvento() {
             return !isAdmin && !!meuNome && meuNomeEvento === currentInstanceId;
         }
+
+        async function garantirGuestAnonimo() {
+            if (isAdmin) return null;
+            const u = auth.currentUser;
+            if (u && u.isAnonymous) return u;
+            return await signInAnonymously(auth);
+        }
+
+        function atualizarBotaoMeuPerfil() {
+            const btn = document.getElementById('btnMeuPerfil');
+            if (!btn) return;
+            if (guestIdentificadoNesteEvento()) {
+                btn.innerText = `👤 ${meuNome}`;
+            } else {
+                btn.innerText = '👤 Identificar-se';
+            }
+        }
+
+        function formatarElogios(nome) {
+            const dados = sessionEmojis?.[nome] || {};
+            const contagem = {};
+            Object.values(dados).forEach(valor => {
+                const emoji = typeof valor === 'string' ? valor : valor?.emoji;
+                if (emoji) contagem[emoji] = (contagem[emoji] || 0) + 1;
+            });
+            return Object.entries(contagem)
+                .map(([emoji, qtd]) => `${emoji}${qtd > 1 ? `<span class="text-[8px] align-top ml-0.5">x${qtd}</span>` : ''}`)
+                .join(' ');
+        }
+
+        function renderBadgesJogador(nome) {
+            const pB = globalBadges?.[nome] || {};
+            return Object.entries(badgeMap)
+                .filter(([key]) => Number(pB[key] || 0) > 0)
+                .map(([key, b]) => `<span class="badge-icon">${b.i} ${b.desc} <span class="text-white ml-1">x${Number(pB[key])}</span></span>`)
+                .join('');
+        }
         
         function getFormattedDate() { 
             const d = new Date(); 
@@ -509,6 +542,7 @@
             }
             const rBox = document.getElementById('reactionBox');
             if (!guestIdentificadoNesteEvento()) { rBox.classList.add('hidden'); rBox.dataset.target = ''; }
+            atualizarBotaoMeuPerfil();
             if(unsubscribeUnlockRequests && !isAdmin) { unsubscribeUnlockRequests(); unsubscribeUnlockRequests = null; }
             if(!currentInstanceId && isAdmin) window.abrirOpcoesEvento();
         });
@@ -661,11 +695,14 @@
         }
 
         window.acaoMeuPerfil = () => {
+            if (guestIdentificadoNesteEvento()) {
+                return window.abrirPerfilJogador(meuNome);
+            }
             const bj = game.baseJogadores || {};
             const list = [];
             Object.keys(bj).forEach(n => {
-                let p = (game.esperaGeral||[]).find(x=>x.nome===n) || (game.esperaEstrela||[]).find(x=>x.nome===n) || (game.timeA||[]).find(x=>x.nome===n) || (game.timeB||[]).find(x=>x.nome===n);
-                let isBlocked = p && p.bloqueado ? ' (Bloqueado)' : '';
+                const p = (game.esperaGeral||[]).find(x=>x.nome===n) || (game.esperaEstrela||[]).find(x=>x.nome===n) || (game.timeA||[]).find(x=>x.nome===n) || (game.timeB||[]).find(x=>x.nome===n);
+                const isBlocked = p && p.bloqueado ? ' (Bloqueado)' : '';
                 list.push({ n, text: `${n}${isBlocked}` });
             });
             list.sort((a,b) => a.n.localeCompare(b.n));
@@ -681,16 +718,19 @@
             meuNomeEvento = currentInstanceId || '';
             localStorage.setItem('voleihub_meunome', meuNome);
             localStorage.setItem('voleihub_meuevento', meuNomeEvento);
-            
+
+            try { await garantirGuestAnonimo(); } catch (e) {
+                console.warn('Autenticação anônima indisponível; o perfil continuará em modo de visualização.', e);
+            }
+
+            window.fecharModais(); 
+            renderMyTrophies(); 
+            render();
             if (desbloquear) {
                 await window.desbloquearJogadorGuest(val, true);
                 return;
             }
-            
-            customAlert("Perfil identificado. Agora você pode visualizar jogadores e enviar elogios."); 
-            window.fecharModais(); 
-            renderMyTrophies(); 
-            render();
+            window.abrirPerfilJogador(val);
         };
 
         window.addESalvarIdentificacao = () => {
@@ -719,7 +759,7 @@
 
         function renderMyTrophies() {
             const b = document.getElementById('trophiesBar');
-            if(isAdmin || !isHistoricalView || !meuNome || !globalBadges[meuNome] || Object.keys(globalBadges[meuNome]).length === 0) { 
+            if(isAdmin || !guestIdentificadoNesteEvento() || !meuNome || !globalBadges[meuNome] || Object.keys(globalBadges[meuNome]).filter(k => Number(globalBadges[meuNome][k] || 0) > 0).length === 0) { 
                 b.classList.add('hidden'); 
                 return; 
             }
@@ -730,7 +770,7 @@
             for(let key in badgeMap) { 
                 if(pB[key] && pB[key] > 0) { 
                     hasAny = true; 
-                    html += `<span class="badge-icon">${badgeMap[key].i}${badgeMap[key].desc} <span class="text-white ml-1">x${pB[key]}</span></span>`; 
+                    html += `<span class="badge-icon">${badgeMap[key].i} ${badgeMap[key].desc} <span class="text-white ml-1">x${pB[key]}</span></span>`; 
                 } 
             }
             if(hasAny) { 
@@ -1119,14 +1159,14 @@
         };
 
         window.abrirHistoricoModal = () => { 
-            document.getElementById('listaHistoricoContainer').innerHTML = (game.historicoPartidas||[]).map(p=>`<div class="bg-slate-700/40 p-3 rounded-xl border border-slate-600 mb-2 cursor-pointer" onclick="window.abrirDetalhePartida(${p.id})"><div class="flex justify-between mb-1"><span class="text-[9px] font-black uppercase rounded ${p.vencedor==='A'?'text-blue-400':'text-orange-400'}">Vitória ${p.vencedor}</span><span class="text-xl font-black">${p.scoreA} x${p.scoreB}</span></div><div class="text-[8px] text-emerald-400 font-black uppercase text-center mb-2">Score inicial: ${Number(p.teamScoreAInicio || 0).toFixed(2)} x ${Number(p.teamScoreBInicio || 0).toFixed(2)} · placar ${p.placarInicio || '0 x 0'}</div><div class="flex justify-between text-[8px] font-bold text-slate-400"><div class="w-1/2">${(p.timeA||[]).join(', ')}</div><div class="w-1/2 text-right border-l border-slate-600 pl-1">${(p.timeB||[]).join(', ')}</div></div></div>`).join(''); 
+            document.getElementById('listaHistoricoContainer').innerHTML = (game.historicoPartidas||[]).map(p=>`<div class="bg-slate-700/40 p-3 rounded-xl border border-slate-600 mb-2 cursor-pointer" onclick="window.abrirDetalhePartida(${p.id})"><div class="flex justify-between mb-1"><span class="text-[9px] font-black uppercase rounded ${p.vencedor==='A'?'text-blue-400':'text-orange-400'}">Vitória ${p.vencedor}</span><span class="text-xl font-black">${p.scoreA} x${p.scoreB}</span></div><div class="text-[8px] text-emerald-400 font-black uppercase text-center mb-2">Score inicial: ${Number(p.teamScoreAInicio || 0).toFixed(2)} x ${Number(p.teamScoreBInicio || 0).toFixed(2)}</div><div class="flex justify-between text-[8px] font-bold text-slate-400"><div class="w-1/2">${(p.timeA||[]).join(', ')}</div><div class="w-1/2 text-right border-l border-slate-600 pl-1">${(p.timeB||[]).join(', ')}</div></div></div>`).join(''); 
             document.getElementById('modalHistorico').classList.remove('hidden'); 
         }; 
         
         window.abrirDetalhePartida = (id) => { 
             const p = (game.historicoPartidas||[]).find(x=>x.id===id); 
             if(p){ 
-                document.getElementById('detalhePartidaScore').innerHTML=`<div class="col-span-2 text-center bg-slate-800/80 rounded-lg p-2 mb-3 border border-slate-700"><div class="text-[8px] text-emerald-400 font-black uppercase">Score dos Times no início · Placar ${p.placarInicio || '0 x 0'}</div><div class="text-sm font-black text-white mt-1">Time A ${Number(p.teamScoreAInicio || 0).toFixed(2)} <span class="text-slate-500 mx-1">×</span> Time B ${Number(p.teamScoreBInicio || 0).toFixed(2)}</div></div><div class="text-center w-2/5"><div class="text-[9px] text-blue-500 font-black mb-1">TIME A</div><div class="text-4xl font-black leading-none">${p.scoreA}</div><div class="text-[9px] mt-2">${(p.timeA||[]).join('<br>')}</div></div><div class="text-slate-600 font-black italic text-xl">VS</div><div class="text-center w-2/5"><div class="text-[9px] text-orange-500 font-black mb-1">TIME B</div><div class="text-4xl font-black leading-none">${p.scoreB}</div><div class="text-[9px] mt-2">${(p.timeB||[]).join('<br>')}</div></div>`; 
+                document.getElementById('detalhePartidaScore').innerHTML=`<div class="col-span-2 text-center bg-slate-800/80 rounded-lg p-2 mb-3 border border-slate-700"><div class="text-[8px] text-emerald-400 font-black uppercase">Score dos Times no início</div><div class="text-sm font-black text-white mt-1">Time A ${Number(p.teamScoreAInicio || 0).toFixed(2)} <span class="text-slate-500 mx-1">×</span> Time B ${Number(p.teamScoreBInicio || 0).toFixed(2)}</div></div><div class="text-center w-2/5"><div class="text-[9px] text-blue-500 font-black mb-1">TIME A</div><div class="text-4xl font-black leading-none">${p.scoreA}</div><div class="text-[9px] mt-2">${(p.timeA||[]).join('<br>')}</div></div><div class="text-slate-600 font-black italic text-xl">VS</div><div class="text-center w-2/5"><div class="text-[9px] text-orange-500 font-black mb-1">TIME B</div><div class="text-4xl font-black leading-none">${p.scoreB}</div><div class="text-[9px] mt-2">${(p.timeB||[]).join('<br>')}</div></div>`; 
                 document.getElementById('detalhePartidaLog').innerHTML=p.log&&p.log.length>0?p.log.map(l=>`<div class="log-item log-${l.type}">${l.text}</div>`).join(''):'<div class="text-center text-[10px] py-4">Vazio</div>'; 
                 document.getElementById('modalDetalhePartida').classList.remove('hidden');
             } 
@@ -1176,7 +1216,6 @@
                 game.matchStartScores = {
                     scoreA: parseFloat(calcularScoreEquipe(game.timeA).toFixed(2)),
                     scoreB: parseFloat(calcularScoreEquipe(game.timeB).toFixed(2)),
-                    placar: '0 x 0'
                 };
             }
         }
@@ -1292,7 +1331,6 @@
                 scoreB: game.scoreB, 
                 teamScoreAInicio: game.matchStartScores ? game.matchStartScores.scoreA : 0,
                 teamScoreBInicio: game.matchStartScores ? game.matchStartScores.scoreB : 0,
-                placarInicio: game.matchStartScores ? game.matchStartScores.placar : '0 x 0',
                 timeA: (game.timeA||[]).map(p=>p.nome), 
                 timeB: (game.timeB||[]).map(p=>p.nome), 
                 log: [...(game.matchLog||[])]
@@ -1465,8 +1503,11 @@
                 localStorage.setItem('voleihub_meunome', meuNome);
                 localStorage.setItem('voleihub_meuevento', meuNomeEvento);
                 if (fecharApos) window.fecharModais();
+                renderMyTrophies();
+                render();
                 return customAlert('Jogador já está em quadra. Perfil identificado para visualização.');
             }
+
             meuNome = nome;
             meuNomeEvento = currentInstanceId || '';
             localStorage.setItem('voleihub_meunome', meuNome);
@@ -1474,30 +1515,14 @@
 
             if(!info.p.bloqueado) {
                 if (fecharApos) window.fecharModais();
+                renderMyTrophies();
                 render();
                 return customAlert('Este jogador já está desbloqueado na fila.');
             }
 
-            const filaPath = info.fila === 'geral' ? 'esperaGeral' : 'esperaEstrela';
-            const bloqueadoRef = ref(db, `partida/${currentInstanceId}/${filaPath}/${info.idx}/bloqueado`);
-
-            // Some Firebase deployments allow anonymous authenticated guests. Use that identity first.
             try {
-                const currentUser = auth.currentUser;
-                if(!currentUser) await signInAnonymously(auth);
-                await set(bloqueadoRef, false);
-                info.p.bloqueado = false;
-                render();
-                if (fecharApos) window.fecharModais();
-                customAlert(`✅ ${nome} foi desbloqueado para a quadra.`);
-                return;
-            } catch (e) {
-                // Fall through to the admin approval request when direct guest write is denied.
-                console.warn('Desbloqueio direto negado; enviando solicitação ao administrador.', e);
-            }
-
-            try {
-                const requestId = `${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+                await garantirGuestAnonimo();
+                const requestId = `${Date.now()}_${auth.currentUser?.uid || 'guest'}_${Math.random().toString(36).slice(2,6)}`;
                 await set(ref(db, `solicitacoes_desbloqueio/${currentShortId}/${currentInstanceId}/${requestId}`), {
                     nome,
                     instanceId: currentInstanceId,
@@ -1505,11 +1530,13 @@
                     indice: info.idx,
                     timestamp: Date.now()
                 });
-                customAlert(`Solicitação enviada ao administrador. Assim que ela for processada, ${nome} ficará liberado na fila.`);
-            } catch (reqErr) {
-                customAlert('Não foi possível enviar a solicitação. É necessário liberar no Firebase a gravação de solicitações de convidados.');
+                if (fecharApos) window.fecharModais();
+                renderMyTrophies();
+                render();
+                customAlert(`Solicitação enviada ao administrador. Assim que for processada, ${nome} ficará liberado na fila.`);
+            } catch (e) {
+                customAlert('Não foi possível enviar a solicitação. Confira se o Login Anônimo está ativo e se o Firebase permite criar solicitações de convidados.');
             }
-            render();
         };
 
         window.abrirPerfilJogador = (nome) => { 
@@ -1543,16 +1570,14 @@
                 }
             }
 
-            const bC = document.getElementById('perfilBadges'); 
-            bC.innerHTML = ''; 
-            if(isHistoricalView && globalBadges[nome]) { 
-                for(let k in badgeMap) { 
-                    if(globalBadges[nome][k] > 0) bC.innerHTML += `<span class="badge-icon">${badgeMap[k].i} ${badgeMap[k].desc} x${globalBadges[nome][k]}</span>`; 
-                }
-                if(!bC.innerHTML) bC.innerHTML = `<span class="text-[9px] text-slate-500 italic">Sem insígnias nesta sessão.</span>`;
-            } else if(isHistoricalView) {
-                bC.innerHTML = `<span class="text-[9px] text-slate-500 italic">Sem insígnias nesta sessão.</span>`;
-            }
+            const bC = document.getElementById('perfilBadges');
+            bC.innerHTML = renderBadgesJogador(nome);
+            bC.classList.toggle('hidden', !bC.innerHTML);
+
+            const elogiosHtml = formatarElogios(nome);
+            document.getElementById('perfilElogios').innerHTML = elogiosHtml
+                ? `<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Elogios nesta sessão</span><span class="text-lg tracking-wide">${elogiosHtml}</span></div>`
+                : '';
 
             const rBox = document.getElementById('reactionBox'); 
             if(guestIdentificadoNesteEvento() && meuNome !== nome && !isHistoricalView) { 
@@ -1560,19 +1585,26 @@
                 rBox.dataset.target = nome; 
             } else { 
                 rBox.classList.add('hidden'); 
-                rBox.dataset.target = '';
+                rBox.dataset.target = ''; 
             } 
+            atualizarBotaoMeuPerfil();
             document.getElementById('modalPerfilJogador').classList.remove('hidden'); 
         };
 
         window.enviarElogio = async (emoji) => { 
             if(!guestIdentificadoNesteEvento() || !currentInstanceId) return customAlert('Identifique-se primeiro para enviar um elogio.');
-            const target = document.getElementById('reactionBox').dataset.target; 
-            try { 
-                await set(ref(db, `partida/${currentInstanceId}/elogios/${target}/${meuNome}`), emoji); 
-                customAlert(`Você reagiu a ${target} com${emoji}!`); 
-                window.fecharModais(); 
-            } catch(e) {} 
+            const target = document.getElementById('reactionBox').dataset.target;
+            if(!target || target === meuNome) return;
+            try {
+                await garantirGuestAnonimo();
+                const uid = auth.currentUser?.uid;
+                if(!uid) throw new Error('guest-auth-missing');
+                await set(ref(db, `partida/${currentInstanceId}/elogios/${target}/${uid}`), emoji);
+                customAlert(`Você reagiu a ${target} com ${emoji}!`);
+                window.fecharModais();
+            } catch(e) {
+                customAlert('Não foi possível enviar o elogio. Verifique a permissão de convidados para elogios no Firebase.');
+            }
         };
 
         function renderLeaders() { 
@@ -1606,10 +1638,6 @@
             
             if(game.publicRanking) document.body.classList.add('show-public'); 
             else document.body.classList.remove('show-public'); 
-            
-            const msg = game.systemMsg || { text: "---", sub: "---" }; 
-            document.getElementById('msg-title').innerText = msg.text; 
-            document.getElementById('msg-sub').innerText = msg.sub; 
             
             document.getElementById('match-log-box').innerHTML = (game.matchLog||[]).length 
                 ? game.matchLog.map(l => `<div class="log-item log-${l.type}">${l.text}</div>`).join('') 
@@ -1660,7 +1688,7 @@
             
             document.getElementById('rankingContainer').innerHTML = rk.map((j, i) => { 
                 let recEmojis = ""; 
-                if(!isAdmin && sessionEmojis[j.n]) recEmojis = Object.values(sessionEmojis[j.n]).slice(0,3).join(''); 
+                if(sessionEmojis[j.n]) recEmojis = formatarElogios(j.n); 
                 return `<div data-player-name="${String(j.n).replace(/\"/g,'&quot;')}" class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 mb-1 cursor-pointer hover:bg-slate-700/50" onclick='window.abrirPerfilJogador(${JSON.stringify(j.n)})'><div class="flex items-center gap-3"><span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span><div class="rank-name uppercase text-[10px] font-bold text-slate-300">${j.estrela?'⭐ ':''}${j.elite?'💎 ':''}${j.n} <span class="ml-2 text-sm drop-shadow-lg">${recEmojis}</span></div></div><div class="text-orange-500 font-black text-xs">${j.score}</div></div>`; 
             }).join(''); 
             
@@ -1671,6 +1699,7 @@
             else { visitorControls.style.display = 'none'; } 
             renderMyTrophies();
             if(!guestIdentificadoNesteEvento()) { const rb = document.getElementById('reactionBox'); rb.classList.add('hidden'); rb.dataset.target=''; }
+            atualizarBotaoMeuPerfil();
         }
 
         // Garante que cliques em jogadores da fila/ranking abram o perfil no modo visitante.
