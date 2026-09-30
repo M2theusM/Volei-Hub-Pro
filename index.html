@@ -595,49 +595,81 @@
             clearTimeout(window.__celebrationTimer);
             window.__celebrationTimer = setTimeout(() => box.classList.add('hidden'), 1800);
         }
-        window.iniciarApito = (e) => {
-            if (!isAdmin) return;
-            if(e && e.type === 'touchstart') e.preventDefault();
-            if(isApitoTocando) return;
-            isApitoTocando = true;
-            pressStartTime = Date.now();
-            try {
-                const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                if (!AudioCtx) return;
-                if (!apitoCtx) apitoCtx = new AudioCtx();
-                if (apitoCtx.state === 'suspended') apitoCtx.resume();
-                apitoGain = apitoCtx.createGain();
-                apitoGain.gain.setValueAtTime(0.0001, apitoCtx.currentTime);
-                apitoGain.gain.exponentialRampToValueAtTime(0.65, apitoCtx.currentTime + 0.05);
-                apitoGain.connect(apitoCtx.destination);
-                apitoOsc1 = apitoCtx.createOscillator();
-                apitoOsc2 = apitoCtx.createOscillator();
-                apitoOsc1.type = 'triangle'; 
-                apitoOsc2.type = 'sine';
-                apitoOsc1.frequency.setValueAtTime(2100, apitoCtx.currentTime);
-                apitoOsc2.frequency.setValueAtTime(3100, apitoCtx.currentTime);
-                apitoOsc1.connect(apitoGain); 
-                apitoOsc2.connect(apitoGain);
-                apitoOsc1.start(); 
-                apitoOsc2.start();
-            } catch(e) { console.warn('Apito indisponível', e); }
-        };
-        window.pararApito = (e) => {
-            if (!isApitoTocando) return;
-            if (e && (e.type === 'touchend' || e.type === 'touchcancel')) e.preventDefault();
-            const duration = Date.now() - pressStartTime;
-            if (duration < 300) { setTimeout(() => doStopApito(), 300 - duration); } else { doStopApito(); }
-        };
-        function doStopApito() {
-            isApitoTocando = false;
-            if(!apitoGain) return;
-            try {
-                apitoGain.gain.exponentialRampToValueAtTime(0.0001, apitoCtx.currentTime + 0.1);
-                const o1 = apitoOsc1, o2 = apitoOsc2;
-                setTimeout(() => { try { o1.stop(); o2.stop(); o1.disconnect(); o2.disconnect(); } catch(e){} }, 150);
-                apitoGain = null; apitoOsc1 = null; apitoOsc2 = null;
-            } catch(e) {}
-        }
+        // Sistema de áudio do Apito Fox 40 PRO
+            let apitoCtx = null, apitoGain = null, apitoOsc1 = null, apitoOsc2 = null, apitoLFO = null;
+            let isApitoTocando = false, pressStartTime = 0;
+            
+            window.iniciarApito = (e) => {
+                if (!isAdmin) return;
+                if(e && e.type === 'touchstart') e.preventDefault();
+                if(isApitoTocando) return;
+                isApitoTocando = true;
+                pressStartTime = Date.now();
+                try {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioCtx) return;
+                    if (!apitoCtx) apitoCtx = new AudioCtx();
+                    if (apitoCtx.state === 'suspended') apitoCtx.resume();
+                    
+                    const now = apitoCtx.currentTime;
+                    const f1 = 2450; // Frequência 1 do Fox 40
+                    const f2 = 2520; // Frequência 2 (batimento dual característico)
+                    
+                    apitoGain = apitoCtx.createGain();
+                    apitoGain.gain.setValueAtTime(0.0001, now);
+                    apitoGain.gain.exponentialRampToValueAtTime(0.65, now + 0.05);
+                    apitoGain.connect(apitoCtx.destination);
+            
+                    apitoOsc1 = apitoCtx.createOscillator();
+                    apitoOsc1.type = 'triangle';
+                    apitoOsc1.frequency.setValueAtTime(f1, now);
+            
+                    apitoOsc2 = apitoCtx.createOscillator();
+                    apitoOsc2.type = 'sine';
+                    apitoOsc2.frequency.setValueAtTime(f2, now);
+            
+                    // LFO Vibrato (Flutter natural de sopro esportivo)
+                    apitoLFO = apitoCtx.createOscillator();
+                    apitoLFO.frequency.setValueAtTime(22, now);
+                    const lfoGain = apitoCtx.createGain();
+                    lfoGain.gain.setValueAtTime(18, now);
+                    apitoLFO.connect(lfoGain);
+                    lfoGain.connect(apitoOsc1.frequency);
+                    lfoGain.connect(apitoOsc2.frequency);
+            
+                    apitoLFO.start(now);
+                    apitoOsc1.start(now);
+                    apitoOsc2.start(now);
+                } catch(e) { console.warn('Apito indisponível', e); }
+            };
+            
+            window.pararApito = (e) => {
+                if (!isApitoTocando) return;
+                if (e && (e.type === 'touchend' || e.type === 'touchcancel')) e.preventDefault();
+                const duration = Date.now() - pressStartTime;
+                if (duration < 300) { setTimeout(() => doStopApito(), 300 - duration); } else { doStopApito(); }
+            };
+            
+            function doStopApito() {
+                isApitoTocando = false;
+                if(!apitoGain) return;
+                try {
+                    const now = apitoCtx.currentTime;
+                    apitoGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+                    const o1 = apitoOsc1, o2 = apitoOsc2, lfo = apitoLFO;
+                    setTimeout(() => {
+                        try {
+                            if(o1) o1.stop();
+                            if(o2) o2.stop();
+                            if(lfo) lfo.stop();
+                            if(o1) o1.disconnect();
+                            if(o2) o2.disconnect();
+                            if(lfo) lfo.disconnect();
+                        } catch(e){}
+                    }, 150);
+                    apitoGain = null; apitoOsc1 = null; apitoOsc2 = null; apitoLFO = null;
+                } catch(e) {}
+            }
         onAuthStateChanged(auth, (user) => {
             if (user && !user.isAnonymous) { 
                 isAdmin = true; 
@@ -650,8 +682,8 @@
                 document.getElementById('splashGuestPanel').classList.remove('hidden'); 
                 document.getElementById('splashAdminPanel').classList.add('hidden'); 
             }
-            const rBox = document.getElementById('reactionBox');
-            if (isAdmin || isHistoricalView) { rBox.classList.add('hidden'); rBox.dataset.target = ''; }
+            const rBox = document.getElementById('reactionBox'); 
+            if (isAdmin) { rBox.classList.add('hidden'); rBox.dataset.target = ''; }
             atualizarBotaoMeuPerfil();
             if(unsubscribeUnlockRequests && !isAdmin) { unsubscribeUnlockRequests(); unsubscribeUnlockRequests = null; }
             if(isAdmin && currentInstanceId && !isHistoricalView) iniciarListenerNotificacoesAdmin();
@@ -893,9 +925,9 @@
         window.undoLastAction = () => { if(!isAdmin || historicoLocal.length === 0) return; game = JSON.parse(historicoLocal.pop()); set(gameRef, game); };
         window.desbloquearJogadorGuest = async (nome, fecharApos = false) => { if(isAdmin || isHistoricalView) return; const info = localizarJogador(nome); if(!info || !info.p) return customAlert('Jogador não encontrado.'); if(!info.fila) { meuNome = nome; meuNomeEvento = currentInstanceId || ''; localStorage.setItem('voleihub_meunome', meuNome); localStorage.setItem('voleihub_meuevento', meuNomeEvento); if (fecharApos) window.fecharModais(); renderMyTrophies(); render(); return customAlert('Jogador já está em quadra. Perfil identificado.'); } info.p.bloqueado = false; reposicionarJogadorNaFila(info.p); meuNome = nome; meuNomeEvento = currentInstanceId || ''; localStorage.setItem('voleihub_meunome', meuNome); localStorage.setItem('voleihub_meuevento', meuNomeEvento); salvarState(); if (fecharApos) window.fecharModais(); renderMyTrophies(); render(); customAlert(nome + " desbloqueado com sucesso!"); };
         function calcularMelhorDupla(nome) { const pares = {}; (game.historicoPartidas || []).forEach(partida => { const lado = (partida.timeA || []).includes(nome) ? 'A' : ((partida.timeB || []).includes(nome) ? 'B' : null); if (!lado) return; const colegas = lado === 'A' ? (partida.timeA || []) : (partida.timeB || []); const ganhou = partida.vencedor === lado; colegas.filter(n => n !== nome).forEach(colega => { if(!pares[colega]) pares[colega] = { jogos:0, vitorias:0 }; pares[colega].jogos++; if(ganhou) pares[colega].vitorias++; }); }); const lista = Object.entries(pares).map(([n,s]) => { return { n, ...s, score: parseFloat(calcularScoreComPesos(game.ranking?.[n] || {})) }; }).sort((a,b) => b.vitorias - a.vitorias || b.jogos - a.jogos || b.score - a.score || a.n.localeCompare(b.n)); return lista[0] || null; }
-        window.abrirPerfilJogador = (nome) => { if(!nome) return; const s = game.ranking?.[nome] || { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime:0, estrela:false, elite:false }; const info = localizarJogador(nome); const jogos = (s.v || 0) + (s.d || 0); const dupla = calcularMelhorDupla(nome); document.getElementById('perfilNome').innerText = nome; document.getElementById('pScore').innerText = calcularScoreComPesos(s); document.getElementById('pJogos').innerText = jogos; document.getElementById('pVit').innerText = s.v || 0; document.getElementById('pAtq').innerText = s.ptsAtaque || 0; document.getElementById('pBlq').innerText = s.ptsBloqueio || 0; document.getElementById('pAce').innerText = s.ptsAce || 0; const statusEl = document.getElementById('perfilStatus'); const actionEl = document.getElementById('perfilGuestAction'); if(info && info.p) { const badge = info.p.bloqueado ? '🔒 BLOQUEADO' : '✅ LIBERADO'; statusEl.innerHTML = '<span class="text-slate-400">' + escapeHtml(info.local) + '</span> · <span class="' + (info.p.bloqueado ? 'text-red-400' : 'text-emerald-400') + '">' + badge + '</span>'; } else { statusEl.innerText = 'Status não disponível'; } actionEl.classList.add('hidden'); actionEl.innerHTML = ''; const safeNome = escapeHtml(nome); if(!isAdmin && !isHistoricalView && info && info.fila) { actionEl.classList.remove('hidden'); if(info.p.bloqueado) { actionEl.innerHTML = '<button data-nome="' + safeNome + '" onclick="window.desbloquearJogadorGuest(this.getAttribute(\'data-nome\'), true)" class="w-full bg-emerald-600 hover:bg-emerald-500 p-3 rounded-xl font-black uppercase text-[10px] text-white shadow-lg">Desbloquear</button>'; } else { actionEl.innerHTML = '<button data-nome="' + safeNome + '" onclick="window.enviarSolicitacaoBloqueio(this.getAttribute(\'data-nome\'), true)" class="w-full bg-red-600 hover:bg-red-500 p-3 rounded-xl font-black uppercase text-[10px] text-white shadow-lg">Bloquear</button>'; } } const bC = document.getElementById('perfilBadges'); bC.innerHTML = '<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Insígnias</span>' + (renderBadgesJogador(nome) || '<span class="text-[9px] text-slate-600">Nenhuma ainda</span>') + '</div>'; const elogiosHtml = formatarElogios(nome); if (elogiosHtml) { document.getElementById('perfilElogios').innerHTML = '<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Elogios nesta sessão</span><span class="text-lg tracking-wide">' + elogiosHtml + '</span></div>'; } else { document.getElementById('perfilElogios').innerHTML = '<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Elogios nesta sessão</span><span class="text-[9px] text-slate-600">Nenhum ainda</span></div>'; } if (dupla) { document.getElementById('perfilMelhorDupla').innerHTML = escapeHtml(dupla.n) + ' <span class="text-slate-500 font-bold">· ' + dupla.vitorias + ' vitória(s) em ' + dupla.jogos + ' partida(s) juntos</span>'; } else { document.getElementById('perfilMelhorDupla').innerHTML = 'Nenhuma dupla registrada nesta sessão.'; } const rBox = document.getElementById('reactionBox'); const podeElogiar = !isAdmin && !isHistoricalView; const alvoDiferenteDoMeu = !guestIdentificadoNesteEvento() || meuNome !== nome; if(podeElogiar && alvoDiferenteDoMeu) { rBox.classList.remove('hidden'); rBox.dataset.target = nome; } else { rBox.classList.add('hidden'); rBox.dataset.target = ''; } atualizarBotaoMeuPerfil(); document.getElementById('modalPerfilJogador').classList.remove('hidden'); };
+        window.abrirPerfilJogador = (nome) => { if(!nome) return; const s = game.ranking?.[nome] || { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime:0, estrela:false, elite:false }; const info = localizarJogador(nome); const jogos = (s.v || 0) + (s.d || 0); const dupla = calcularMelhorDupla(nome); document.getElementById('perfilNome').innerText = nome; document.getElementById('pScore').innerText = calcularScoreComPesos(s); document.getElementById('pJogos').innerText = jogos; document.getElementById('pVit').innerText = s.v || 0; document.getElementById('pAtq').innerText = s.ptsAtaque || 0; document.getElementById('pBlq').innerText = s.ptsBloqueio || 0; document.getElementById('pAce').innerText = s.ptsAce || 0; const statusEl = document.getElementById('perfilStatus'); const actionEl = document.getElementById('perfilGuestAction'); if(info && info.p) { const badge = info.p.bloqueado ? '🔒 BLOQUEADO' : '✅ LIBERADO'; statusEl.innerHTML = '<span class="text-slate-400">' + escapeHtml(info.local) + '</span> · <span class="' + (info.p.bloqueado ? 'text-red-400' : 'text-emerald-400') + '">' + badge + '</span>'; } else { statusEl.innerText = 'Status não disponível'; } actionEl.classList.add('hidden'); actionEl.innerHTML = ''; const safeNome = escapeHtml(nome); if(!isAdmin && !isHistoricalView && info && info.fila) { actionEl.classList.remove('hidden'); if(info.p.bloqueado) { actionEl.innerHTML = '<button data-nome="' + safeNome + '" onclick="window.desbloquearJogadorGuest(this.getAttribute(\'data-nome\'), true)" class="w-full bg-emerald-600 hover:bg-emerald-500 p-3 rounded-xl font-black uppercase text-[10px] text-white shadow-lg">Desbloquear</button>'; } else { actionEl.innerHTML = '<button data-nome="' + safeNome + '" onclick="window.enviarSolicitacaoBloqueio(this.getAttribute(\'data-nome\'), true)" class="w-full bg-red-600 hover:bg-red-500 p-3 rounded-xl font-black uppercase text-[10px] text-white shadow-lg">Bloquear</button>'; } } const bC = document.getElementById('perfilBadges'); bC.innerHTML = '<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Insígnias</span>' + (renderBadgesJogador(nome) || '<span class="text-[9px] text-slate-600">Nenhuma ainda</span>') + '</div>'; const elogiosHtml = formatarElogios(nome); if (elogiosHtml) { document.getElementById('perfilElogios').innerHTML = '<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Elogios nesta sessão</span><span class="text-lg tracking-wide">' + elogiosHtml + '</span></div>'; } else { document.getElementById('perfilElogios').innerHTML = '<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Elogios nesta sessão</span><span class="text-[9px] text-slate-600">Nenhum ainda</span></div>'; } if (dupla) { document.getElementById('perfilMelhorDupla').innerHTML = escapeHtml(dupla.n) + ' <span class="text-slate-500 font-bold">· ' + dupla.vitorias + ' vitória(s) em ' + dupla.jogos + ' partida(s) juntos</span>'; } else { document.getElementById('perfilMelhorDupla').innerHTML = 'Nenhuma dupla registrada nesta sessão.'; } const rBox = document.getElementById('reactionBox'); const podeElogiar = !isAdmin; const alvoDiferenteDoMeu = !guestIdentificadoNesteEvento() || meuNome !== nome; if(podeElogiar && alvoDiferenteDoMeu) { rBox.classList.remove('hidden'); rBox.dataset.target = nome; } else { rBox.classList.add('hidden'); rBox.dataset.target = ''; } atualizarBotaoMeuPerfil(); document.getElementById('modalPerfilJogador').classList.remove('hidden'); };
         window.enviarSolicitacaoBloqueio = async (nome, fecharApos = false) => { if(isAdmin || isHistoricalView || !currentInstanceId) return; const info = localizarJogador(nome); if(info && info.p) { info.p.bloqueado = true; salvarState(); } if (fecharApos) window.fecharModais(); render(); customAlert(nome + " bloqueado com sucesso!"); };
-        window.enviarElogio = async (emoji) => { if(isAdmin || isHistoricalView || !currentInstanceId) return; const target = document.getElementById('reactionBox').dataset.target; if(!target) return; if(guestIdentificadoNesteEvento() && target === meuNome) return customAlert('Você não pode enviar elogio para si mesmo.'); try { await garantirGuestAnonimo(); const uid = auth.currentUser?.uid; if(!uid) throw new Error('guest-auth-missing'); const elogioRef = ref(db, "partida/" + currentInstanceId + "/elogios/" + target + "/" + uid); const existing = await get(elogioRef); if(existing.exists()) return customAlert('Você já enviou um elogio para este jogador nesta sessão.'); await set(elogioRef, emoji); customAlert("Elogio enviado para " + target + "!"); window.fecharModais(); } catch(e) { customAlert('Não foi possível enviar o elogio. Verifique a permissão de convidados para elogios no Firebase.'); } };
+        window.enviarElogio = async (emoji) => { if(isAdmin || !currentInstanceId) return; const target = document.getElementById('reactionBox').dataset.target; if(!target) return; if(guestIdentificadoNesteEvento() && target === meuNome) return customAlert('Você não pode enviar elogio para si mesmo.'); try { await garantirGuestAnonimo(); const uid = auth.currentUser?.uid; if(!uid) throw new Error('guest-auth-missing'); const elogioRef = ref(db, "partida/" + currentInstanceId + "/elogios/" + target + "/" + uid); const existing = await get(elogioRef); if(existing.exists()) return customAlert('Você já enviou um elogio para este jogador nesta sessão.'); await set(elogioRef, emoji); customAlert("Elogio enviado para " + target + "!"); window.fecharModais(); } catch(e) { customAlert('Não foi possível enviar o elogio. Verifique a permissão de convidados para elogios no Firebase.'); } };
         function renderLeaders() {
             const pl = Object.entries(game.ranking || {}).map(([n, s]) => { return { n, ...s, score: parseFloat(calcularScoreComPesos(s)) }; });
             const cats = [ {t:"Top Score", i:"🏆", f:p=>p.score}, {t:"Matador", i:"🔥", f:p=>p.ptsAtaque||0}, {t:"Paredão", i:"🚫", f:p=>p.ptsBloqueio||0}, {t:"Ace", i:"⚡", f:p=>p.ptsAce||0}, {t:"Vitórias", i:"🥇", f:p=>p.v||0} ];
@@ -960,7 +992,7 @@
             document.getElementById('rankingContainer').innerHTML = rkParts.join('');
             renderLeaders();
             const visitorControls = document.getElementById('visitor-controls'); if (!isAdmin) { visitorControls.style.display = 'flex'; } else { visitorControls.style.display = 'none'; }
-            renderMyTrophies(); if(isAdmin || isHistoricalView) { const rb = document.getElementById('reactionBox'); rb.classList.add('hidden'); rb.dataset.target=''; } atualizarBotaoMeuPerfil();
+            renderMyTrophies(); if(isAdmin) { const rb = document.getElementById('reactionBox'); rb.classList.add('hidden'); rb.dataset.target=''; } atualizarBotaoMeuPerfil();
         }
         document.addEventListener('click', (event) => { if(isAdmin) return; const card = event.target.closest('[data-player-name]'); if(!card) return; if(card.hasAttribute('onclick')) return; const nome = card.getAttribute('data-player-name'); if(nome) { event.preventDefault(); event.stopPropagation(); window.abrirPerfilJogador(nome); } }, true);
     </script>
