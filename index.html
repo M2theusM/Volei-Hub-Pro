@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V3.6.2</title>
+    <title>Vôlei Hub PRO - V4.0.0</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -42,6 +42,18 @@
         .badge-icon { display: inline-block; font-size: 14px; margin-right: 4px; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
         .emoji-btn { font-size: 1.5rem; transition: transform 0.2s; cursor: pointer; }
         .emoji-btn:hover { transform: scale(1.2); }
+        #pointCelebration { position: fixed; inset: 0; z-index: 6000; pointer-events: none; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        #pointCelebration.hidden { display: none !important; }
+        .celebration-backdrop { position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(15,23,42,.35), rgba(15,23,42,.88)); }
+        .celebration-center { position: relative; z-index: 2; text-align: center; animation: celebrationPop .35s ease-out; }
+        .celebration-name { font-size: clamp(34px, 11vw, 72px); line-height: .9; font-weight: 1000; text-transform: uppercase; font-style: italic; text-shadow: 0 6px 24px rgba(0,0,0,.8); }
+        .celebration-main-emoji { font-size: clamp(48px, 15vw, 96px); margin-top: 10px; filter: drop-shadow(0 8px 20px rgba(0,0,0,.65)); }
+        .celebration-float { position: absolute; font-size: clamp(24px, 7vw, 58px); animation: celebrationFloat 1.8s ease-in-out forwards; }
+        @keyframes celebrationPop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes celebrationFloat { from { transform: translateY(35vh) scale(.6) rotate(0deg); opacity: 0; } 15% { opacity: 1; } to { transform: translateY(-45vh) scale(1.2) rotate(24deg); opacity: 0; } }
+        #adminNotificationsList { max-height: 55vh; overflow-y: auto; }
+        .notification-pending { border-left: 3px solid #ef4444; }
+        .notification-done { opacity: .55; }
     </style>
 </head>
 <body class="bg-slate-900 text-white font-sans overflow-x-hidden pb-32">
@@ -74,11 +86,14 @@
 
     <header class="p-4 bg-slate-800 sticky top-0 shadow-2xl z-40 border-b border-slate-700">
         <div class="flex justify-between items-center max-w-md mx-auto mb-3">
-            <h1 class="text-orange-500 font-black text-lg italic uppercase tracking-tighter select-none">
+            <h1 onclick="window.tocarApito()" title="Apito de jogo" class="text-orange-500 font-black text-lg italic uppercase tracking-tighter select-none cursor-pointer">
                 Vôlei Hub <span class="text-xs text-blue-400">PRO</span> 
                 <span id="displayEventId" class="text-[10px] ml-1 bg-slate-700 px-2 py-0.5 rounded text-white tracking-widest font-bold hidden">#---</span>
             </h1>
             <div class="flex gap-2 admin-only-control">
+                <button onclick="window.abrirNotificacoesAdmin()" class="relative text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase transition">
+                    🔔 <span id="adminNotifCount" class="ml-1 inline-flex min-w-4 h-4 items-center justify-center rounded-full bg-red-600 px-1 text-[8px]">0</span>
+                </button>
                 <button onclick="window.undoLastAction()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase transition">↩ Desfazer</button>
                 <button onclick="window.abrirConfig()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase transition">⚙️ Menu</button>
             </div>
@@ -159,6 +174,15 @@
         </section>
     </main>
 
+    <div id="pointCelebration" class="hidden" aria-hidden="true">
+        <div class="celebration-backdrop"></div>
+        <div id="celebrationRain"></div>
+        <div class="celebration-center">
+            <div id="celebrationName" class="celebration-name"></div>
+            <div id="celebrationMainEmoji" class="celebration-main-emoji"></div>
+        </div>
+    </div>
+
     <!-- Modal Perfil de Jogador / Reações -->
     <div id="modalPerfilJogador" class="modal-global hidden">
         <div class="bg-slate-800 w-full max-w-sm rounded-3xl p-6 border border-slate-600 shadow-2xl relative">
@@ -169,12 +193,20 @@
             <div id="perfilStatus" class="text-center text-[9px] font-black uppercase text-slate-400 mb-2"></div>
             <div id="perfilGuestAction" class="hidden mb-4"></div>
             
-            <div class="bg-slate-900 rounded-xl p-4 border border-slate-700 mb-4 grid grid-cols-2 gap-2 text-center text-xs">
-                <div><span class="text-slate-500 block uppercase font-bold text-[8px]">Score Atual</span><span id="pScore" class="font-black text-orange-400 text-lg">0</span></div>
+            <div class="bg-slate-950 rounded-2xl p-4 border border-orange-500/40 mb-3 text-center shadow-lg">
+                <span class="text-slate-500 block uppercase font-black text-[8px] tracking-widest">Score</span>
+                <span id="pScore" class="font-black text-orange-400 text-4xl leading-none">0</span>
+            </div>
+            <div class="bg-slate-900 rounded-xl p-4 border border-slate-700 mb-4 grid grid-cols-2 gap-3 text-center text-xs">
+                <div><span class="text-slate-500 block uppercase font-bold text-[8px]">Partidas Jogadas</span><span id="pJogos" class="font-black text-white text-lg">0</span></div>
                 <div><span class="text-slate-500 block uppercase font-bold text-[8px]">Vitórias</span><span id="pVit" class="font-black text-white text-lg">0</span></div>
-                <div><span class="text-slate-500 block uppercase font-bold text-[8px]">Ataques</span><span id="pAtq" class="font-black text-emerald-400">0</span></div>
+                <div><span class="text-slate-500 block uppercase font-bold text-[8px]">Pontos de Ataque</span><span id="pAtq" class="font-black text-emerald-400">0</span></div>
                 <div><span class="text-slate-500 block uppercase font-bold text-[8px]">Bloqueios</span><span id="pBlq" class="font-black text-blue-400">0</span></div>
-                <div class="col-span-2"><span class="text-slate-500 block uppercase font-bold text-[8px]">Aces</span><span id="pAce" class="font-black text-yellow-400">0</span></div>
+                <div class="col-span-2"><span class="text-slate-500 block uppercase font-bold text-[8px]">Aces</span><span id="pAce" class="font-black text-slate-200 text-lg">0</span></div>
+            </div>
+            <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-700 mb-4 text-center">
+                <span class="text-slate-500 block uppercase font-black text-[8px] tracking-widest mb-1">Melhor dupla</span>
+                <div id="perfilMelhorDupla" class="text-xs font-black text-white">Nenhuma dupla registrada.</div>
             </div>
 
             <div id="reactionBox" class="border-t border-slate-700 pt-4 text-center hidden">
@@ -232,6 +264,17 @@
         </div>
     </div>
     
+    <div id="modalAdminNotificacoes" class="modal-global hidden" style="z-index: 3500;">
+        <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-red-500/50 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-black text-red-400 uppercase italic">Notificações</h2>
+                <button onclick="document.getElementById('modalAdminNotificacoes').classList.add('hidden')" class="text-slate-400 text-3xl font-light">&times;</button>
+            </div>
+            <div id="adminNotificationsList" class="space-y-2"></div>
+            <button onclick="document.getElementById('modalAdminNotificacoes').classList.add('hidden')" class="w-full mt-4 bg-slate-700 py-3 rounded-xl uppercase text-xs font-black">Fechar</button>
+        </div>
+    </div>
+
     <div id="modalNovoEvento" class="modal-global hidden" style="z-index: 3001;">
         <div class="bg-slate-800 w-full max-w-sm rounded-3xl p-6 border border-emerald-500">
             <h2 class="text-xl font-black text-emerald-400 uppercase mb-4 italic">Novo Evento</h2>
@@ -289,15 +332,25 @@
         </div>
     </div>
 
-    <!-- Identificação (Corrigida) -->
+    <!-- Identificação -->
     <div id="modalIdentificacao" class="modal-global hidden">
         <div class="bg-slate-800 w-full max-w-sm rounded-3xl p-6 border border-blue-500 shadow-2xl">
-            <h2 class="text-xl font-black text-blue-400 uppercase mb-4 italic">Identificar-se</h2>
-            <p class="text-[10px] text-slate-400 mb-2 uppercase font-bold">Selecione seu nome na lista da quadra:</p>
-            <select id="selMeuNome" class="config-input mb-4 h-10"></select>
-            <div class="flex gap-2 mb-6">
-                <button onclick="window.salvarIdentificacao(false)" class="flex-1 bg-slate-600 hover:bg-slate-500 p-3 rounded-xl font-bold uppercase text-[9px] shadow-lg transition">Visualizar</button>
-                <button onclick="window.salvarIdentificacao(true)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 p-3 rounded-xl font-bold uppercase text-[9px] shadow-lg transition text-white">Desbloquear p/ Jogar</button>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-black text-blue-400 uppercase italic">Identificar-se</h2>
+                <button onclick="window.sairDaIdentificacao()" class="text-[9px] text-red-400 font-black uppercase hover:text-red-300">Sair</button>
+            </div>
+            <p class="text-[10px] text-slate-400 mb-2 uppercase font-bold">Selecione um jogador:</p>
+            <select id="selMeuNome" onchange="window.atualizarIdentificacaoPreview()" class="config-input mb-3 h-10"></select>
+            <div id="identificacaoPreview" class="bg-slate-900/60 border border-slate-700 rounded-xl p-3 mb-4 text-center">
+                <div id="identificacaoStatus" class="text-[9px] font-black uppercase text-slate-400">Selecione um jogador para visualizar os status.</div>
+                <div id="identificacaoStats" class="grid grid-cols-2 gap-2 mt-3 text-[9px]"></div>
+                <div id="identificacaoDupla" class="mt-2 text-[9px] text-slate-400"></div>
+                <div id="identificacaoElogios" class="mt-2 text-lg"></div>
+                <div id="identificacaoBadges" class="mt-2 flex flex-wrap justify-center gap-1"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mb-5">
+                <button id="btnIdentVisualizar" onclick="window.salvarIdentificacao('visualizar')" class="bg-slate-600 hover:bg-slate-500 p-3 rounded-xl font-black uppercase text-[9px] shadow-lg transition text-white">Visualizar</button>
+                <button id="btnIdentAcao" onclick="window.salvarIdentificacao('desbloquear')" class="bg-emerald-600 hover:bg-emerald-500 p-3 rounded-xl font-black uppercase text-[9px] shadow-lg transition text-white">Desbloquear</button>
             </div>
             <div class="border-t border-slate-700 pt-4">
                 <p class="text-[10px] text-orange-400 mb-2 uppercase font-bold">Ainda não está na base?</p>
@@ -306,7 +359,7 @@
                     <button onclick="window.addESalvarIdentificacao()" class="bg-orange-600 px-4 rounded-xl font-black text-xs uppercase hover:bg-orange-500 shadow-lg">Add</button>
                 </div>
             </div>
-            <button onclick="window.fecharModais()" class="w-full mt-6 text-slate-500 text-[10px] font-bold uppercase py-2">Cancelar</button>
+            <button onclick="window.fecharModais()" class="w-full mt-5 text-slate-500 text-[10px] font-bold uppercase py-2">Cancelar</button>
         </div>
     </div>
     
@@ -461,6 +514,7 @@
         let filaTab = 'geral', rkTab = 'tudo', modalCtx = {};
         let game = { baseJogadores: {}, config: {}, weights: {}, esperaGeral: [], esperaEstrela: [] };
         let isHistoricalView = false, globalBadges = {}, sessionEmojis = {}, sessoesFiltradasInfo = [], historicoLocal = [], tempConfig = {};
+        let adminNotifications = {}, unsubscribeAdminNotifications = null, lastCelebrationId = null;
         window.sessoesCache = {}; 
         const badgeMap = { topScore: {i:'🏆', desc:'Top Score'}, matador: {i:'🔥', desc:'Matador'}, paredao: {i:'🚫', desc:'Paredão'}, ace: {i:'⚡', desc:'Ace'}, vitorias: {i:'🏅', desc:'Mais Vitórias'}, second: {i:'🥈', desc:'2º Lugar'}, third: {i:'🥉', desc:'3º Lugar'} };
 
@@ -528,6 +582,62 @@
             document.querySelectorAll('.modal-global, #modalPontoTec').forEach(m => m.classList.add('hidden'));
         };
 
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+        }
+
+        function jogadorDoPonto(lado) {
+            const lista = lado === 'A' ? (game.timeA || []) : (game.timeB || []);
+            const idx = lado === 'A' ? (game.idxA || 0) : (game.idxB || 0);
+            return lista[idx]?.nome || lista[0]?.nome || `Time ${lado}`;
+        }
+
+        function emojiDoPonto(tipo) {
+            return ({ ataque:'💥', bloqueio:'🚫', saque:'⚡', erro:'🏐' })[tipo] || '🏐';
+        }
+
+        function mostrarCelebracaoPonto(nome, emoji) {
+            if (isAdmin || isHistoricalView || !nome) return;
+            const box = document.getElementById('pointCelebration');
+            const rain = document.getElementById('celebrationRain');
+            document.getElementById('celebrationName').innerText = `${nome}!`;
+            document.getElementById('celebrationMainEmoji').innerText = emoji || '🏐';
+            const emojis = ['🏐','🔥','🚫','⚡','🙌','💥','🏐','🚀','👏','🏐','✨','💪','🎯','🏐','🔥','🙌','🚫','⚡'];
+            const positions = [4,11,18,25,32,39,46,53,60,67,74,81,88,15,45,75,30,90];
+            rain.innerHTML = emojis.map((e,i) => `<span class="celebration-float" style="left:${positions[i]}%;animation-delay:${(i%6)*45}ms">${e}</span>`).join('');
+            box.classList.remove('hidden');
+            clearTimeout(window.__celebrationTimer);
+            window.__celebrationTimer = setTimeout(() => box.classList.add('hidden'), 1800);
+        }
+
+        window.tocarApito = () => {
+            if (!isAdmin) return;
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+                const now = ctx.currentTime;
+                const gain = ctx.createGain();
+                gain.gain.setValueAtTime(0.0001, now);
+                gain.gain.exponentialRampToValueAtTime(0.65, now + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.65);
+                gain.connect(ctx.destination);
+                const osc1 = ctx.createOscillator();
+                const osc2 = ctx.createOscillator();
+                osc1.type = 'triangle'; osc2.type = 'sine';
+                osc1.frequency.setValueAtTime(2100, now);
+                osc1.frequency.exponentialRampToValueAtTime(2500, now + 0.65);
+                osc2.frequency.setValueAtTime(3100, now);
+                osc2.frequency.exponentialRampToValueAtTime(3600, now + 0.65);
+                osc1.connect(gain); osc2.connect(gain);
+                osc1.start(now); osc2.start(now);
+                osc1.stop(now + 0.65); osc2.stop(now + 0.65);
+                setTimeout(() => ctx.close().catch(()=>{}), 800);
+            } catch(e) {
+                console.warn('Apito indisponível neste navegador.', e);
+            }
+        };
+
         onAuthStateChanged(auth, (user) => {
             if (user && !user.isAnonymous) { 
                 isAdmin = true; 
@@ -541,9 +651,10 @@
                 document.getElementById('splashAdminPanel').classList.add('hidden'); 
             }
             const rBox = document.getElementById('reactionBox');
-            if (!guestIdentificadoNesteEvento()) { rBox.classList.add('hidden'); rBox.dataset.target = ''; }
+            if (isAdmin || isHistoricalView) { rBox.classList.add('hidden'); rBox.dataset.target = ''; }
             atualizarBotaoMeuPerfil();
             if(unsubscribeUnlockRequests && !isAdmin) { unsubscribeUnlockRequests(); unsubscribeUnlockRequests = null; }
+            if(isAdmin && currentInstanceId && !isHistoricalView) iniciarListenerNotificacoesAdmin();
             if(!currentInstanceId && isAdmin) window.abrirOpcoesEvento();
         });
 
@@ -582,7 +693,7 @@
                     const list = Object.values(sSnap.val()).filter(e => e.baseId === shortId);
                     if(list.length > 0) { 
                         window.abrirModalListaSessoes(shortId); 
-                        return customAlert("Mostrando o histórico de sessões anteriores."); 
+                        return;
                     }
                 }
                 customAlert("Evento não encontrado.");
@@ -594,6 +705,11 @@
             currentInstanceId = instanceId; 
             isHistoricalView = readOnly;
             
+            lastCelebrationId = null;
+            if (!isAdmin) {
+                try { await garantirGuestAnonimo(); } catch(e) { console.warn('Login anônimo indisponível.', e); }
+            }
+
             document.getElementById('splashScreen').style.display = 'none'; 
             document.getElementById('mainAppContent').style.display = 'block'; 
             document.getElementById('displayEventId').innerText = `#${shortId}`; 
@@ -603,7 +719,7 @@
                 document.getElementById('badge-history-alert').classList.remove('hidden'); 
                 document.getElementById('quadraContainer').classList.add('hidden'); 
                 document.getElementById('filaContainerSec').classList.add('hidden'); 
-                document.getElementById('btnVerHistoricoAtual').classList.add('hidden'); 
+                document.getElementById('btnVerHistoricoAtual').classList.remove('hidden'); 
             } else { 
                 document.getElementById('badge-history-alert').classList.add('hidden'); 
                 document.getElementById('quadraContainer').classList.remove('hidden'); 
@@ -642,9 +758,15 @@
                         idxB: data.idxB||0, 
                         saqueLado: data.saqueLado || 'A',
                         matchStartScores: data.matchStartScores || null,
+                        lastPoint: data.lastPoint || null,
                         systemMsg: data.systemMsg || { text: "PREPARANDO EVENTO", sub: "Aguarde..." } 
                     };
                     sessionEmojis = data.elogios || {};
+                    if(!lastCelebrationId) lastCelebrationId = game.lastPoint?.id || null;
+                    else if(!isAdmin && !isHistoricalView && game.lastPoint?.id && game.lastPoint.id !== lastCelebrationId) {
+                        lastCelebrationId = game.lastPoint.id;
+                        mostrarCelebracaoPonto(game.lastPoint.nome, game.lastPoint.emoji);
+                    }
                     if(!game.matchStartScores && game.scoreA === 0 && game.scoreB === 0) capturarScoreInicialPartida();
                     render();
                 }
@@ -669,7 +791,74 @@
                         await remove(ref(db, `solicitacoes_desbloqueio/${shortId}/${instanceId}/${requestId}`));
                     }
                 });
+                iniciarListenerNotificacoesAdmin();
             }
+        };
+
+        function iniciarListenerNotificacoesAdmin() {
+            if (!isAdmin || !currentShortId || !currentInstanceId || isHistoricalView) return;
+            if (unsubscribeAdminNotifications) unsubscribeAdminNotifications();
+            const nRef = ref(db, `notificacoes_admin/${currentShortId}/${currentInstanceId}`);
+            unsubscribeAdminNotifications = onValue(nRef, (snap) => {
+                adminNotifications = snap.exists() ? (snap.val() || {}) : {};
+                renderAdminNotifications();
+            });
+        }
+
+        function renderAdminNotifications() {
+            const list = Object.entries(adminNotifications || {}).sort((a,b) => (b[1]?.timestamp||0) - (a[1]?.timestamp||0));
+            const pending = list.filter(([_,n]) => n?.status === 'pending');
+            document.getElementById('adminNotifCount').innerText = pending.length;
+            const c = document.getElementById('adminNotificationsList');
+            if (!list.length) {
+                c.innerHTML = '<div class="text-center text-slate-500 text-xs italic py-6">Nenhuma notificação.</div>';
+                return;
+            }
+            c.innerHTML = list.map(([id,n]) => {
+                const pend = n?.status === 'pending';
+                const when = n?.timestamp ? new Date(n.timestamp).toLocaleString('pt-BR') : '';
+                if (n?.tipo === 'bloqueio_solicitado') {
+                    return `<div class="bg-slate-900/70 p-3 rounded-xl border border-slate-700 ${pend ? 'notification-pending' : 'notification-done'}">
+                        <div class="text-xs font-black uppercase text-white">${escapeHtml(n.nome || 'Jogador')}</div>
+                        <div class="text-[9px] text-slate-400 mt-1">${pend ? 'Solicitação de bloqueio aguardando aprovação.' : `Status: ${escapeHtml(n.status || '')}`}</div>
+                        <div class="text-[8px] text-slate-600 mt-1">${when}</div>
+                        ${pend ? `<div class="flex gap-2 mt-3">
+                            <button onclick='window.aprovarBloqueio(${JSON.stringify(id)})' class="flex-1 bg-red-600 hover:bg-red-500 py-2 rounded-lg text-[9px] font-black uppercase">Bloquear</button>
+                            <button onclick='window.recusarBloqueio(${JSON.stringify(id)})' class="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-lg text-[9px] font-black uppercase">Recusar</button>
+                        </div>` : ''}
+                    </div>`;
+                }
+                return `<div class="bg-slate-900/70 p-3 rounded-xl border border-slate-700 notification-done"><div class="text-xs font-black uppercase text-white">${escapeHtml(n.nome || 'Notificação')}</div><div class="text-[9px] text-slate-400 mt-1">${escapeHtml(n.status || '')}</div></div>`;
+            }).join('');
+        }
+
+        window.abrirNotificacoesAdmin = () => {
+            if (!isAdmin) return;
+            renderAdminNotifications();
+            document.getElementById('modalAdminNotificacoes').classList.remove('hidden');
+        };
+
+        window.aprovarBloqueio = async (notificationId) => {
+            if (!isAdmin || !currentInstanceId) return;
+            const n = adminNotifications?.[notificationId];
+            if (!n || n.status !== 'pending') return;
+            const info = localizarJogador(n.nome);
+            if (!info || !info.p) return customAlert('Jogador não encontrado nesta sessão.');
+            try {
+                info.p.bloqueado = true;
+                await set(gameRef, game);
+                await set(ref(db, `notificacoes_admin/${currentShortId}/${currentInstanceId}/${notificationId}/status`), 'approved');
+                customAlert(`${n.nome} foi bloqueado.`);
+            } catch(e) {
+                customAlert('Não foi possível aprovar o bloqueio.');
+            }
+        };
+
+        window.recusarBloqueio = async (notificationId) => {
+            if (!isAdmin || !currentInstanceId) return;
+            const n = adminNotifications?.[notificationId];
+            if (!n || n.status !== 'pending') return;
+            await set(ref(db, `notificacoes_admin/${currentShortId}/${currentInstanceId}/${notificationId}/status`), 'rejected');
         };
 
         function reposicionarJogadorNaFila(p) {
@@ -694,42 +883,98 @@
             }
         }
 
-        window.acaoMeuPerfil = () => {
-            if (guestIdentificadoNesteEvento()) {
-                return window.abrirPerfilJogador(meuNome);
-            }
+        function preencherListaIdentificacao() {
             const bj = game.baseJogadores || {};
-            const list = [];
-            Object.keys(bj).forEach(n => {
+            const list = Object.keys(bj).map(n => {
                 const p = (game.esperaGeral||[]).find(x=>x.nome===n) || (game.esperaEstrela||[]).find(x=>x.nome===n) || (game.timeA||[]).find(x=>x.nome===n) || (game.timeB||[]).find(x=>x.nome===n);
-                const isBlocked = p && p.bloqueado ? ' (Bloqueado)' : '';
-                list.push({ n, text: `${n}${isBlocked}` });
-            });
-            list.sort((a,b) => a.n.localeCompare(b.n));
-            const opt = `<option value="" disabled selected>- Selecione seu nome -</option>` + list.map(x => `<option value="${x.n}">${x.text}</option>`).join('');
+                return { n, bloqueado: !!p?.bloqueado };
+            }).sort((a,b)=>a.n.localeCompare(b.n));
+            const current = guestIdentificadoNesteEvento() ? meuNome : '';
+            const opt = `<option value="" disabled ${current ? '' : 'selected'}>- Selecione um jogador -</option>` +
+                list.map(x => `<option value="${escapeHtml(x.n)}" ${x.n===current ? 'selected' : ''}>${escapeHtml(x.n)}${x.bloqueado ? ' (Bloqueado)' : ''}</option>`).join('');
             document.getElementById('selMeuNome').innerHTML = opt;
+            atualizarIdentificacaoPreview();
+        }
+
+        window.acaoMeuPerfil = () => {
+            if (isHistoricalView) return guestIdentificadoNesteEvento() ? window.abrirPerfilJogador(meuNome) : null;
+            preencherListaIdentificacao();
             document.getElementById('modalIdentificacao').classList.remove('hidden');
         };
 
-        window.salvarIdentificacao = async (desbloquear = false) => { 
-            const val = document.getElementById('selMeuNome').value; 
-            if (!val) return customAlert("Selecione um nome na lista!");
-            meuNome = val; 
+        window.atualizarIdentificacaoPreview = () => {
+            const val = document.getElementById('selMeuNome')?.value;
+            const status = document.getElementById('identificacaoStatus');
+            const statsEl = document.getElementById('identificacaoStats');
+            const duplaEl = document.getElementById('identificacaoDupla');
+            const elogiosEl = document.getElementById('identificacaoElogios');
+            const badges = document.getElementById('identificacaoBadges');
+            const btnAcao = document.getElementById('btnIdentAcao');
+            if (!val) {
+                status.innerText = 'Selecione um jogador para visualizar os status.';
+                statsEl.innerHTML = '';
+                duplaEl.innerHTML = '';
+                elogiosEl.innerHTML = '';
+                badges.innerHTML = '';
+                btnAcao.innerText = 'Desbloquear';
+                btnAcao.onclick = () => window.salvarIdentificacao('desbloquear');
+                return;
+            }
+            const info = localizarJogador(val);
+            const s = game.ranking?.[val] || {};
+            const jogos = (s.v||0) + (s.d||0);
+            const dupla = calcularMelhorDupla(val);
+            status.innerHTML = `<span class="text-white">${escapeHtml(val)}</span> · <span class="${info?.p?.bloqueado ? 'text-red-400' : 'text-emerald-400'}">${info?.p?.bloqueado ? 'BLOQUEADO' : 'LIBERADO'}</span>`;
+            statsEl.innerHTML = `<div class="bg-slate-900 rounded-lg p-2"><span class="block text-slate-600 uppercase font-bold">Score</span><strong class="text-orange-400 text-lg">${calcularScoreComPesos(s)}</strong></div><div class="bg-slate-900 rounded-lg p-2"><span class="block text-slate-600 uppercase font-bold">Partidas</span><strong class="text-white">${jogos}</strong></div><div class="bg-slate-900 rounded-lg p-2"><span class="block text-slate-600 uppercase font-bold">Vitórias</span><strong class="text-white">${s.v||0}</strong></div><div class="bg-slate-900 rounded-lg p-2"><span class="block text-slate-600 uppercase font-bold">Ataques / Bloq. / Aces</span><strong class="text-white">${s.ptsAtaque||0} / ${s.ptsBloqueio||0} / ${s.ptsAce||0}</strong></div>`;
+            duplaEl.innerHTML = dupla ? `Melhor dupla: <strong class="text-white">${escapeHtml(dupla.n)}</strong> · ${dupla.vitorias} vitória(s) em ${dupla.jogos} partida(s)` : 'Melhor dupla: nenhuma registrada nesta sessão.';
+            const elogios = formatarElogios(val);
+            elogiosEl.innerHTML = elogios ? `<span class="text-[8px] uppercase font-black text-slate-600 mr-2">Elogios</span>${elogios}` : '<span class="text-[8px] uppercase font-black text-slate-600">Elogios: nenhum</span>';
+            badges.innerHTML = `<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-600 block mb-1">Insígnias</span>${renderBadgesJogador(val) || '<span class="text-[8px] text-slate-600 uppercase font-bold">Nenhuma</span>'}</div>`;
+            if (info?.p?.bloqueado) {
+                btnAcao.innerText = 'Desbloquear';
+                btnAcao.className = 'bg-emerald-600 hover:bg-emerald-500 p-3 rounded-xl font-black uppercase text-[9px] shadow-lg transition text-white';
+                btnAcao.onclick = () => window.salvarIdentificacao('desbloquear');
+            } else {
+                btnAcao.innerText = 'Bloquear';
+                btnAcao.className = 'bg-red-600 hover:bg-red-500 p-3 rounded-xl font-black uppercase text-[9px] shadow-lg transition text-white';
+                btnAcao.onclick = () => window.salvarIdentificacao('bloquear');
+            }
+        };
+
+        window.sairDaIdentificacao = () => {
+            meuNome = '';
+            meuNomeEvento = '';
+            localStorage.removeItem('voleihub_meunome');
+            localStorage.removeItem('voleihub_meuevento');
+            atualizarBotaoMeuPerfil();
+            renderMyTrophies();
+            window.fecharModais();
+            render();
+            customAlert('Identificação encerrada.');
+        };
+
+        window.salvarIdentificacao = async (acao = 'visualizar') => {
+            const val = document.getElementById('selMeuNome').value;
+            if (!val) return customAlert('Selecione um jogador.');
+            meuNome = val;
             meuNomeEvento = currentInstanceId || '';
             localStorage.setItem('voleihub_meunome', meuNome);
             localStorage.setItem('voleihub_meuevento', meuNomeEvento);
+            try { await garantirGuestAnonimo(); } catch (e) {}
 
-            try { await garantirGuestAnonimo(); } catch (e) {
-                console.warn('Autenticação anônima indisponível; o perfil continuará em modo de visualização.', e);
-            }
-
-            window.fecharModais(); 
-            renderMyTrophies(); 
-            render();
-            if (desbloquear) {
+            if (acao === 'desbloquear') {
                 await window.desbloquearJogadorGuest(val, true);
                 return;
             }
+
+            if (acao === 'bloquear') {
+                await window.enviarSolicitacaoBloqueio(val);
+                return;
+            }
+
+            window.fecharModais();
+            renderMyTrophies();
+            render();
             window.abrirPerfilJogador(val);
         };
 
@@ -749,7 +994,9 @@
                 salvarState(true); 
             }
             meuNome = n; 
+            meuNomeEvento = currentInstanceId || '';
             localStorage.setItem('voleihub_meunome', meuNome); 
+            localStorage.setItem('voleihub_meuevento', meuNomeEvento);
             window.fecharModais(); 
             renderMyTrophies(); 
             render(); 
@@ -859,10 +1106,15 @@
         window.encerrarEventoAtivo = async () => { 
             if(!currentInstanceId) return; 
             window.customConfirm(`Deseja ENCERRAR o evento? O Hall da Fama será gravado nas insígneas.`, async () => { 
-                await computarESalvarInsigneas(); 
+                await computarESalvarInsigneas();
+                game.partidaAtiva = false;
+                await set(ref(db, `partida/${currentInstanceId}`), game);
                 await set(ref(db, `listaEventos/${currentInstanceId}/isClosed`), true); 
                 await remove(ref(db, `eventos_ativos/${currentShortId}`)); 
-                if(unsubscribeListener) unsubscribeListener(); 
+                if(unsubscribeListener) unsubscribeListener();
+                if(unsubscribeAdminNotifications) { unsubscribeAdminNotifications(); unsubscribeAdminNotifications = null; }
+                document.getElementById('placarDisplay').classList.add('hidden');
+                window.fecharModais(); 
                 currentShortId = null; currentInstanceId = null; gameRef = null; 
                 document.getElementById('splashScreen').style.display = 'flex'; 
                 document.getElementById('mainAppContent').style.display = 'none'; 
@@ -937,10 +1189,14 @@
             } 
         };
         
-        window.abrirModalListaSessoes = () => { 
-            if(currentShortId) document.getElementById('buscaHistoricoInput').value = currentShortId; 
+        window.abrirModalListaSessoes = (shortId = null) => { 
+            const id = shortId || currentShortId;
+            if (id) document.getElementById('buscaHistoricoInput').value = id;
+            document.getElementById('listaSessoesDisponiveis').innerHTML = '';
+            document.getElementById('listaSessoesDisponiveis').classList.add('hidden');
+            document.getElementById('acoesSessaoHistorico').classList.add('hidden');
             document.getElementById('modalSessoesAnteriores').classList.remove('hidden'); 
-            if(currentShortId) window.buscarHistoricoPorId(); 
+            if (id) window.buscarHistoricoPorId(); 
         };
 
         window.carregarFiltroPersonalizado = async () => { 
@@ -1159,7 +1415,17 @@
         };
 
         window.abrirHistoricoModal = () => { 
-            document.getElementById('listaHistoricoContainer').innerHTML = (game.historicoPartidas||[]).map(p=>`<div class="bg-slate-700/40 p-3 rounded-xl border border-slate-600 mb-2 cursor-pointer" onclick="window.abrirDetalhePartida(${p.id})"><div class="flex justify-between mb-1"><span class="text-[9px] font-black uppercase rounded ${p.vencedor==='A'?'text-blue-400':'text-orange-400'}">Vitória ${p.vencedor}</span><span class="text-xl font-black">${p.scoreA} x${p.scoreB}</span></div><div class="text-[8px] text-emerald-400 font-black uppercase text-center mb-2">Score inicial: ${Number(p.teamScoreAInicio || 0).toFixed(2)} x ${Number(p.teamScoreBInicio || 0).toFixed(2)}</div><div class="flex justify-between text-[8px] font-bold text-slate-400"><div class="w-1/2">${(p.timeA||[]).join(', ')}</div><div class="w-1/2 text-right border-l border-slate-600 pl-1">${(p.timeB||[]).join(', ')}</div></div></div>`).join(''); 
+            const partidas = game.historicoPartidas || [];
+            document.getElementById('listaHistoricoContainer').innerHTML = partidas.length
+                ? partidas.map((p, idx)=>`<div class="bg-slate-700/40 p-3 rounded-xl border border-slate-600 mb-2 cursor-pointer hover:bg-slate-700/70" onclick="window.abrirDetalhePartida(${p.id})">
+                    <div class="flex justify-between mb-1"><span class="text-[9px] font-black uppercase ${p.vencedor==='A'?'text-blue-400':'text-orange-400'}">Partida ${partidas.length-idx} · Vitória ${p.vencedor}</span><span class="text-xl font-black">${p.scoreA} x ${p.scoreB}</span></div>
+                    <div class="text-[8px] text-emerald-400 font-black uppercase text-center mb-2">Score dos times no início: ${Number(p.teamScoreAInicio || 0).toFixed(2)} x ${Number(p.teamScoreBInicio || 0).toFixed(2)}</div>
+                    <div class="grid grid-cols-2 gap-2 text-[8px] font-bold text-slate-400">
+                        <div><div class="text-blue-400 uppercase mb-1">Time A</div>${escapeHtml((p.timeA||[]).join(', '))}</div>
+                        <div class="border-l border-slate-600 pl-2"><div class="text-orange-400 uppercase mb-1">Time B</div>${escapeHtml((p.timeB||[]).join(', '))}</div>
+                    </div>
+                </div>`).join('')
+                : '<div class="text-center text-slate-500 text-xs italic py-6">Nenhuma partida encerrada nesta sessão.</div>'; 
             document.getElementById('modalHistorico').classList.remove('hidden'); 
         }; 
         
@@ -1205,7 +1471,7 @@
                 const stats = game.ranking?.[jogador.nome];
                 return sum + (stats ? parseFloat(calcularScoreComPesos(stats)) : 0);
             }, 0);
-            return total / 4;
+            return lista.length ? total / lista.length : 0;
         }
 
         function capturarScoreInicialPartida(forcar = false) {
@@ -1539,12 +1805,34 @@
             }
         };
 
+        function calcularMelhorDupla(nome) {
+            const pares = {};
+            (game.historicoPartidas || []).forEach(partida => {
+                const lado = (partida.timeA || []).includes(nome) ? 'A' : ((partida.timeB || []).includes(nome) ? 'B' : null);
+                if (!lado) return;
+                const colegas = lado === 'A' ? (partida.timeA || []) : (partida.timeB || []);
+                const ganhou = partida.vencedor === lado;
+                colegas.filter(n => n !== nome).forEach(colega => {
+                    if(!pares[colega]) pares[colega] = { jogos:0, vitorias:0 };
+                    pares[colega].jogos++;
+                    if(ganhou) pares[colega].vitorias++;
+                });
+            });
+            const lista = Object.entries(pares).map(([n,s]) => ({ n, ...s, score: parseFloat(calcularScoreComPesos(game.ranking?.[n] || {})) }))
+                .sort((a,b) => b.vitorias - a.vitorias || b.jogos - a.jogos || b.score - a.score || a.n.localeCompare(b.n));
+            return lista[0] || null;
+        }
+
         window.abrirPerfilJogador = (nome) => { 
             if(!nome) return;
             const s = game.ranking?.[nome] || { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime:0, estrela:false, elite:false };
             const info = localizarJogador(nome);
+            const jogos = (s.v || 0) + (s.d || 0);
+            const dupla = calcularMelhorDupla(nome);
+
             document.getElementById('perfilNome').innerText = nome; 
             document.getElementById('pScore').innerText = calcularScoreComPesos(s); 
+            document.getElementById('pJogos').innerText = jogos;
             document.getElementById('pVit').innerText = s.v || 0; 
             document.getElementById('pAtq').innerText = s.ptsAtaque || 0; 
             document.getElementById('pBlq').innerText = s.ptsBloqueio || 0; 
@@ -1554,7 +1842,7 @@
             const actionEl = document.getElementById('perfilGuestAction');
             if(info && info.p) {
                 const badge = info.p.bloqueado ? '🔒 BLOQUEADO' : '✅ LIBERADO';
-                statusEl.innerHTML = `<span class="text-slate-400">${info.local}</span> · <span class="${info.p.bloqueado ? 'text-red-400' : 'text-emerald-400'}">${badge}</span>`;
+                statusEl.innerHTML = `<span class="text-slate-400">${escapeHtml(info.local)}</span> · <span class="${info.p.bloqueado ? 'text-red-400' : 'text-emerald-400'}">${badge}</span>`;
             } else {
                 statusEl.innerText = 'Status não disponível';
             }
@@ -1564,23 +1852,28 @@
             if(!isAdmin && !isHistoricalView && info && info.fila) {
                 actionEl.classList.remove('hidden');
                 if(info.p.bloqueado) {
-                    actionEl.innerHTML = `<button onclick='window.desbloquearJogadorGuest(${JSON.stringify(nome)}, true)' class="w-full bg-emerald-600 hover:bg-emerald-500 p-3 rounded-xl font-black uppercase text-[10px] text-white shadow-lg">🔓 Desbloquear para a quadra</button>`;
+                    actionEl.innerHTML = `<button onclick='window.desbloquearJogadorGuest(${JSON.stringify(nome)}, true)' class="w-full bg-emerald-600 hover:bg-emerald-500 p-3 rounded-xl font-black uppercase text-[10px] text-white shadow-lg">Desbloquear</button>`;
                 } else {
-                    actionEl.innerHTML = `<div class="w-full bg-slate-700/60 border border-slate-600 p-3 rounded-xl text-center font-bold uppercase text-[9px] text-emerald-400">✅ Jogador já liberado para a quadra</div>`;
+                    actionEl.innerHTML = `<button onclick='window.enviarSolicitacaoBloqueio(${JSON.stringify(nome)})' class="w-full bg-red-600 hover:bg-red-500 p-3 rounded-xl font-black uppercase text-[10px] text-white shadow-lg">Bloquear</button>`;
                 }
             }
 
             const bC = document.getElementById('perfilBadges');
-            bC.innerHTML = renderBadgesJogador(nome);
-            bC.classList.toggle('hidden', !bC.innerHTML);
+            bC.innerHTML = `<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Insígnias</span>${renderBadgesJogador(nome) || '<span class="text-[9px] text-slate-600">Nenhuma ainda</span>'}</div>`;
 
             const elogiosHtml = formatarElogios(nome);
             document.getElementById('perfilElogios').innerHTML = elogiosHtml
                 ? `<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Elogios nesta sessão</span><span class="text-lg tracking-wide">${elogiosHtml}</span></div>`
-                : '';
+                : `<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Elogios nesta sessão</span><span class="text-[9px] text-slate-600">Nenhum ainda</span></div>`;
+
+            document.getElementById('perfilMelhorDupla').innerHTML = dupla
+                ? `${escapeHtml(dupla.n)} <span class="text-slate-500 font-bold">· ${dupla.vitorias} vitória(s) em ${dupla.jogos} partida(s) juntos</span>`
+                : 'Nenhuma dupla registrada nesta sessão.';
 
             const rBox = document.getElementById('reactionBox'); 
-            if(guestIdentificadoNesteEvento() && meuNome !== nome && !isHistoricalView) { 
+            const podeElogiar = !isAdmin && !isHistoricalView;
+            const alvoDiferenteDoMeu = !guestIdentificadoNesteEvento() || meuNome !== nome;
+            if(podeElogiar && alvoDiferenteDoMeu) { 
                 rBox.classList.remove('hidden'); 
                 rBox.dataset.target = nome; 
             } else { 
@@ -1591,16 +1884,41 @@
             document.getElementById('modalPerfilJogador').classList.remove('hidden'); 
         };
 
+        window.enviarSolicitacaoBloqueio = async (nome) => {
+            if(isAdmin || isHistoricalView || !currentInstanceId) return;
+            try {
+                const u = await garantirGuestAnonimo();
+                const uid = u?.uid || auth.currentUser?.uid;
+                if(!uid) throw new Error('guest-auth-missing');
+                const requestId = `${Date.now()}_${uid}_${Math.random().toString(36).slice(2,7)}`;
+                await set(ref(db, `notificacoes_admin/${currentShortId}/${currentInstanceId}/${requestId}`), {
+                    tipo: 'bloqueio_solicitado',
+                    nome,
+                    requesterUid: uid,
+                    status: 'pending',
+                    timestamp: Date.now()
+                });
+                window.fecharModais();
+                customAlert('Solicitação de bloqueio enviada ao administrador para aprovação.');
+            } catch(e) {
+                customAlert('Não foi possível enviar a solicitação de bloqueio.');
+            }
+        };
+
         window.enviarElogio = async (emoji) => { 
-            if(!guestIdentificadoNesteEvento() || !currentInstanceId) return customAlert('Identifique-se primeiro para enviar um elogio.');
+            if(isAdmin || isHistoricalView || !currentInstanceId) return;
             const target = document.getElementById('reactionBox').dataset.target;
-            if(!target || target === meuNome) return;
+            if(!target) return;
+            if(guestIdentificadoNesteEvento() && target === meuNome) return customAlert('Você não pode enviar elogio para si mesmo.');
             try {
                 await garantirGuestAnonimo();
                 const uid = auth.currentUser?.uid;
                 if(!uid) throw new Error('guest-auth-missing');
-                await set(ref(db, `partida/${currentInstanceId}/elogios/${target}/${uid}`), emoji);
-                customAlert(`Você reagiu a ${target} com ${emoji}!`);
+                const elogioRef = ref(db, `partida/${currentInstanceId}/elogios/${target}/${uid}`);
+                const existing = await get(elogioRef);
+                if(existing.exists()) return customAlert('Você já enviou um elogio para este jogador nesta sessão.');
+                await set(elogioRef, emoji);
+                customAlert(`Elogio enviado para ${target}!`);
                 window.fecharModais();
             } catch(e) {
                 customAlert('Não foi possível enviar o elogio. Verifique a permissão de convidados para elogios no Firebase.');
@@ -1644,7 +1962,7 @@
                 : '<div class="text-center text-slate-500 italic py-2">Histórico vazio...</div>'; 
                 
             const placarDiv = document.getElementById('placarDisplay'); 
-            if (game.config.hideScoreboard) placarDiv.classList.add('hidden'); 
+            if (isHistoricalView || !game.partidaAtiva || game.config.hideScoreboard) placarDiv.classList.add('hidden'); 
             else placarDiv.classList.remove('hidden'); 
             
             document.getElementById('scoreA').innerText = game.scoreA || 0; 
@@ -1698,7 +2016,7 @@
             if (!isAdmin) { visitorControls.style.display = 'flex'; } 
             else { visitorControls.style.display = 'none'; } 
             renderMyTrophies();
-            if(!guestIdentificadoNesteEvento()) { const rb = document.getElementById('reactionBox'); rb.classList.add('hidden'); rb.dataset.target=''; }
+            if(isAdmin || isHistoricalView) { const rb = document.getElementById('reactionBox'); rb.classList.add('hidden'); rb.dataset.target=''; }
             atualizarBotaoMeuPerfil();
         }
 
