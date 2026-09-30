@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V4.2.0</title>
+    <title>Vôlei Hub PRO - V4.0.0</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -72,7 +72,7 @@
         <div id="splashGuestPanel" class="w-full max-w-xs mt-8">
             <p class="text-[10px] text-slate-400 uppercase font-bold text-center mb-2">Informe o ID do evento para entrar:</p>
             <div class="flex gap-2 px-4 mb-8">
-                <input type="text" id="idSplashInput" maxlength="8" class="config-input h-12 uppercase text-center flex-1 text-lg">
+                <input type="text" id="idSplashInput" placeholder="ID (ex: ABC12)" maxlength="8" class="config-input h-12 uppercase text-center flex-1 text-lg">
                 <button onclick="window.entrarComoVisitante()" class="bg-blue-600 px-6 rounded-xl font-black uppercase shadow-lg text-xs hover:bg-blue-500 transition">Entrar</button>
             </div>
             <button onclick="window.abrirModalAdminMenu()" class="text-[10px] text-slate-500 font-bold uppercase hover:text-slate-400 transition underline underline-offset-4">Acesso Administrador</button>
@@ -295,8 +295,8 @@
     <div id="modalNovoEvento" class="modal-global hidden" style="z-index: 3001;">
         <div class="bg-slate-800 w-full max-w-sm rounded-3xl p-6 border border-emerald-500">
             <h2 class="text-xl font-black text-emerald-400 uppercase mb-4 italic">Novo Evento</h2>
-            <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">ID do Evento:</label>
-            <input type="text" id="idNovoEvento" maxlength="8" class="config-input mb-3 h-12 text-sm uppercase">
+            <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">ID Curto do Evento (Até 8 chars):</label>
+            <input type="text" id="idNovoEvento" maxlength="8" placeholder="Ex: ABC12" class="config-input mb-3 h-12 text-sm uppercase">
             <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Nome do Evento:</label>
             <input type="text" id="nomeNovoEvento" placeholder="Ex: Vôlei de Sábado" class="config-input mb-6 h-12 text-sm">
             <button onclick="window.criarNovoEvento()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-4 rounded-xl uppercase text-xs font-black text-white shadow-lg mb-2 mt-4">Criar e Iniciar</button>
@@ -384,9 +384,30 @@
         <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-blue-500">
             <h2 class="text-xl font-black text-blue-400 uppercase mb-4 italic">Pesos</h2>
             <div class="space-y-4">
-                <div><h4 class="text-[10px] font-black text-slate-500 uppercase mb-1">Geral</h4><div class="grid grid-cols-3 gap-2"><div><label class="text-[8px] font-bold">Atq</label><input type="number" step="0.25" id="wAtqG" class="config-input"></div><div><label class="text-[8px] font-bold">Blq</label><input type="number" step="0.25" id="wBlqG" class="config-input"></div><div><label class="text-[8px] font-bold">Ace</label><input type="number" step="0.25" id="wAceG" class="config-input"></div></div></div>
-                <div><h4 class="text-[10px] font-black text-orange-500 uppercase mb-1">Estrela</h4><div class="grid grid-cols-3 gap-2"><div><label class="text-[8px] font-bold">Atq</label><input type="number" step="0.25" id="wAtqE" class="config-input"></div><div><label class="text-[8px] font-bold">Blq</label><input type="number" step="0.25" id="wBlqE" class="config-input"></div><div><label class="text-[8px] font-bold">Ace</label><input type="number" step="0.25" id="wAceE" class="config-input"></div></div></div>
-                <div><h4 class="text-[10px] font-black text-emerald-500 uppercase mb-1">Global</h4><div class="grid grid-cols-3 gap-2"><div><label class="text-[8px] font-bold">Err Adv</label><input type="number" step="0.05" id="wErr" class="config-input"></div><div><label class="text-[8px] font-bold">Vitória</label><input type="number" step="0.5" id="wVit" class="config-input"></div><div><label class="text-[8px] font-bold">Time</label><input type="number" step="0.05" id="wTeam" class="config-input"></div></div></div>
+                <div>
+                    <h4 class="text-[10px] font-black text-slate-500 uppercase mb-1">Geral</h4>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div><label class="text-[8px] font-bold">Atq</label><input type="number" step="0.25" id="wAtqG" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Blq</label><input type="number" step="0.25" id="wBlqG" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Ace</label><input type="number" step="0.25" id="wAceG" class="config-input"></div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-[10px] font-black text-orange-500 uppercase mb-1">Estrela</h4>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div><label class="text-[8px] font-bold">Atq</label><input type="number" step="0.25" id="wAtqE" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Blq</label><input type="number" step="0.25" id="wBlqE" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Ace</label><input type="number" step="0.25" id="wAceE" class="config-input"></div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-[10px] font-black text-emerald-500 uppercase mb-1">Global</h4>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div><label class="text-[8px] font-bold">Err Adv</label><input type="number" step="0.05" id="wErr" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Vitória</label><input type="number" step="0.5" id="wVit" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Time</label><input type="number" step="0.05" id="wTeam" class="config-input"></div>
+                    </div>
+                </div>
             </div>
             <button onclick="window.salvarWeightsEClose()" class="w-full bg-blue-600 p-4 rounded-xl font-black uppercase mt-4">Aplicar</button>
         </div>
@@ -426,11 +447,17 @@
         <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-emerald-500 overflow-y-auto max-h-[90vh]">
             <h2 class="text-lg font-black text-emerald-400 uppercase mb-4 italic">Filtro Personalizado</h2>
             <div class="mb-4 bg-slate-900/50 p-3 rounded-xl border border-slate-700">
-                <div class="flex justify-between items-center mb-2"><span class="text-xs font-bold uppercase text-slate-400">1. Selecionar Sessões:</span><button onclick="window.toggleCheckboxes('chkSessao'); window.atualizarJogadoresFiltro();" class="text-[9px] bg-slate-700 px-2 py-1 rounded">Marcar Todas</button></div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-bold uppercase text-slate-400">1. Selecionar Sessões:</span>
+                    <button onclick="window.toggleCheckboxes('chkSessao'); window.atualizarJogadoresFiltro();" class="text-[9px] bg-slate-700 px-2 py-1 rounded">Marcar Todas</button>
+                </div>
                 <div id="filtroSessoesList" class="space-y-1 max-h-24 overflow-y-auto text-xs"></div>
             </div>
             <div class="mb-6 bg-slate-900/50 p-3 rounded-xl border border-slate-700">
-                <div class="flex justify-between items-center mb-2"><span class="text-xs font-bold uppercase text-slate-400">2. Selecionar Jogadores:</span><button onclick="window.toggleCheckboxes('chkJogador')" class="text-[9px] bg-slate-700 px-2 py-1 rounded">Marcar Todos</button></div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-bold uppercase text-slate-400">2. Selecionar Jogadores:</span>
+                    <button onclick="window.toggleCheckboxes('chkJogador')" class="text-[9px] bg-slate-700 px-2 py-1 rounded">Marcar Todos</button>
+                </div>
                 <p class="text-[9px] text-slate-500 mb-2 italic">A lista abaixo oculta jogadores com 0 partidas na sessão.</p>
                 <div id="filtroJogadoresList" class="grid grid-cols-2 gap-1 max-h-32 overflow-y-auto text-[10px]"></div>
             </div>
@@ -465,8 +492,14 @@
                 <button onclick="window.fecharModais()" class="text-slate-400 text-3xl font-light">&times;</button>
             </div>
             <div class="grid grid-cols-2 gap-4 mb-4 admin-only-control">
-                <div class="space-y-2"><button onclick="window.escalarParaTime('A')" class="w-full bg-blue-600 p-3 rounded-xl font-black uppercase text-[10px]">Entrar A</button><div id="subsA" class="space-y-1"></div></div>
-                <div class="space-y-2"><button onclick="window.escalarParaTime('B')" class="w-full bg-orange-600 p-3 rounded-xl font-black uppercase text-[10px]">Entrar B</button><div id="subsB" class="space-y-1"></div></div>
+                <div class="space-y-2">
+                    <button onclick="window.escalarParaTime('A')" class="w-full bg-blue-600 p-3 rounded-xl font-black uppercase text-[10px]">Entrar A</button>
+                    <div id="subsA" class="space-y-1"></div>
+                </div>
+                <div class="space-y-2">
+                    <button onclick="window.escalarParaTime('B')" class="w-full bg-orange-600 p-3 rounded-xl font-black uppercase text-[10px]">Entrar B</button>
+                    <div id="subsB" class="space-y-1"></div>
+                </div>
             </div>
             <button id="btnStatusBloqueio" class="w-full bg-slate-700 p-3 rounded-xl font-black uppercase text-xs mb-2">---</button>
             <button onclick="window.fecharModais()" class="w-full bg-slate-700 p-3 rounded-xl uppercase text-xs font-black">Voltar</button>
@@ -481,9 +514,15 @@
             </div>
             <div class="grid grid-cols-1 gap-3">
                 <div class="admin-only-control space-y-3">
-                    <button onclick="window.registrarAcaoJogador('ataque')" class="w-full bg-slate-700 p-4 rounded-2xl font-bold uppercase text-xs flex justify-between italic"><span>💥 Ponto de Ataque</span><span id="labelAtq" class="text-orange-500"></span></button>
-                    <button onclick="window.registrarAcaoJogador('bloqueio')" class="w-full bg-slate-700 p-4 rounded-2xl font-bold uppercase text-xs flex justify-between italic"><span>🚫 Ponto de Bloqueio</span><span id="labelBlq" class="text-orange-500"></span></button>
-                    <button id="btnAceTec" onclick="window.registrarAcaoJogador('saque')" class="w-full bg-orange-600 p-4 rounded-2xl font-black uppercase text-xs flex justify-between italic"><span>⚡ Ace de Saque</span><span id="labelAce"></span></button>
+                    <button onclick="window.registrarAcaoJogador('ataque')" class="w-full bg-slate-700 p-4 rounded-2xl font-bold uppercase text-xs flex justify-between italic">
+                        <span>💥 Ponto de Ataque</span><span id="labelAtq" class="text-orange-500"></span>
+                    </button>
+                    <button onclick="window.registrarAcaoJogador('bloqueio')" class="w-full bg-slate-700 p-4 rounded-2xl font-bold uppercase text-xs flex justify-between italic">
+                        <span>🚫 Ponto de Bloqueio</span><span id="labelBlq" class="text-orange-500"></span>
+                    </button>
+                    <button id="btnAceTec" onclick="window.registrarAcaoJogador('saque')" class="w-full bg-orange-600 p-4 rounded-2xl font-black uppercase text-xs flex justify-between italic">
+                        <span>⚡ Ace de Saque</span><span id="labelAce"></span>
+                    </button>
                     
                     <div class="grid grid-cols-2 gap-3 mt-2 pt-2 border-t border-slate-700">
                         <button onclick="window.definirSacadorManual()" class="bg-blue-900/40 text-blue-400 p-3 rounded-xl font-bold uppercase text-[10px] border border-blue-900/30">Definir Sacador</button>
@@ -497,7 +536,10 @@
     
     <div id="modalDetalhePartida" class="modal-global hidden" style="z-index: 2200;">
         <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-blue-500 overflow-y-auto max-h-[90vh]">
-            <div class="flex justify-between items-center mb-6"><h2 class="text-lg font-black text-blue-400 uppercase italic">Detalhes da Partida</h2><button onclick="document.getElementById('modalDetalhePartida').classList.add('hidden')" class="text-slate-400 text-3xl font-light">&times;</button></div>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-black text-blue-400 uppercase italic">Detalhes da Partida</h2>
+                <button onclick="document.getElementById('modalDetalhePartida').classList.add('hidden')" class="text-slate-400 text-3xl font-light">&times;</button>
+            </div>
             <div id="detalhePartidaScore" class="flex justify-around items-center bg-slate-900 p-4 rounded-xl mb-4 border border-slate-700"></div>
             <div class="text-[10px] font-black uppercase text-slate-500 mb-2 tracking-widest text-center">Logs da Partida</div>
             <div id="detalhePartidaLog" class="space-y-1 bg-slate-900/50 p-2 rounded-xl border border-slate-700/50 max-h-[250px] overflow-y-auto"></div>
@@ -505,7 +547,7 @@
         </div>
     </div>
 
-    <!-- Scripts (Organizados sem compressão para evitar erros de sintaxe) -->
+    <!-- Scripts formatados para evitar quebras de linha acidentais -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, get, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -533,7 +575,16 @@
         let isHistoricalView = false, globalBadges = {}, sessionEmojis = {}, sessoesFiltradasInfo = [], historicoLocal = [], tempConfig = {};
         let adminNotifications = {}, unsubscribeAdminNotifications = null, lastCelebrationId = null;
         window.sessoesCache = {}; 
-        const badgeMap = { topScore: {i:'🏆', desc:'Top Score'}, matador: {i:'🔥', desc:'Matador'}, paredao: {i:'🚫', desc:'Paredão'}, ace: {i:'⚡', desc:'Ace'}, vitorias: {i:'🥇', desc:'Vitórias'}, second: {i:'🥈', desc:'2º Lugar'}, third: {i:'🥉', desc:'3º Lugar'} };
+        
+        const badgeMap = { 
+            topScore: {i:'🏆', desc:'Top Score'}, 
+            matador: {i:'🔥', desc:'Matador'}, 
+            paredao: {i:'🚫', desc:'Paredão'}, 
+            ace: {i:'⚡', desc:'Ace'}, 
+            vitorias: {i:'🥇', desc:'Vitórias'}, 
+            second: {i:'🥈', desc:'2º Lugar'}, 
+            third: {i:'🥉', desc:'3º Lugar'} 
+        };
 
         // Variáveis de apito (Oscillator)
         let apitoCtx = null, apitoGain = null, apitoOsc1 = null, apitoOsc2 = null;
@@ -581,17 +632,18 @@
                 const emoji = typeof valor === 'string' ? valor : valor?.emoji;
                 if (emoji) contagem[emoji] = (contagem[emoji] || 0) + 1;
             });
-            return Object.entries(contagem)
-                .map(([emoji, qtd]) => `${emoji}${qtd > 1 ? `<span class="text-[8px] align-top ml-0.5">x${qtd}</span>` : ''}`)
-                .join(' ');
+            return Object.entries(contagem).map(([emoji, qtd]) => {
+                return `${emoji}${qtd > 1 ? `<span class="text-[8px] align-top ml-0.5">x${qtd}</span>` : ''}`;
+            }).join(' ');
         }
 
         function renderBadgesJogador(nome) {
             const pB = globalBadges?.[nome] || {};
             return Object.entries(badgeMap)
                 .filter(([key]) => Number(pB[key] || 0) > 0)
-                .map(([key, b]) => `<span class="badge-icon">${b.i}${b.desc} <span class="text-white ml-1">x${Number(pB[key])}</span></span>`)
-                .join('');
+                .map(([key, b]) => {
+                    return `<span class="badge-icon">${b.i}${b.desc} <span class="text-white ml-1">x${Number(pB[key])}</span></span>`;
+                }).join('');
         }
         
         function getFormattedDate() { 
@@ -604,7 +656,9 @@
         };
 
         function escapeHtml(value) {
-            return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+            return String(value ?? '').replace(/[&<>"']/g, ch => {
+                return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];
+            });
         }
 
         function jogadorDoPonto(lado) {
@@ -623,9 +677,17 @@
             const rain = document.getElementById('celebrationRain');
             document.getElementById('celebrationName').innerText = `${nome}!`;
             document.getElementById('celebrationMainEmoji').innerText = emoji || '🏐';
+            
             const emojis = ['🏐','🔥','🚫','⚡','🙌','💥','🏐','🚀','👏','🏐','✨','💪','🎯','🏐','🔥','🙌','🚫','⚡'];
             const positions = [4,11,18,25,32,39,46,53,60,67,74,81,88,15,45,75,30,90];
-            rain.innerHTML = emojis.map((e,i) => `<span class="celebration-float" style="left:${positions[i]}%;animation-delay:${(i\%6)*45}ms">${e}</span>`).join('');
+            
+            let htmlParts = [];
+            for (let i = 0; i < emojis.length; i++) {
+                const delay = (i % 6) * 45;
+                htmlParts.push(`<span class="celebration-float" style="left:${positions[i]}%;animation-delay:${delay}ms">${emojis[i]}</span>`);
+            }
+            rain.innerHTML = htmlParts.join('');
+            
             box.classList.remove('hidden');
             clearTimeout(window.__celebrationTimer);
             window.__celebrationTimer = setTimeout(() => box.classList.add('hidden'), 1800);
@@ -650,12 +712,15 @@
                 
                 apitoOsc1 = apitoCtx.createOscillator();
                 apitoOsc2 = apitoCtx.createOscillator();
-                apitoOsc1.type = 'triangle'; apitoOsc2.type = 'sine';
+                apitoOsc1.type = 'triangle'; 
+                apitoOsc2.type = 'sine';
                 apitoOsc1.frequency.setValueAtTime(2100, apitoCtx.currentTime);
                 apitoOsc2.frequency.setValueAtTime(3100, apitoCtx.currentTime);
                 
-                apitoOsc1.connect(apitoGain); apitoOsc2.connect(apitoGain);
-                apitoOsc1.start(); apitoOsc2.start();
+                apitoOsc1.connect(apitoGain); 
+                apitoOsc2.connect(apitoGain);
+                apitoOsc1.start(); 
+                apitoOsc2.start();
             } catch(e) { console.warn('Apito indisponível', e); }
         };
 
@@ -711,7 +776,9 @@
         };
         
         window.confirmLoginAdmin = () => { 
-            signInWithEmailAndPassword(auth, document.getElementById('adminEmail').value, document.getElementById('adminSenha').value).then(() => { 
+            const e = document.getElementById('adminEmail').value;
+            const p = document.getElementById('adminSenha').value;
+            signInWithEmailAndPassword(auth, e, p).then(() => { 
                 document.getElementById('modalAdminLogin').classList.add('hidden'); 
             }).catch(() => customAlert("Credenciais inválidas.")); 
         };
@@ -730,6 +797,7 @@
         window.entrarComoVisitante = async () => {
             const shortId = document.getElementById('idSplashInput').value.toUpperCase().trim();
             if(!shortId) return customAlert("Insira um ID de Evento.");
+            
             const snap = await get(ref(db, `eventos_ativos/${shortId}`));
             if (snap.exists()) { 
                 window.joinEvent(shortId, snap.val(), false); 
@@ -753,7 +821,7 @@
             
             lastCelebrationId = null;
             if (!isAdmin) {
-                try { await garantirGuestAnonimo(); } catch(e) { console.warn('Login anônimo indisponível.', e); }
+                try { await garantirGuestAnonimo(); } catch(e) { console.warn('Login anônimo.', e); }
             }
 
             document.getElementById('splashScreen').style.display = 'none'; 
@@ -780,28 +848,29 @@
             if (unsubscribeListener) unsubscribeListener();
             if (unsubscribeUnlockRequests) { unsubscribeUnlockRequests(); unsubscribeUnlockRequests = null; }
             if (meuNomeEvento !== instanceId) meuNome = '';
+            
             gameRef = ref(db, `partida/${instanceId}`);
             unsubscribeListener = onValue(gameRef, (snapshot) => {
                 const data = snapshot.val();
                 if(data) {
                     game = { 
                         ...data, 
-                        timeA: data.timeA||[], 
-                        timeB: data.timeB||[], 
-                        esperaGeral: data.esperaGeral||[], 
-                        esperaEstrela: data.esperaEstrela||[], 
-                        ranking: data.ranking||{}, 
-                        baseJogadores: data.baseJogadores||{}, 
-                        historicoPartidas: data.historicoPartidas||[], 
-                        matchLog: data.matchLog||[], 
-                        config: data.config||{}, 
-                        weights: data.weights||{}, 
-                        scoreA: data.scoreA||0, 
-                        scoreB: data.scoreB||0, 
-                        winsConsecA: data.winsConsecA||0, 
-                        winsConsecB: data.winsConsecB||0, 
-                        idxA: data.idxA||0, 
-                        idxB: data.idxB||0, 
+                        timeA: data.timeA || [], 
+                        timeB: data.timeB || [], 
+                        esperaGeral: data.esperaGeral || [], 
+                        esperaEstrela: data.esperaEstrela || [], 
+                        ranking: data.ranking || {}, 
+                        baseJogadores: data.baseJogadores || {}, 
+                        historicoPartidas: data.historicoPartidas || [], 
+                        matchLog: data.matchLog || [], 
+                        config: data.config || {}, 
+                        weights: data.weights || {}, 
+                        scoreA: data.scoreA || 0, 
+                        scoreB: data.scoreB || 0, 
+                        winsConsecA: data.winsConsecA || 0, 
+                        winsConsecB: data.winsConsecB || 0, 
+                        idxA: data.idxA || 0, 
+                        idxB: data.idxB || 0, 
                         saqueLado: data.saqueLado || 'A',
                         matchStartScores: data.matchStartScores || null,
                         lastPoint: data.lastPoint || null,
@@ -810,11 +879,13 @@
                         systemMsg: data.systemMsg || { text: "PREPARANDO EVENTO", sub: "Aguarde..." } 
                     };
                     sessionEmojis = data.elogios || {};
+                    
                     if(!lastCelebrationId) lastCelebrationId = game.lastPoint?.id || null;
                     else if(!isAdmin && !isHistoricalView && game.lastPoint?.id && game.lastPoint.id !== lastCelebrationId) {
                         lastCelebrationId = game.lastPoint.id;
                         mostrarCelebracaoPonto(game.lastPoint.nome, game.lastPoint.emoji);
                     }
+                    
                     if(!game.matchStartScores && game.scoreA === 0 && game.scoreB === 0) capturarScoreInicialPartida();
                     render();
                 }
@@ -828,6 +899,7 @@
         function iniciarListenerNotificacoesAdmin() {
             if (!isAdmin || !currentShortId || !currentInstanceId || isHistoricalView) return;
             if (unsubscribeAdminNotifications) unsubscribeAdminNotifications();
+            
             const nRef = ref(db, `notificacoes_admin/${currentShortId}/${currentInstanceId}`);
             unsubscribeAdminNotifications = onValue(nRef, (snap) => {
                 adminNotifications = snap.exists() ? (snap.val() || {}) : {};
@@ -838,27 +910,45 @@
         function renderAdminNotifications() {
             const list = Object.entries(adminNotifications || {}).sort((a,b) => (b[1]?.timestamp||0) - (a[1]?.timestamp||0));
             const pending = list.filter(([_,n]) => n?.status === 'pending');
+            
             document.getElementById('adminNotifCount').innerText = pending.length;
             const c = document.getElementById('adminNotificationsList');
+            
             if (!list.length) {
                 c.innerHTML = '<div class="text-center text-slate-500 text-xs italic py-6">Nenhuma notificação.</div>';
                 return;
             }
-            c.innerHTML = list.map(([id,n]) => {
+            
+            let htmlParts = [];
+            for (let [id, n] of list) {
                 const pend = n?.status === 'pending';
                 const when = n?.timestamp ? new Date(n.timestamp).toLocaleString('pt-BR') : '';
+                
                 if (n?.tipo === 'bloqueio_solicitado') {
-                    return `<div class="bg-slate-900/70 p-3 rounded-xl border border-slate-700 ${pend ? 'notification-pending' : 'notification-done'}">
-                        <div class="text-xs font-black uppercase text-white">${escapeHtml(n.nome || 'Jogador')}</div>
-                        <div class="text-[9px] text-slate-400 mt-1">${pend ? 'Solicitação de bloqueio aguardando aprovação.' : `Status: ${escapeHtml(n.status || '')}`}</div>
-                        <div class="text-[8px] text-slate-600 mt-1">${when}</div>${pend ? `<div class="flex gap-2 mt-3">
+                    const statusText = pend ? 'Solicitação de bloqueio aguardando aprovação.' : `Status: ${escapeHtml(n.status || '')}`;
+                    const btnHtml = pend ? `
+                        <div class="flex gap-2 mt-3">
                             <button onclick='window.aprovarBloqueio(${JSON.stringify(id)})' class="flex-1 bg-red-600 hover:bg-red-500 py-2 rounded-lg text-[9px] font-black uppercase">Bloquear</button>
                             <button onclick='window.recusarBloqueio(${JSON.stringify(id)})' class="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-lg text-[9px] font-black uppercase">Recusar</button>
-                        </div>` : ''}
-                    </div>`;
+                        </div>` : '';
+                    
+                    htmlParts.push(`
+                        <div class="bg-slate-900/70 p-3 rounded-xl border border-slate-700 ${pend ? 'notification-pending' : 'notification-done'}">
+                            <div class="text-xs font-black uppercase text-white">${escapeHtml(n.nome || 'Jogador')}</div>
+                            <div class="text-[9px] text-slate-400 mt-1">${statusText}</div>
+                            <div class="text-[8px] text-slate-600 mt-1">${when}</div>${btnHtml}
+                        </div>
+                    `);
+                } else {
+                    htmlParts.push(`
+                        <div class="bg-slate-900/70 p-3 rounded-xl border border-slate-700 notification-done">
+                            <div class="text-xs font-black uppercase text-white">${escapeHtml(n.nome || 'Notificação')}</div>
+                            <div class="text-[9px] text-slate-400 mt-1">${escapeHtml(n.status || '')}</div>
+                        </div>
+                    `);
                 }
-                return `<div class="bg-slate-900/70 p-3 rounded-xl border border-slate-700 notification-done"><div class="text-xs font-black uppercase text-white">${escapeHtml(n.nome || 'Notificação')}</div><div class="text-[9px] text-slate-400 mt-1">${escapeHtml(n.status || '')}</div></div>`;
-            }).join('');
+            }
+            c.innerHTML = htmlParts.join('');
         }
 
         window.abrirNotificacoesAdmin = () => {
@@ -876,7 +966,6 @@
             try {
                 info.p.bloqueado = true;
                 await set(gameRef, game);
-                // Remove notification to avoid Permission Denied on /status
                 await remove(ref(db, `notificacoes_admin/${currentShortId}/${currentInstanceId}/${notificationId}`));
                 customAlert(`${n.nome} foi bloqueado.`);
             } catch(e) {
@@ -921,10 +1010,17 @@
                 const p = (game.esperaGeral||[]).find(x=>x.nome===n) || (game.esperaEstrela||[]).find(x=>x.nome===n) || (game.timeA||[]).find(x=>x.nome===n) || (game.timeB||[]).find(x=>x.nome===n);
                 return { n, bloqueado: !!p?.bloqueado };
             }).sort((a,b)=>a.n.localeCompare(b.n));
+            
             const current = guestIdentificadoNesteEvento() ? meuNome : '';
-            const opt = `<option value="" disabled ${current ? '' : 'selected'}>- Selecione um jogador -</option>` +
-                list.map(x => `<option value="${escapeHtml(x.n)}" ${x.n===current ? 'selected' : ''}>${escapeHtml(x.n)}${x.bloqueado ? ' (Bloqueado)' : ''}</option>`).join('');
-            document.getElementById('selMeuNome').innerHTML = opt;
+            let optParts = [`<option value="" disabled ${current ? '' : 'selected'}>- Selecione um jogador -</option>`];
+            
+            list.forEach(x => {
+                const sel = x.n === current ? 'selected' : '';
+                const blockTxt = x.bloqueado ? ' (Bloqueado)' : '';
+                optParts.push(`<option value="${escapeHtml(x.n)}" ${sel}>${escapeHtml(x.n)}${blockTxt}</option>`);
+            });
+            
+            document.getElementById('selMeuNome').innerHTML = optParts.join('');
             atualizarIdentificacaoPreview();
         }
 
@@ -942,26 +1038,61 @@
             const elogiosEl = document.getElementById('identificacaoElogios');
             const badges = document.getElementById('identificacaoBadges');
             const btnAcao = document.getElementById('btnIdentAcao');
+            
             if (!val) {
                 status.innerText = 'Selecione um jogador para visualizar os status.';
-                statsEl.innerHTML = '';
-                duplaEl.innerHTML = '';
-                elogiosEl.innerHTML = '';
-                badges.innerHTML = '';
+                statsEl.innerHTML = ''; duplaEl.innerHTML = '';
+                elogiosEl.innerHTML = ''; badges.innerHTML = '';
                 btnAcao.innerText = 'Desbloquear';
                 btnAcao.onclick = () => window.salvarIdentificacao('desbloquear');
                 return;
             }
+            
             const info = localizarJogador(val);
             const s = game.ranking?.[val] || {};
             const jogos = (s.v||0) + (s.d||0);
             const dupla = calcularMelhorDupla(val);
-            status.innerHTML = `<span class="text-white">${escapeHtml(val)}</span> · <span class="${info?.p?.bloqueado ? 'text-red-400' : 'text-emerald-400'}">${info?.p?.bloqueado ? 'BLOQUEADO' : 'LIBERADO'}</span>`;
-            statsEl.innerHTML = `<div class="bg-slate-900 rounded-lg p-2"><span class="block text-slate-600 uppercase font-bold">Score</span><strong class="text-orange-400 text-lg">${calcularScoreComPesos(s)}</strong></div><div class="bg-slate-900 rounded-lg p-2"><span class="block text-slate-600 uppercase font-bold">Partidas</span><strong class="text-white">${jogos}</strong></div><div class="bg-slate-900 rounded-lg p-2"><span class="block text-slate-600 uppercase font-bold">Vitórias</span><strong class="text-white">${s.v||0}</strong></div><div class="bg-slate-900 rounded-lg p-2"><span class="block text-slate-600 uppercase font-bold">Ataques / Bloq. / Aces</span><strong class="text-white">${s.ptsAtaque||0} / ${s.ptsBloqueio\vert{}\vert{}0} /${s.ptsAce||0}</strong></div>`;
-            duplaEl.innerHTML = dupla ? `Melhor dupla: <strong class="text-white">${escapeHtml(dupla.n)}</strong> · ${dupla.vitorias} vitória(s) em ${dupla.jogos} partida(s)` : 'Melhor dupla: nenhuma registrada nesta sessão.';
+            
+            status.innerHTML = `
+                <span class="text-white">${escapeHtml(val)}</span> · 
+                <span class="${info?.p?.bloqueado ? 'text-red-400' : 'text-emerald-400'}">${info?.p?.bloqueado ? 'BLOQUEADO' : 'LIBERADO'}</span>
+            `;
+            
+            statsEl.innerHTML = `
+                <div class="bg-slate-900 rounded-lg p-2">
+                    <span class="block text-slate-600 uppercase font-bold">Score</span>
+                    <strong class="text-orange-400 text-lg">${calcularScoreComPesos(s)}</strong>
+                </div>
+                <div class="bg-slate-900 rounded-lg p-2">
+                    <span class="block text-slate-600 uppercase font-bold">Partidas</span>
+                    <strong class="text-white">${jogos}</strong>
+                </div>
+                <div class="bg-slate-900 rounded-lg p-2">
+                    <span class="block text-slate-600 uppercase font-bold">Vitórias</span>
+                    <strong class="text-white">${s.v||0}</strong>
+                </div>
+                <div class="bg-slate-900 rounded-lg p-2">
+                    <span class="block text-slate-600 uppercase font-bold">Ataques / Bloq. / Aces</span>
+                    <strong class="text-white">${s.ptsAtaque||0} / ${s.ptsBloqueio\vert{}\vert{}0} /${s.ptsAce||0}</strong>
+                </div>
+            `;
+            
+            duplaEl.innerHTML = dupla 
+                ? `Melhor dupla: <strong class="text-white">${escapeHtml(dupla.n)}</strong> · ${dupla.vitorias} vitória(s) em ${dupla.jogos} partida(s)` 
+                : 'Melhor dupla: nenhuma registrada nesta sessão.';
+                
             const elogios = formatarElogios(val);
-            elogiosEl.innerHTML = elogios ? `<span class="text-[8px] uppercase font-black text-slate-600 mr-2">Elogios</span>${elogios}` : '<span class="text-[8px] uppercase font-black text-slate-600">Elogios: nenhum</span>';
-            badges.innerHTML = `<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-600 block mb-1">Insígnias</span>${renderBadgesJogador(val) || '<span class="text-[8px] text-slate-600 uppercase font-bold">Nenhuma</span>'}</div>`;
+            elogiosEl.innerHTML = elogios 
+                ? `<span class="text-[8px] uppercase font-black text-slate-600 mr-2">Elogios</span>${elogios}` 
+                : '<span class="text-[8px] uppercase font-black text-slate-600">Elogios: nenhum</span>';
+                
+            badges.innerHTML = `
+                <div class="w-full text-center">
+                    <span class="text-[8px] uppercase font-black text-slate-600 block mb-1">Insígnias</span>
+                    ${renderBadgesJogador(val) || '<span class="text-[8px] text-slate-600 uppercase font-bold">Nenhuma</span>'}
+                </div>
+            `;
+            
             if (info?.p?.bloqueado) {
                 btnAcao.innerText = 'Desbloquear';
                 btnAcao.className = 'bg-emerald-600 hover:bg-emerald-500 p-3 rounded-xl font-black uppercase text-[9px] shadow-lg transition text-white';
@@ -988,10 +1119,12 @@
         window.salvarIdentificacao = async (acao = 'visualizar') => {
             const val = document.getElementById('selMeuNome').value;
             if (!val) return customAlert('Selecione um jogador.');
+            
             meuNome = val;
             meuNomeEvento = currentInstanceId || '';
             localStorage.setItem('voleihub_meunome', meuNome);
             localStorage.setItem('voleihub_meuevento', meuNomeEvento);
+            
             try { await garantirGuestAnonimo(); } catch (e) {}
 
             if (acao === 'desbloquear') {
@@ -1038,32 +1171,34 @@
 
         function renderMyTrophies() {
             const b = document.getElementById('trophiesBar');
-            if(isAdmin || !guestIdentificadoNesteEvento() || !meuNome || !globalBadges[meuNome] || Object.keys(globalBadges[meuNome]).filter(k => Number(globalBadges[meuNome][k] || 0) > 0).length === 0) { 
+            if(isAdmin || !guestIdentificadoNesteEvento() || !meuNome || !globalBadges[meuNome]) { 
                 b.classList.add('hidden'); 
                 return; 
             }
             
+            const badgesValidas = Object.keys(globalBadges[meuNome]).filter(k => Number(globalBadges[meuNome][k] || 0) > 0);
+            if (badgesValidas.length === 0) {
+                b.classList.add('hidden');
+                return;
+            }
+            
             const pB = globalBadges[meuNome]; 
-            let hasAny = false; 
-            let html = "";
+            let htmlParts = [];
             for(let key in badgeMap) { 
                 if(pB[key] && pB[key] > 0) { 
-                    hasAny = true; 
-                    html += `<span class="badge-icon">${badgeMap[key].i}${badgeMap[key].desc} <span class="text-white ml-1">x${pB[key]}</span></span>`; 
+                    htmlParts.push(`<span class="badge-icon">${badgeMap[key].i}${badgeMap[key].desc} <span class="text-white ml-1">x${pB[key]}</span></span>`); 
                 } 
             }
-            if(hasAny) { 
-                b.classList.remove('hidden'); 
-                document.getElementById('myTrophiesContainer').innerHTML = html; 
-            } else {
-                b.classList.add('hidden');
-            }
+            
+            b.classList.remove('hidden'); 
+            document.getElementById('myTrophiesContainer').innerHTML = htmlParts.join(''); 
         }
 
         window.abrirOpcoesEvento = () => { 
             window.fecharModais(); 
             const btnEnc = document.getElementById('btnMenuEncerrar'); 
-            if(currentInstanceId && !isHistoricalView) btnEnc.classList.remove('hidden'); else btnEnc.classList.add('hidden'); 
+            if(currentInstanceId && !isHistoricalView) btnEnc.classList.remove('hidden'); 
+            else btnEnc.classList.add('hidden'); 
             document.getElementById('modalAdminChoice').classList.remove('hidden'); 
         };
         
@@ -1214,13 +1349,28 @@
                 const list = Object.values(sSnap.val()).filter(e => e.baseId === shortId).sort((a,b)=>b.timestamp - a.timestamp); 
                 if(list.length > 0) { 
                     sessoesFiltradasInfo = list; 
-                    container.innerHTML = list.map(e => { 
+                    
+                    let htmlParts = [];
+                    list.forEach(e => {
                         const isAtivo = (isActive && activeInstance === e.id); 
-                        const acaoClick = isAtivo ? `window.joinEvent('${shortId}', '${e.id}', false); window.fecharModais();` : `window.joinEvent('${shortId}', '${e.id}', true); window.fecharModais();`; 
+                        const acaoClick = isAtivo 
+                            ? `window.joinEvent('${shortId}', '${e.id}', false); window.fecharModais();` 
+                            : `window.joinEvent('${shortId}', '${e.id}', true); window.fecharModais();`; 
                         const bColor = isAtivo ? "bg-emerald-600 hover:bg-emerald-500" : "bg-blue-600 hover:bg-blue-500"; 
                         const bText = isAtivo ? "Entrar (Ativo)" : "Leitura"; 
-                        return `<div class="bg-slate-700/50 p-3 rounded-xl border border-slate-600 flex justify-between items-center mb-2"><div class="truncate mr-2 w-2/3"><div class="font-black text-white uppercase text-xs truncate">${e.data} -${e.nome}</div><div class="text-[10px] text-slate-400 italic">Sessão: ${e.id}</div></div><button onclick="${acaoClick}" class="${bColor} px-4 py-2 rounded font-bold uppercase text-[9px] shadow transition">${bText}</button></div>`; 
-                    }).join(''); 
+                        
+                        htmlParts.push(`
+                            <div class="bg-slate-700/50 p-3 rounded-xl border border-slate-600 flex justify-between items-center mb-2">
+                                <div class="truncate mr-2 w-2/3">
+                                    <div class="font-black text-white uppercase text-xs truncate">${e.data} -${e.nome}</div>
+                                    <div class="text-[10px] text-slate-400 italic">Sessão: ${e.id}</div>
+                                </div>
+                                <button onclick="${acaoClick}" class="${bColor} px-4 py-2 rounded font-bold uppercase text-[9px] shadow transition">${bText}</button>
+                            </div>
+                        `);
+                    });
+                    
+                    container.innerHTML = htmlParts.join(''); 
                     container.classList.remove('hidden'); 
                     document.getElementById('acoesSessaoHistorico').classList.remove('hidden'); 
                 } else { 
@@ -1248,7 +1398,18 @@
                 const snap = await get(ref(db, `partida/${s.id}/ranking`)); 
                 if(snap.exists()) window.sessoesCache[s.id] = snap.val(); 
             } 
-            document.getElementById('filtroSessoesList').innerHTML = sessoesFiltradasInfo.map((s,i) => `<label class="flex items-center gap-2 bg-slate-800 p-2 rounded mb-1"><input type="checkbox" class="chkSessao w-4 h-4" value="${s.id}" onchange="window.atualizarJogadoresFiltro()" checked> <span class="uppercase font-bold text-slate-300 text-[10px]">${s.data} (${s.nome})</span></label>`).join(''); 
+            
+            let htmlParts = [];
+            sessoesFiltradasInfo.forEach((s) => {
+                htmlParts.push(`
+                    <label class="flex items-center gap-2 bg-slate-800 p-2 rounded mb-1">
+                        <input type="checkbox" class="chkSessao w-4 h-4" value="${s.id}" onchange="window.atualizarJogadoresFiltro()" checked> 
+                        <span class="uppercase font-bold text-slate-300 text-[10px]">${s.data} (${s.nome})</span>
+                    </label>
+                `);
+            });
+            document.getElementById('filtroSessoesList').innerHTML = htmlParts.join('');
+            
             window.atualizarJogadoresFiltro(); 
             document.getElementById('modalFiltroHistorico').classList.remove('hidden'); 
         };
@@ -1263,9 +1424,19 @@
                     }); 
                 } 
             }); 
+            
             const cont = document.getElementById('filtroJogadoresList'); 
             if (jSet.size > 0) { 
-                cont.innerHTML = Array.from(jSet).sort().map(n => `<label class="flex items-center gap-1 bg-slate-800 p-1.5 rounded"><input type="checkbox" class="chkJogador w-3 h-3" value="${n}" checked> <span class="uppercase font-bold truncate text-slate-300">${n}</span></label>`).join(''); 
+                let parts = [];
+                Array.from(jSet).sort().forEach(n => {
+                    parts.push(`
+                        <label class="flex items-center gap-1 bg-slate-800 p-1.5 rounded">
+                            <input type="checkbox" class="chkJogador w-3 h-3" value="${n}" checked> 
+                            <span class="uppercase font-bold truncate text-slate-300">${n}</span>
+                        </label>
+                    `);
+                });
+                cont.innerHTML = parts.join('');
             } else { 
                 cont.innerHTML = '<span class="text-slate-500 italic col-span-2 text-center py-2">Selecione uma sessão acima para ver os jogadores.</span>'; 
             } 
@@ -1280,10 +1451,13 @@
         window.gerarRankingPersonalizado = () => { 
             const selS = Array.from(document.querySelectorAll('.chkSessao:checked')).map(b => b.value); 
             const selJ = Array.from(document.querySelectorAll('.chkJogador:checked')).map(b => b.value); 
+            
             if(selS.length===0 || selJ.length===0) return customAlert("Selecione pelo menos uma sessão e um jogador."); 
             
             let combined = {}; 
-            selJ.forEach(j => combined[j] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime:0, estrela:false }); 
+            selJ.forEach(j => {
+                combined[j] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime:0, estrela:false };
+            }); 
             
             selS.forEach(sid => { 
                 const rk = window.sessoesCache[sid]; 
@@ -1303,11 +1477,28 @@
                 } 
             }); 
             
-            const pl = Object.entries(combined).map(([n, s]) => ({ n, ...s, score: parseFloat(calcularScoreComPesos(s)) })).filter(j => j.score > 0 || j.v > 0).sort((a,b) => b.score - a.score); 
+            const pl = Object.entries(combined).map(([n, s]) => {
+                return { n, ...s, score: parseFloat(calcularScoreComPesos(s)) };
+            }).filter(j => j.score > 0 || j.v > 0).sort((a,b) => b.score - a.score); 
+            
             if (pl.length === 0) { 
                 document.getElementById('rankingCustomList').innerHTML = '<div class="text-center py-4 text-slate-500 text-xs italic">Vazio.</div>'; 
             } else { 
-                document.getElementById('rankingCustomList').innerHTML = pl.map((j, i) => `<div class="flex items-center justify-between bg-slate-900/50 p-3 rounded-xl border border-slate-700 mb-1"><div class="flex items-center gap-3"><span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span><div class="uppercase text-[10px] font-bold text-slate-300">${j.n} <span class="text-[8px] text-slate-500 ml-1">(V:${j.v} A:${j.ptsAtaque} B:${j.ptsBloqueio})</span></div></div><div class="text-orange-500 font-black text-sm">${j.score}</div></div>`).join(''); 
+                let parts = [];
+                pl.forEach((j, i) => {
+                    parts.push(`
+                        <div class="flex items-center justify-between bg-slate-900/50 p-3 rounded-xl border border-slate-700 mb-1">
+                            <div class="flex items-center gap-3">
+                                <span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span>
+                                <div class="uppercase text-[10px] font-bold text-slate-300">
+                                    ${j.n} <span class="text-[8px] text-slate-500 ml-1">(V:${j.v} A:${j.ptsAtaque} B:${j.ptsBloqueio})</span>
+                                </div>
+                            </div>
+                            <div class="text-orange-500 font-black text-sm">${j.score}</div>
+                        </div>
+                    `);
+                });
+                document.getElementById('rankingCustomList').innerHTML = parts.join(''); 
             } 
             document.getElementById('modalFiltroHistorico').classList.add('hidden'); 
             document.getElementById('modalRankingCustomizado').classList.remove('hidden'); 
@@ -1371,6 +1562,7 @@
                 btnRk.innerText = "DESATIVADO"; 
                 btnRk.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400"; 
             } 
+            
             const btnSb = document.getElementById('btnToggleScoreboard'); 
             if(tempConfig.hideScoreboard) { 
                 btnSb.innerText = "OCULTO"; 
@@ -1416,14 +1608,22 @@
             document.getElementById('modalConfigMenu').classList.add('hidden'); 
             const list = document.getElementById('listaBaseJogadores'); 
             const bj = game.baseJogadores || {}; 
+            
             if(Object.keys(bj).length === 0) { 
                 list.innerHTML = '<div class="text-slate-500 text-xs text-center py-4 italic">Vazio</div>'; 
             } else { 
                 const arr = Object.entries(bj).sort((a,b) => a[0].localeCompare(b[0])); 
-                list.innerHTML = arr.map(([nome, cat]) => { 
+                let parts = [];
+                arr.forEach(([nome, cat]) => {
                     let badge = cat==='estrela' ? "⭐ Estrela" : cat==='diamante' ? "💎 Diamante" : "Geral"; 
-                    return `<div class="flex justify-between items-center bg-slate-900/50 p-2 rounded border border-slate-700/50 mb-1"><div class="text-[10px] font-black uppercase text-white">${nome} <span class="text-slate-500 ml-1">(${badge})</span></div><button onclick="window.removeBaseJogador('${nome}')" class="text-red-500 font-bold px-2 hover:bg-red-900/30 rounded">X</button></div>`; 
-                }).join(''); 
+                    parts.push(`
+                        <div class="flex justify-between items-center bg-slate-900/50 p-2 rounded border border-slate-700/50 mb-1">
+                            <div class="text-[10px] font-black uppercase text-white">${nome} <span class="text-slate-500 ml-1">(${badge})</span></div>
+                            <button onclick="window.removeBaseJogador('${nome}')" class="text-red-500 font-bold px-2 hover:bg-red-900/30 rounded">X</button>
+                        </div>
+                    `);
+                });
+                list.innerHTML = parts.join(''); 
             } 
             document.getElementById('modalBaseJogadores').classList.remove('hidden'); 
         }; 
@@ -1440,7 +1640,9 @@
             const jaExiste = [...(game.timeA||[]), ...(game.timeB||[]), ...(game.esperaGeral||[]), ...(game.esperaEstrela||[])].some(p => p.nome === nome); 
             if(!jaExiste) { 
                 const obj = { id: Math.random().toString(36).substr(2, 9), nome, estrela: isE, elite: isEl, bloqueado: true }; 
-                if(!game.ranking[nome]) game.ranking[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: isE, elite: isEl }; 
+                if(!game.ranking[nome]) {
+                    game.ranking[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: isE, elite: isEl };
+                } 
                 (isE ? game.esperaEstrela : game.esperaGeral).push(obj); 
             } 
             document.getElementById('novoBaseNome').value = ''; 
@@ -1458,24 +1660,69 @@
 
         window.abrirHistoricoModal = () => { 
             const partidas = game.historicoPartidas || [];
-            document.getElementById('listaHistoricoContainer').innerHTML = partidas.length
-                ? partidas.map((p, idx)=>`<div class="bg-slate-700/40 p-3 rounded-xl border border-slate-600 mb-2 cursor-pointer hover:bg-slate-700/70" onclick="window.abrirDetalhePartida(${p.id})">
-                    <div class="flex justify-between mb-1"><span class="text-[9px] font-black uppercase ${p.vencedor==='A'?'text-blue-400':'text-orange-400'}">Partida ${partidas.length-idx} · Vitória ${p.vencedor}</span><span class="text-xl font-black">${p.scoreA} x${p.scoreB}</span></div>
-                    <div class="text-[8px] text-emerald-400 font-black uppercase text-center mb-2">Score dos times no início: ${Number(p.teamScoreAInicio \vert{}\vert{} 0).toFixed(2)} x${Number(p.teamScoreBInicio || 0).toFixed(2)}</div>
-                    <div class="grid grid-cols-2 gap-2 text-[8px] font-bold text-slate-400">
-                        <div><div class="text-blue-400 uppercase mb-1">Time A</div>${escapeHtml((p.timeA||[]).join(', '))}</div>
-                        <div class="border-l border-slate-600 pl-2"><div class="text-orange-400 uppercase mb-1">Time B</div>${escapeHtml((p.timeB||[]).join(', '))}</div>
-                    </div>
-                </div>`).join('')
-                : '<div class="text-center text-slate-500 text-xs italic py-6">Nenhuma partida encerrada nesta sessão.</div>'; 
+            if (partidas.length === 0) {
+                document.getElementById('listaHistoricoContainer').innerHTML = '<div class="text-center text-slate-500 text-xs italic py-6">Nenhuma partida encerrada nesta sessão.</div>';
+            } else {
+                let parts = [];
+                partidas.forEach((p, idx) => {
+                    const textColor = p.vencedor === 'A' ? 'text-blue-400' : 'text-orange-400';
+                    const scoreA = Number(p.teamScoreAInicio || 0).toFixed(2);
+                    const scoreB = Number(p.teamScoreBInicio || 0).toFixed(2);
+                    parts.push(`
+                        <div class="bg-slate-700/40 p-3 rounded-xl border border-slate-600 mb-2 cursor-pointer hover:bg-slate-700/70" onclick="window.abrirDetalhePartida(${p.id})">
+                            <div class="flex justify-between mb-1">
+                                <span class="text-[9px] font-black uppercase ${textColor}">Partida ${partidas.length - idx} · Vitória ${p.vencedor}</span>
+                                <span class="text-xl font-black">${p.scoreA} x${p.scoreB}</span>
+                            </div>
+                            <div class="text-[8px] text-emerald-400 font-black uppercase text-center mb-2">
+                                Score dos times no início: ${scoreA} x${scoreB}
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-[8px] font-bold text-slate-400">
+                                <div><div class="text-blue-400 uppercase mb-1">Time A</div>${escapeHtml((p.timeA||[]).join(', '))}</div>
+                                <div class="border-l border-slate-600 pl-2"><div class="text-orange-400 uppercase mb-1">Time B</div>${escapeHtml((p.timeB||[]).join(', '))}</div>
+                            </div>
+                        </div>
+                    `);
+                });
+                document.getElementById('listaHistoricoContainer').innerHTML = parts.join('');
+            }
             document.getElementById('modalHistorico').classList.remove('hidden'); 
         }; 
         
         window.abrirDetalhePartida = (id) => { 
-            const p = (game.historicoPartidas||[]).find(x=>x.id===id); 
-            if(p){ 
-                document.getElementById('detalhePartidaScore').innerHTML=`<div class="col-span-2 text-center bg-slate-800/80 rounded-lg p-2 mb-3 border border-slate-700"><div class="text-[8px] text-emerald-400 font-black uppercase">Score dos Times no início</div><div class="text-sm font-black text-white mt-1">Time A ${Number(p.teamScoreAInicio || 0).toFixed(2)} <span class="text-slate-500 mx-1">×</span> Time B ${Number(p.teamScoreBInicio || 0).toFixed(2)}</div></div><div class="text-center w-2/5"><div class="text-[9px] text-blue-500 font-black mb-1">TIME A</div><div class="text-4xl font-black leading-none">${p.scoreA}</div><div class="text-[9px] mt-2">${(p.timeA||[]).join('<br>')}</div></div><div class="text-slate-600 font-black italic text-xl">VS</div><div class="text-center w-2/5"><div class="text-[9px] text-orange-500 font-black mb-1">TIME B</div><div class="text-4xl font-black leading-none">${p.scoreB}</div><div class="text-[9px] mt-2">${(p.timeB||[]).join('<br>')}</div></div>`; 
-                document.getElementById('detalhePartidaLog').innerHTML=p.log&&p.log.length>0?p.log.map(l=>`<div class="log-item log-${l.type}">${l.text}</div>`).join(''):'<div class="text-center text-[10px] py-4">Vazio</div>'; 
+            const p = (game.historicoPartidas||[]).find(x => x.id === id); 
+            if(p){
+                const scoreA = Number(p.teamScoreAInicio || 0).toFixed(2);
+                const scoreB = Number(p.teamScoreBInicio || 0).toFixed(2);
+                
+                document.getElementById('detalhePartidaScore').innerHTML = `
+                    <div class="col-span-2 text-center bg-slate-800/80 rounded-lg p-2 mb-3 border border-slate-700">
+                        <div class="text-[8px] text-emerald-400 font-black uppercase">Score dos Times no início</div>
+                        <div class="text-sm font-black text-white mt-1">Time A ${scoreA} <span class="text-slate-500 mx-1">×</span> Time B ${scoreB}</div>
+                    </div>
+                    <div class="text-center w-2/5">
+                        <div class="text-[9px] text-blue-500 font-black mb-1">TIME A</div>
+                        <div class="text-4xl font-black leading-none">${p.scoreA}</div>
+                        <div class="text-[9px] mt-2">${(p.timeA||[]).join('<br>')}</div>
+                    </div>
+                    <div class="text-slate-600 font-black italic text-xl">VS</div>
+                    <div class="text-center w-2/5">
+                        <div class="text-[9px] text-orange-500 font-black mb-1">TIME B</div>
+                        <div class="text-4xl font-black leading-none">${p.scoreB}</div>
+                        <div class="text-[9px] mt-2">${(p.timeB||[]).join('<br>')}</div>
+                    </div>
+                `;
+                
+                if (p.log && p.log.length > 0) {
+                    let logParts = [];
+                    p.log.forEach(l => {
+                        logParts.push(`<div class="log-item log-${l.type}">${l.text}</div>`);
+                    });
+                    document.getElementById('detalhePartidaLog').innerHTML = logParts.join('');
+                } else {
+                    document.getElementById('detalhePartidaLog').innerHTML = '<div class="text-center text-[10px] py-4">Vazio</div>';
+                }
+                
                 document.getElementById('modalDetalhePartida').classList.remove('hidden');
             } 
         };
@@ -1569,7 +1816,6 @@
             }
         };
 
-        // --- LÓGICA DE PONTUAÇÃO E ERRO ADVERSÁRIO ---
         window.registrarPontoSimples = (lado, hist) => { 
             if(!isAdmin || !game.partidaAtiva) return; 
             if(!game.matchStartScores) capturarScoreInicialPartida();
@@ -1580,8 +1826,7 @@
                 if(lado === 'A') { 
                     if (game.firstServeA) game.firstServeA = false;
                     else game.idxA = (game.idxA+1) % (game.timeA.length||1); 
-                } 
-                else { 
+                } else { 
                     if (game.firstServeB) game.firstServeB = false;
                     else game.idxB = (game.idxB+1) % (game.timeB.length||1); 
                 } 
@@ -1595,7 +1840,6 @@
             if(game.matchLog.length > 40) game.matchLog.pop();
             
             game.systemMsg = { text: `PONTO TIME ${lado}`, sub: `Placar: ${game.scoreA} x${game.scoreB}` }; 
-            
             verificarFimDeSet(); 
             salvarState(false); 
         };
@@ -1623,8 +1867,7 @@
                 if(modalCtx.lado === 'A') { 
                     if (game.firstServeA) game.firstServeA = false;
                     else game.idxA = (game.idxA+1) % (game.timeA.length||1); 
-                } 
-                else { 
+                } else { 
                     if (game.firstServeB) game.firstServeB = false;
                     else game.idxB = (game.idxB+1) % (game.timeB.length||1); 
                 } 
@@ -1634,7 +1877,6 @@
             else game.scoreB++; 
             
             game.systemMsg = { text: `PONTO TIME ${modalCtx.lado}`, sub: `Placar: ${game.scoreA} x${game.scoreB}` }; 
-            
             verificarFimDeSet(); 
             salvarState(false); 
         };
@@ -1732,16 +1974,18 @@
             game.systemMsg = { text: "FIM DE SET", sub: `Vitória do Time ${venceu}` }; 
             salvarState(); 
 
-            // Exibir modal animado Fim de Jogo
             document.getElementById('endMatchText').innerText = `VITÓRIA DO TIME ${venceu}!`;
             const emojis = ['🏐','🏆','🔥','👏','🎉','🥇'];
-            document.getElementById('endMatchEmojis').innerHTML = Array.from({length: 30}).map(() => {
+            
+            let emojiHtml = [];
+            for(let i = 0; i < 30; i++) {
                 const left = Math.random() * 100;
                 const anim = 1 + Math.random() * 2;
                 const delay = Math.random() * 2;
                 const e = emojis[Math.floor(Math.random()*emojis.length)];
-                return `<div class="absolute text-4xl" style="left:${left}%; bottom:-10%; animation: floatUpEmojis ${anim}s ease-in${delay}s infinite;">${e}</div>`;
-            }).join('');
+                emojiHtml.push(`<div class="absolute text-4xl" style="left:${left}%; bottom:-10%; animation: floatUpEmojis ${anim}s ease-in${delay}s infinite;">${e}</div>`);
+            }
+            document.getElementById('endMatchEmojis').innerHTML = emojiHtml.join('');
             document.getElementById('endMatchCelebration').classList.remove('hidden');
         }
         
@@ -1809,7 +2053,14 @@
                 salvarState(); 
             }; 
             
-            const gen = (t, side) => (t||[]).map((j, i) => `<button onclick="window.substituirJogador('${side}',${i})" class="w-full bg-slate-700 p-2 rounded text-[9px] mb-1 uppercase border border-slate-600">Sub: ${j.nome}</button>`).join(''); 
+            const gen = (t, side) => {
+                let parts = [];
+                (t||[]).forEach((j, i) => {
+                    parts.push(`<button onclick="window.substituirJogador('${side}',${i})" class="w-full bg-slate-700 p-2 rounded text-[9px] mb-1 uppercase border border-slate-600">Sub: ${j.nome}</button>`);
+                });
+                return parts.join('');
+            };
+            
             document.getElementById('subsA').innerHTML = gen(game.timeA, 'A'); 
             document.getElementById('subsB').innerHTML = gen(game.timeB, 'B'); 
             document.getElementById('modalFilaEscala').classList.remove('hidden'); 
@@ -1890,8 +2141,9 @@
                     if(ganhou) pares[colega].vitorias++;
                 });
             });
-            const lista = Object.entries(pares).map(([n,s]) => ({ n, ...s, score: parseFloat(calcularScoreComPesos(game.ranking?.[n] || {})) }))
-                .sort((a,b) => b.vitorias - a.vitorias || b.jogos - a.jogos || b.score - a.score || a.n.localeCompare(b.n));
+            const lista = Object.entries(pares).map(([n,s]) => {
+                return { n, ...s, score: parseFloat(calcularScoreComPesos(game.ranking?.[n] || {})) };
+            }).sort((a,b) => b.vitorias - a.vitorias || b.jogos - a.jogos || b.score - a.score || a.n.localeCompare(b.n));
             return lista[0] || null;
         }
 
@@ -1931,16 +2183,35 @@
             }
 
             const bC = document.getElementById('perfilBadges');
-            bC.innerHTML = `<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Insígnias</span>${renderBadgesJogador(nome) || '<span class="text-[9px] text-slate-600">Nenhuma ainda</span>'}</div>`;
+            bC.innerHTML = `
+                <div class="w-full text-center">
+                    <span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Insígnias</span>
+                    ${renderBadgesJogador(nome) || '<span class="text-[9px] text-slate-600">Nenhuma ainda</span>'}
+                </div>
+            `;
 
             const elogiosHtml = formatarElogios(nome);
-            document.getElementById('perfilElogios').innerHTML = elogiosHtml
-                ? `<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Elogios nesta sessão</span><span class="text-lg tracking-wide">${elogiosHtml}</span></div>`
-                : `<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Elogios nesta sessão</span><span class="text-[9px] text-slate-600">Nenhum ainda</span></div>`;
+            if (elogiosHtml) {
+                document.getElementById('perfilElogios').innerHTML = `
+                    <div class="w-full text-center">
+                        <span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Elogios nesta sessão</span>
+                        <span class="text-lg tracking-wide">${elogiosHtml}</span>
+                    </div>
+                `;
+            } else {
+                document.getElementById('perfilElogios').innerHTML = `
+                    <div class="w-full text-center">
+                        <span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Elogios nesta sessão</span>
+                        <span class="text-[9px] text-slate-600">Nenhum ainda</span>
+                    </div>
+                `;
+            }
 
-            document.getElementById('perfilMelhorDupla').innerHTML = dupla
-                ? `${escapeHtml(dupla.n)} <span class="text-slate-500 font-bold">· ${dupla.vitorias} vitória(s) em ${dupla.jogos} partida(s) juntos</span>`
-                : 'Nenhuma dupla registrada nesta sessão.';
+            if (dupla) {
+                document.getElementById('perfilMelhorDupla').innerHTML = `${escapeHtml(dupla.n)} <span class="text-slate-500 font-bold">· ${dupla.vitorias} vitória(s) em ${dupla.jogos} partida(s) juntos</span>`;
+            } else {
+                document.getElementById('perfilMelhorDupla').innerHTML = 'Nenhuma dupla registrada nesta sessão.';
+            }
 
             const rBox = document.getElementById('reactionBox'); 
             const podeElogiar = !isAdmin && !isHistoricalView;
@@ -1977,9 +2248,11 @@
                 await garantirGuestAnonimo();
                 const uid = auth.currentUser?.uid;
                 if(!uid) throw new Error('guest-auth-missing');
+                
                 const elogioRef = ref(db, `partida/${currentInstanceId}/elogios/${target}/${uid}`);
                 const existing = await get(elogioRef);
                 if(existing.exists()) return customAlert('Você já enviou um elogio para este jogador nesta sessão.');
+                
                 await set(elogioRef, emoji);
                 customAlert(`Elogio enviado para ${target}!`);
                 window.fecharModais();
@@ -1989,7 +2262,10 @@
         };
 
         function renderLeaders() { 
-            const pl = Object.entries(game.ranking || {}).map(([n, s]) => ({ n, ...s, score: parseFloat(calcularScoreComPesos(s)) })); 
+            const pl = Object.entries(game.ranking || {}).map(([n, s]) => {
+                return { n, ...s, score: parseFloat(calcularScoreComPesos(s)) };
+            }); 
+            
             const cats = [
                 {t:"Top Score", i:"🏆", f:p=>p.score},
                 {t:"Matador", i:"🔥", f:p=>p.ptsAtaque||0},
@@ -1998,20 +2274,36 @@
                 {t:"Vitórias", i:"🥇", f:p=>p.v||0}
             ]; 
             
-            document.getElementById('leadersGrid').innerHTML = cats.map(c => { 
+            let htmlParts = [];
+            cats.forEach(c => {
                 const sortList = (l) => [...l].sort((a,b) => c.f(b) - c.f(a)); 
                 const listG = sortList(pl.filter(x => !x.estrela)); 
                 const listE = sortList(pl.filter(x => x.estrela)); 
                 const maxG = listG.length ? c.f(listG[0]) : 0; 
                 const maxE = listE.length ? c.f(listE[0]) : 0; 
                 
-                if(maxG === 0 && maxE === 0) return ''; 
+                if(maxG === 0 && maxE === 0) return; 
                 
                 const winnersG = listG.filter(p => c.f(p) === maxG).map(p => p.n).join(', '); 
                 const winnersE = listE.filter(p => c.f(p) === maxE).map(p => p.n).join(', '); 
                 
-                return `<div class="bg-slate-800 p-3 rounded mb-2"><div class="text-xs text-slate-400 mb-1 font-bold tracking-widest">${c.i}${c.t}</div><div class="flex gap-1 text-[10px]"><div class="bg-slate-700/30 p-1 flex-1 flex justify-between rounded"><span class="text-orange-500 font-black">${maxG>0 ? winnersG : '-'}</span><span class="text-white">${maxG>0 ? maxG : ''}</span></div><div class="bg-slate-700/30 p-1 flex-1 flex justify-between rounded"><span class="text-orange-500 font-black">${maxE>0 ? winnersE : '-'}</span><span class="text-white">${maxE>0 ? maxE : ''}</span></div></div></div>`; 
-            }).join(''); 
+                htmlParts.push(`
+                    <div class="bg-slate-800 p-3 rounded mb-2">
+                        <div class="text-xs text-slate-400 mb-1 font-bold tracking-widest">${c.i}${c.t}</div>
+                        <div class="flex gap-1 text-[10px]">
+                            <div class="bg-slate-700/30 p-1 flex-1 flex justify-between rounded">
+                                <span class="text-orange-500 font-black">${maxG>0 ? winnersG : '-'}</span>
+                                <span class="text-white">${maxG>0 ? maxG : ''}</span>
+                            </div>
+                            <div class="bg-slate-700/30 p-1 flex-1 flex justify-between rounded">
+                                <span class="text-orange-500 font-black">${maxE>0 ? winnersE : '-'}</span>
+                                <span class="text-white">${maxE>0 ? maxE : ''}</span>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            });
+            document.getElementById('leadersGrid').innerHTML = htmlParts.join(''); 
         }
         
         function render() { 
@@ -2020,9 +2312,15 @@
             if(game.publicRanking) document.body.classList.add('show-public'); 
             else document.body.classList.remove('show-public'); 
             
-            document.getElementById('match-log-box').innerHTML = (game.matchLog||[]).length 
-                ? game.matchLog.map(l => `<div class="log-item log-${l.type}">${l.text}</div>`).join('') 
-                : '<div class="text-center text-slate-500 italic py-2">Histórico vazio...</div>'; 
+            if ((game.matchLog||[]).length) {
+                let logParts = [];
+                game.matchLog.forEach(l => {
+                    logParts.push(`<div class="log-item log-${l.type}">${l.text}</div>`);
+                });
+                document.getElementById('match-log-box').innerHTML = logParts.join('');
+            } else {
+                document.getElementById('match-log-box').innerHTML = '<div class="text-center text-slate-500 italic py-2">Histórico vazio...</div>'; 
+            }
                 
             const placarDiv = document.getElementById('placarDisplay'); 
             if (isHistoricalView || !game.partidaAtiva || game.config.hideScoreboard) placarDiv.classList.add('hidden'); 
@@ -2033,33 +2331,93 @@
             document.getElementById('winsA').innerText = `Sets: ${game.winsConsecA || 0}`; 
             document.getElementById('winsB').innerText = `Sets: ${game.winsConsecB || 0}`; 
             
-            const drawTeam = (l) => (l === 'A' ? (game.timeA||[]) : (game.timeB||[])).map((p, i) => {
-                const isSacando = game.partidaAtiva && game.saqueLado === l && (l === 'A' ? game.idxA : game.idxB) === i;
-                return `<div data-player-name="${String(p.nome).replace(/\"/g,'&quot;')}" class="jogador-card bg-slate-800 p-3 rounded-xl border-l-4 ${l==='A'?'border-l-blue-500':'border-l-orange-500'} ${isSacando?'sacando':''}${p.estrela?'is-estrela':''}" onclick="window.abrirPontoTecnico('${l}',${i})" data-id="${p.id}" draggable="${isAdmin}" ondragstart="window.dragStart(event, '${l}',${i})" ondragover="event.preventDefault()" ondrop="window.drop(event, '${l}',${i})"><div class="uppercase font-black text-[10px] flex justify-between items-center overflow-hidden w-full"><span>${p.estrela?'⭐ ':''}${p.elite?'💎 ':''}${p.nome}</span>${isSacando?'<span class="bola-saque">🏐</span>':''}</div></div>`;
-            }).join(''); 
+            const drawTeam = (l) => {
+                const team = l === 'A' ? (game.timeA||[]) : (game.timeB||[]);
+                let parts = [];
+                team.forEach((p, i) => {
+                    const isSacando = game.partidaAtiva && game.saqueLado === l && (l === 'A' ? game.idxA : game.idxB) === i;
+                    const safeName = String(p.nome).replace(/\"/g,'&quot;');
+                    const bColor = l === 'A' ? 'border-l-blue-500' : 'border-l-orange-500';
+                    const sacandoClass = isSacando ? 'sacando' : '';
+                    const starClass = p.estrela ? 'is-estrela' : '';
+                    const starIcon = p.estrela ? '⭐ ' : '';
+                    const eliteIcon = p.elite ? '💎 ' : '';
+                    const saqueIcon = isSacando ? '<span class="bola-saque">🏐</span>' : '';
+                    
+                    parts.push(`
+                        <div data-player-name="${safeName}" 
+                             class="jogador-card bg-slate-800 p-3 rounded-xl border-l-4 ${bColor} ${sacandoClass}${starClass}" 
+                             onclick="window.abrirPontoTecnico('${l}',${i})" 
+                             data-id="${p.id}" 
+                             draggable="${isAdmin}" 
+                             ondragstart="window.dragStart(event, '${l}',${i})" 
+                             ondragover="event.preventDefault()" 
+                             ondrop="window.drop(event, '${l}',${i})">
+                            <div class="uppercase font-black text-[10px] flex justify-between items-center overflow-hidden w-full">
+                                <span>${starIcon}${eliteIcon}${p.nome}</span>${saqueIcon}
+                            </div>
+                        </div>
+                    `);
+                });
+                return parts.join('');
+            }; 
             
             document.getElementById('areaA').innerHTML = drawTeam('A'); 
             document.getElementById('areaB').innerHTML = drawTeam('B'); 
+            
             document.getElementById('labelTimeA').innerHTML = `Time A <span class="block text-[8px] text-blue-300/70 mt-1">Score: ${calcularScoreEquipe(game.timeA).toFixed(2)}</span>`;
             document.getElementById('labelTimeB').innerHTML = `Time B <span class="block text-[8px] text-orange-300/70 mt-1">Score: ${calcularScoreEquipe(game.timeB).toFixed(2)}</span>`;
             
             const f = filaTab === 'geral' ? (game.esperaGeral||[]) : (game.esperaEstrela||[]); 
             let countLib = 0; 
-            let filaHtml = f.length ? f.map((p, i) => { 
-                let dest = ""; 
-                if(!p.bloqueado && filaTab === 'geral') { 
-                    countLib++; 
-                    if(countLib <= 3) dest="is-proximo"; 
-                } 
-                const blockText = p.bloqueado ? `<span class="text-[8px] text-red-400 font-bold ml-1 tracking-widest">(BLOQUEADO)</span>` : ``; 
-                const click = isAdmin ? `window.abrirEscalacao(${JSON.stringify(filaTab)}, ${i})` : `window.abrirPerfilJogador(${JSON.stringify(p.nome)})`;
-                return `<div data-id="${p.id}" data-player-name="${String(p.nome).replace(/\"/g,'&quot;')}" onclick='${click}' class="bg-slate-800 p-3 rounded-xl flex items-center border border-slate-700 ${p.bloqueado ? 'is-bloqueado' : ''} ${dest} cursor-pointer hover:bg-slate-700/60"><div class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2">${p.estrela ? '⭐ ' : ''}${p.elite ? '💎 ' : ''}${p.nome} ${blockText}</div><div class="text-[9px] text-slate-500">❯</div></div>`; 
-            }).join('') : '<div class="text-center text-slate-600 text-[10px] py-4 italic">Fila vazia...</div>'; 
-            const placeholderFila = filaTab === 'geral' ? 'Adicionar jogador' : 'Adicionar jogador';
-            if(isAdmin) {
-                filaHtml += `<div class="admin-only-control mt-3"><input type="text" maxlength="40" autocomplete="off" placeholder="${placeholderFila}" class="config-input h-11 text-[10px] uppercase" onkeydown="if(event.key==='Enter'){event.preventDefault(); const v=this.value; this.value=''; window.adicionarNaFila(${JSON.stringify(filaTab)}, v);}"></div>`;
+            
+            if (f.length) {
+                let fParts = [];
+                f.forEach((p, i) => {
+                    let dest = ""; 
+                    if(!p.bloqueado && filaTab === 'geral') { 
+                        countLib++; 
+                        if(countLib <= 3) dest="is-proximo"; 
+                    } 
+                    const blockText = p.bloqueado ? `<span class="text-[8px] text-red-400 font-bold ml-1 tracking-widest">(BLOQUEADO)</span>` : ``; 
+                    const clickAction = isAdmin ? `window.abrirEscalacao('${filaTab}', ${i})` : `window.abrirPerfilJogador('${String(p.nome).replace(/\'/g, "\\'")}')`;
+                    
+                    fParts.push(`
+                        <div data-id="${p.id}" data-player-name="${String(p.nome).replace(/\"/g,'&quot;')}" 
+                             onclick="${clickAction}" 
+                             class="bg-slate-800 p-3 rounded-xl flex items-center border border-slate-700 ${p.bloqueado ? 'is-bloqueado' : ''} ${dest} cursor-pointer hover:bg-slate-700/60">
+                            <div class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2">
+                                ${p.estrela ? '⭐ ' : ''}${p.elite ? '💎 ' : ''}${p.nome} ${blockText}
+                            </div>
+                            <div class="text-[9px] text-slate-500">❯</div>
+                        </div>
+                    `);
+                });
+                
+                if(isAdmin) {
+                    const placeholderFila = filaTab === 'geral' ? 'Adicionar jogador à Fila Geral — Enter' : 'Adicionar jogador à Fila Estrelas — Enter';
+                    fParts.push(`
+                        <div class="admin-only-control mt-3">
+                            <input type="text" maxlength="40" autocomplete="off" placeholder="${placeholderFila}" class="config-input h-11 text-[10px] uppercase" 
+                                   onkeydown="if(event.key==='Enter'){event.preventDefault(); const v=this.value; this.value=''; window.adicionarNaFila('${filaTab}', v);}">
+                        </div>
+                    `);
+                }
+                
+                document.getElementById('esperaContainer').innerHTML = fParts.join('');
+            } else {
+                let htmlFila = '<div class="text-center text-slate-600 text-[10px] py-4 italic">Fila vazia...</div>';
+                if(isAdmin) {
+                    const placeholderFila = filaTab === 'geral' ? 'Adicionar jogador à Fila Geral — Enter' : 'Adicionar jogador à Fila Estrelas — Enter';
+                    htmlFila += `
+                        <div class="admin-only-control mt-3">
+                            <input type="text" maxlength="40" autocomplete="off" placeholder="${placeholderFila}" class="config-input h-11 text-[10px] uppercase" 
+                                   onkeydown="if(event.key==='Enter'){event.preventDefault(); const v=this.value; this.value=''; window.adicionarNaFila('${filaTab}', v);}">
+                        </div>
+                    `;
+                }
+                document.getElementById('esperaContainer').innerHTML = htmlFila;
             }
-            document.getElementById('esperaContainer').innerHTML = filaHtml; 
 
             const todos = [...(game.timeA||[]), ...(game.timeB||[])]; 
             document.getElementById('countGeral').innerText = (game.esperaGeral||[]).filter(j=>!j.bloqueado).length + todos.filter(j=>!j.estrela).length; 
@@ -2068,19 +2426,34 @@
             document.getElementById('tabGeral').className = `text-[10px] font-black uppercase px-4 py-2 rounded-lg transition ${filaTab === 'geral' ? 'tab-active shadow-lg' : 'bg-slate-700 hover:bg-slate-600'}`; 
             document.getElementById('tabEstrela').className = `text-[10px] font-black uppercase px-4 py-2 rounded-lg transition ${filaTab === 'estrela' ? 'tab-active shadow-lg' : 'bg-slate-700 hover:bg-slate-600'}`; 
             
-            const rk = Object.entries(game.ranking||{}).map(([n, s]) => { return { n, ...s, score: parseFloat(calcularScoreComPesos(s)) }; }).filter(x => x.score > 0 && (rkTab==='tudo'?true:rkTab==='estrela'?x.estrela:!x.estrela)).sort((a,b) => b.score - a.score); 
+            const rk = Object.entries(game.ranking||[]).map(([n, s]) => { 
+                return { n, ...s, score: parseFloat(calcularScoreComPesos(s)) }; 
+            }).filter(x => x.score > 0 && (rkTab==='tudo'?true:rkTab==='estrela'?x.estrela:!x.estrela)).sort((a,b) => b.score - a.score); 
             
-            document.getElementById('rankingContainer').innerHTML = rk.map((j, i) => { 
+            let rkParts = [];
+            rk.forEach((j, i) => { 
                 let recEmojis = ""; 
                 if(sessionEmojis[j.n]) recEmojis = formatarElogios(j.n); 
-                return `<div data-player-name="${String(j.n).replace(/\"/g,'&quot;')}" class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 mb-1 cursor-pointer hover:bg-slate-700/50" onclick='window.abrirPerfilJogador(${JSON.stringify(j.n)})'><div class="flex items-center gap-3"><span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span><div class="rank-name uppercase text-[10px] font-bold text-slate-300">${j.estrela?'⭐ ':''}${j.elite?'💎 ':''}${j.n} <span class="ml-2 text-sm drop-shadow-lg">${recEmojis}</span></div></div><div class="text-orange-500 font-black text-xs">${j.score}</div></div>`; 
-            }).join(''); 
+                rkParts.push(`
+                    <div data-player-name="${String(j.n).replace(/\"/g,'&quot;')}" class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-800 mb-1 cursor-pointer hover:bg-slate-700/50" onclick="window.abrirPerfilJogador('${String(j.n).replace(/\'/g, "\\'")}')">
+                        <div class="flex items-center gap-3">
+                            <span class="text-[10px] text-slate-600 w-4 font-bold">${i+1}</span>
+                            <div class="rank-name uppercase text-[10px] font-bold text-slate-300">
+                                ${j.estrela?'⭐ ':''}${j.elite?'💎 ':''}${j.n} <span class="ml-2 text-sm drop-shadow-lg">${recEmojis}</span>
+                            </div>
+                        </div>
+                        <div class="text-orange-500 font-black text-xs">${j.score}</div>
+                    </div>
+                `); 
+            });
+            document.getElementById('rankingContainer').innerHTML = rkParts.join(''); 
             
             renderLeaders(); 
             
             const visitorControls = document.getElementById('visitor-controls'); 
             if (!isAdmin) { visitorControls.style.display = 'flex'; } 
             else { visitorControls.style.display = 'none'; } 
+            
             renderMyTrophies();
             if(isAdmin || isHistoricalView) { const rb = document.getElementById('reactionBox'); rb.classList.add('hidden'); rb.dataset.target=''; }
             atualizarBotaoMeuPerfil();
