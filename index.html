@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V5.4.0</title>
+    <title>Vôlei Hub PRO - V5.4.1</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -12,12 +12,12 @@
         .sacando { border: 3px solid #ffffff !important; background-color: #1e293b !important; box-shadow: 0 0 16px rgba(255, 255, 255, 0.4); }
         .bola-saque { animation: bounce 1s infinite; font-size: 14px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
         .is-bloqueado { opacity: 0.5; filter: grayscale(1); background: #0f172a !important; border: 1px dashed #334155 !important; }
-        .is-proximo { border-left: 4px solid #10b981 !important; background: linear-gradient(90deg, rgba(16, 185, 129, 0.1) 0%, rgba(30, 41, 59, 1) 100%) !important; }
         .tab-active { background-color: #f59e0b !important; color: white !important; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
         .config-input { background: #0f172a; border: 1px solid #334155; padding: 10px; border-radius: 12px; width: 100%; color: white; font-weight: bold; font-size: 12px; outline: none; }
         #info-panel { margin-bottom: 1rem; }
-        #match-log-box { max-height: 120px; overflow-y: auto; background: rgba(15, 23, 42, 0.5); border-radius: 8px; padding: 5px; font-size: 10px; border: 1px solid #1e293b; }
+        #match-log-box { max-height: 120px; overflow-y: auto; background: rgba(15, 23, 42, 0.5); border-radius: 8px; padding: 5px; font-size: 10px; border: 1px solid #1e293b; cursor: pointer; transition: all .2s ease; }
+        #match-log-box:hover { border-color: #475569; background: rgba(30, 41, 59, 0.72); }
         .log-item { padding: 4px 8px; border-radius: 4px; margin-bottom: 2px; font-weight: bold; text-transform: uppercase; display: flex; justify-content: space-between; }
         .log-A { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-left: 2px solid #3b82f6; }
         .log-B { background: rgba(249, 115, 22, 0.2); color: #f97316; border-left: 2px solid #f97316; }
@@ -108,6 +108,9 @@
                 <div id="winsB" class="text-[9px] text-orange-300/40 font-bold mt-2 uppercase italic text-center">Sets: 0</div>
             </div>
         </div>
+        <div id="matchPointBanner" class="hidden max-w-md mx-auto mt-2 rounded-xl border-2 border-red-400 bg-red-600 px-4 py-2 text-center shadow-[0_0_22px_rgba(239,68,68,.45)]">
+            <div id="matchPointText" class="text-sm font-black uppercase tracking-widest text-white">🔥 MATCH POINT 🔥</div>
+        </div>
     </header>
 
     <main class="p-4 max-w-md mx-auto space-y-4 relative" id="mainAppContent" style="display: none;">
@@ -117,7 +120,7 @@
         </div>
 
         <div id="info-panel">
-            <div id="match-log-box"><div class="text-center text-slate-500 italic py-2">Histórico vazio...</div></div>
+            <div id="match-log-box" onclick="window.toggleMatchLog()" title="Clique para ocultar/exibir o histórico"><div class="text-center text-slate-500 italic py-2">Histórico vazio...</div></div>
         </div>
 
         <div class="grid grid-cols-2 gap-3" id="quadraContainer">
@@ -405,7 +408,7 @@
         <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-emerald-500 overflow-y-auto max-h-[90vh]">
             <h2 class="text-xl font-black text-emerald-400 uppercase mb-4 italic">Jogadores do Evento</h2>
             <div class="flex gap-2 mb-4 bg-slate-900 p-3 rounded-xl border border-slate-700">
-                <input type="text" id="novoBaseNome" placeholder="Nome..." class="config-input flex-1 h-10 text-xs uppercase">
+                <input type="text" id="novoBaseNome" placeholder="Nome..." class="config-input flex-1 h-10 text-xs uppercase" onkeydown="if(event.key==='Enter'){event.preventDefault(); window.addBaseJogador();}">
                 <select id="novoBaseCat" class="config-input w-28 h-10 text-[10px] px-1"><option value="geral">Geral</option><option value="estrela">Estrela</option><option value="diamante">Diamante</option></select>
                 <button onclick="window.addBaseJogador()" class="bg-emerald-600 px-3 rounded-xl text-xs font-black uppercase shadow-lg">Add</button>
             </div>
@@ -552,6 +555,7 @@
         let isHistoricalView = false, globalBadges = {}, sessionEmojis = {}, sessoesFiltradasInfo = [], historicoLocal = [], tempConfig = {};
         let adminNotifications = {}, unsubscribeAdminNotifications = null, lastCelebrationId = null;
         let unlockRequests = {};
+        let matchLogOculto = localStorage.getItem('voleihub_matchlog_oculto') === '1';
         window.sessoesCache = {}; 
         
         const badgeMap = { topScore: {i:'🥇', desc:'Top Score'}, matador: {i:'🔥', desc:'Matador'}, paredao: {i:'🚫', desc:'Paredão'}, ace: {i:'⚡', desc:'Ace'}, vitorias: {i:'🏆', desc:'Vitórias'}, second: {i:'🥈', desc:'2º Lugar'}, third: {i:'🥉', desc:'3º Lugar'} };
@@ -562,6 +566,16 @@
         window.customAlert = (msg) => { document.getElementById('customAlertMsg').innerText = msg; document.getElementById('modalCustomAlert').classList.remove('hidden'); };
         window.customConfirm = (msg, callback) => { document.getElementById('customConfirmMsg').innerText = msg; document.getElementById('btnConfirmYes').onclick = () => { document.getElementById('modalCustomConfirm').classList.add('hidden'); callback(); }; document.getElementById('modalCustomConfirm').classList.remove('hidden'); };
         
+        function sincronizarCategoriasRankingComBase() {
+            if (!game?.ranking || !game?.baseJogadores) return;
+            Object.entries(game.ranking).forEach(([nome, stats]) => {
+                const cat = game.baseJogadores[nome];
+                if (!cat || !stats) return;
+                stats.estrela = cat === 'estrela';
+                stats.elite = cat === 'diamante';
+            });
+        }
+
         function guestIdentificadoNesteEvento() { return !isAdmin && !!meuNome && meuNomeEvento === currentInstanceId; }
         async function garantirGuestAnonimo() { if (isAdmin) return null; const u = auth.currentUser; if (u && u.isAnonymous) return u; return await signInAnonymously(auth); }
         function atualizarBotaoMeuPerfil() { const btn = document.getElementById('btnMeuPerfil'); if (!btn) return; if (guestIdentificadoNesteEvento()) { btn.innerText = "👤 " + meuNome; } else { btn.innerText = '👤 Identificar-se'; } }
@@ -612,16 +626,16 @@
             
             apitoGain = apitoCtx.createGain();
             apitoGain.gain.setValueAtTime(0.0001, now);
-            apitoGain.gain.exponentialRampToValueAtTime(0.65, now + 0.05);
+            apitoGain.gain.exponentialRampToValueAtTime(0.78, now + 0.05);
             apitoGain.connect(apitoCtx.destination);
     
             apitoOsc1 = apitoCtx.createOscillator();
             apitoOsc1.type = 'triangle';
-            apitoOsc1.frequency.setValueAtTime(2450, now);
+            apitoOsc1.frequency.setValueAtTime(2660, now);
     
             apitoOsc2 = apitoCtx.createOscillator();
             apitoOsc2.type = 'sine';
-            apitoOsc2.frequency.setValueAtTime(2520, now);
+            apitoOsc2.frequency.setValueAtTime(2740, now);
     
             apitoLFO = apitoCtx.createOscillator();
             apitoLFO.frequency.setValueAtTime(22, now);
@@ -751,6 +765,7 @@
                         systemMsg: data.systemMsg || { text: "PREPARANDO EVENTO", sub: "Aguarde..." } 
                     };
                     sessionEmojis = data.elogios || {};
+                    sincronizarCategoriasRankingComBase();
                     normalizarTodasAsFilas();
                     sincronizarEstadoSaque();
                     if(!lastCelebrationId) lastCelebrationId = game.lastPoint?.id || null;
@@ -1439,31 +1454,33 @@
 
         window.abrirWeights = () => {
             document.getElementById('modalConfigMenu').classList.add('hidden');
-            const w = game.weights || {};
-            document.getElementById('wAtqG').value = w.atqG || 1;
-            document.getElementById('wBlqG').value = w.blqG || 1;
-            document.getElementById('wAceG').value = w.aceG || 1;
-            document.getElementById('wAtqE').value = w.atqE || 1;
-            document.getElementById('wBlqE').value = w.blqE ?? 3;
-            document.getElementById('wAceE').value = w.aceE || 1;
-            document.getElementById('wErr').value = w.err ?? 0.1;
-            document.getElementById('wVit').value = w.vit ?? 0;
-            document.getElementById('wTeam').value = w.wTeam ?? 0;
+            const w = getPesosAtuais();
+            document.getElementById('wAtqG').value = w.atqG;
+            document.getElementById('wBlqG').value = w.blqG;
+            document.getElementById('wAceG').value = w.aceG;
+            document.getElementById('wAtqE').value = w.atqE;
+            document.getElementById('wBlqE').value = w.blqE;
+            document.getElementById('wAceE').value = w.aceE;
+            document.getElementById('wErr').value = w.err;
+            document.getElementById('wVit').value = w.vit;
+            document.getElementById('wTeam').value = w.wTeam;
             document.getElementById('modalWeights').classList.remove('hidden');
         }; 
 
         window.salvarWeightsEClose = () => {
             game.weights = {
-                atqG: parseFloat(document.getElementById('wAtqG').value),
-                blqG: parseFloat(document.getElementById('wBlqG').value),
-                aceG: parseFloat(document.getElementById('wAceG').value),
-                atqE: parseFloat(document.getElementById('wAtqE').value),
-                blqE: parseFloat(document.getElementById('wBlqE').value),
-                aceE: parseFloat(document.getElementById('wAceE').value),
-                err: Number.isFinite(parseFloat(document.getElementById('wErr').value)) ? parseFloat(document.getElementById('wErr').value) : 0.1,
-                vit: Number.isFinite(parseFloat(document.getElementById('wVit').value)) ? parseFloat(document.getElementById('wVit').value) : 0,
-                wTeam: Number.isFinite(parseFloat(document.getElementById('wTeam').value)) ? parseFloat(document.getElementById('wTeam').value) : 0
+                atqG: pesoNumero(document.getElementById('wAtqG').value, 1),
+                blqG: pesoNumero(document.getElementById('wBlqG').value, 1),
+                aceG: pesoNumero(document.getElementById('wAceG').value, 1),
+                atqE: pesoNumero(document.getElementById('wAtqE').value, 1),
+                blqE: pesoNumero(document.getElementById('wBlqE').value, 3),
+                aceE: pesoNumero(document.getElementById('wAceE').value, 1),
+                err: pesoNumero(document.getElementById('wErr').value, 0.1),
+                vit: pesoNumero(document.getElementById('wVit').value, 0),
+                wTeam: pesoNumero(document.getElementById('wTeam').value, 0)
             };
+            salvarState();
+            render();
             document.getElementById('modalWeights').classList.add('hidden');
             window.abrirConfig();
         };
@@ -1500,12 +1517,15 @@
                 if(!game.ranking[nome]) {
                     game.ranking[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: isE, elite: isEl };
                 }
+                game.ranking[nome].estrela = isE;
+                game.ranking[nome].elite = isEl;
                 inserirJogadorNaFilaDinamica(obj);
             }
             document.getElementById('novoBaseNome').value = '';
             normalizarTodasAsFilas();
             salvarState();
             window.abrirBaseJogadores();
+            setTimeout(() => document.getElementById('novoBaseNome')?.focus(), 0);
         }; 
 
         window.removeBaseJogador = (nome) => {
@@ -1571,7 +1591,8 @@
             const lista = time || [];
             const total = lista.reduce((sum, jogador) => {
                 const stats = game.ranking?.[jogador.nome];
-                return sum + (stats ? parseFloat(calcularScoreComPesos(stats)) : 0);
+                const statsAtuais = stats ? { ...stats, estrela: !!jogador.estrela, elite: !!jogador.elite } : null;
+                return sum + (statsAtuais ? parseFloat(calcularScoreComPesos(statsAtuais)) : 0);
             }, 0);
             return lista.length ? total / lista.length : 0;
         }
@@ -1606,6 +1627,8 @@
             normalizarTodasAsFilas();
             salvarState(true);
             render();
+            setTimeout(() => document.getElementById('filaAddInput')?.focus(), 0);
+            setTimeout(() => document.getElementById('filaAddInput')?.focus(), 180);
         };
 
         window.dragStart = (e, lado, idx) => { if(!isAdmin) return; e.dataTransfer.setData('lado', lado); e.dataTransfer.setData('idx', idx.toString()); };
@@ -2099,12 +2122,46 @@
             return true;
         }
 
-                    window.registrarPontoSimples = (lado, hist) => {
+        function jogadoresDoLado(lado) {
+            return lado === 'A' ? (game.timeA || []) : (game.timeB || []);
+        }
+
+        function garantirStatsJogador(nome, jogador = null) {
+            if (!game.ranking) game.ranking = {};
+            if (!game.ranking[nome]) {
+                game.ranking[nome] = {
+                    v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0,
+                    ptsErroAdversario:0, ptsAcertoTime:0,
+                    estrela: !!jogador?.estrela, elite: !!jogador?.elite
+                };
+            }
+            if (!Number.isFinite(Number(game.ranking[nome].ptsErroAdversario))) game.ranking[nome].ptsErroAdversario = 0;
+            if (!Number.isFinite(Number(game.ranking[nome].ptsAcertoTime))) game.ranking[nome].ptsAcertoTime = 0;
+            return game.ranking[nome];
+        }
+
+        function registrarErroAdversarioParaTime(lado) {
+            jogadoresDoLado(lado).forEach(j => {
+                garantirStatsJogador(j.nome, j).ptsErroAdversario++;
+            });
+        }
+
+        function registrarAcertoDoTime(lado, autorDoPonto = null) {
+            jogadoresDoLado(lado).forEach(j => {
+                // O autor do ponto já recebe a pontuação específica da jogada
+                // (ataque, bloqueio ou ace), então não recebe também Acerto Time.
+                if (autorDoPonto && j.nome === autorDoPonto) return;
+                garantirStatsJogador(j.nome, j).ptsAcertoTime++;
+            });
+        }
+
+        window.registrarPontoSimples = (lado, hist) => {
                 if(!isAdmin || !game.partidaAtiva) return;
                 if(!game.matchStartScores) capturarScoreInicialPartida();
                 if(hist) salvarState(true);
                 
                 if(lado === 'A') game.scoreA++; else game.scoreB++;
+                registrarErroAdversarioParaTime(lado);
                 transferirSaqueSeAdversarioPontuar(lado);
                 if(!game.matchLog) game.matchLog = [];
                 game.matchLog.unshift({ text: "PONTO TIME " + lado + " - Erro Adv", type: lado });
@@ -2129,30 +2186,43 @@
                 window.fecharModais();
                 
                 if(modalCtx.lado === 'A') game.scoreA++; else game.scoreB++;
+                registrarAcertoDoTime(modalCtx.lado, p.nome);
                 transferirSaqueSeAdversarioPontuar(modalCtx.lado);
                 game.systemMsg = { text: "PONTO TIME " + modalCtx.lado, sub: "Placar: " + game.scoreA + " x " + game.scoreB };
                 verificarFimDeSet();
                 salvarState(false);
             };
 
-        function verificarFimDeSet() {
-            const limit = game.config.points;
-            let vencedor = null;
-            if(game.config.desempate === '3direto'){
-                if(game.scoreA >= limit-1 && game.scoreB >= limit-1){
-                    if(game.scoreA >= limit+2) vencedor = 'A';
-                    else if(game.scoreB >= limit+2) vencedor = 'B';
+        function detectarVencedorSet(scoreA = game.scoreA, scoreB = game.scoreB) {
+            const limit = Number(game.config?.points || 12);
+            if(game.config?.desempate === '3direto'){
+                if(scoreA >= limit-1 && scoreB >= limit-1){
+                    if(scoreA >= limit+2) return 'A';
+                    if(scoreB >= limit+2) return 'B';
                 } else {
-                    if(game.scoreA >= limit) vencedor = 'A';
-                    else if(game.scoreB >= limit) vencedor = 'B';
+                    if(scoreA >= limit) return 'A';
+                    if(scoreB >= limit) return 'B';
                 }
-            } else if(game.config.desempate === '2vantagem'){
-                if(game.scoreA >= limit && (game.scoreA - game.scoreB) >= 2) vencedor = 'A';
-                else if(game.scoreB >= limit && (game.scoreB - game.scoreA) >= 2) vencedor = 'B';
+            } else if(game.config?.desempate === '2vantagem'){
+                if(scoreA >= limit && (scoreA - scoreB) >= 2) return 'A';
+                if(scoreB >= limit && (scoreB - scoreA) >= 2) return 'B';
             } else {
-                if(game.scoreA >= limit) vencedor = 'A';
-                else if(game.scoreB >= limit) vencedor = 'B';
+                if(scoreA >= limit) return 'A';
+                if(scoreB >= limit) return 'B';
             }
+            return null;
+        }
+
+        function obterMatchPoint() {
+            if (!game.partidaAtiva || detectarVencedorSet()) return null;
+            const aPodeFechar = detectarVencedorSet((game.scoreA || 0) + 1, game.scoreB || 0) === 'A';
+            const bPodeFechar = detectarVencedorSet(game.scoreA || 0, (game.scoreB || 0) + 1) === 'B';
+            if (!aPodeFechar && !bPodeFechar) return null;
+            return aPodeFechar && bPodeFechar ? 'AMBOS' : (aPodeFechar ? 'A' : 'B');
+        }
+
+        function verificarFimDeSet() {
+            const vencedor = detectarVencedorSet();
             if(vencedor) finalizarPartida(vencedor);
         }
 
@@ -2226,10 +2296,32 @@
             document.getElementById('endMatchCelebration').classList.remove('hidden');
         }
 
+        function getPesosAtuais() {
+            return {
+                atqG: 1, blqG: 1, aceG: 1,
+                atqE: 1, blqE: 3, aceE: 1,
+                err: 0.1, vit: 0, wTeam: 0,
+                ...(game.weights || {})
+            };
+        }
+
+        function pesoNumero(valor, fallback = 0) {
+            if (valor === null || valor === undefined || valor === '') return fallback;
+            const n = Number(valor);
+            return Number.isFinite(n) ? n : fallback;
+        }
+
         function calcularScoreComPesos(s) {
-            if(!s) return 0;
-            const w = game.weights || {atqG:1,blqG:1,aceG:1,atqE:1,blqE:3,aceE:1,err:0.1,vit:0,wTeam:0};
-            return ((s.v||0)*w.vit + (s.ptsAtaque||0)*(s.estrela?w.atqE:w.atqG) + (s.ptsBloqueio||0)*(s.estrela?w.blqE:w.blqG) + (s.ptsAce||0)*(s.estrela?w.aceE:w.aceG) + (s.ptsErroAdversario||0)*w.err + (s.ptsAcertoTime||0)*(w.wTeam||0)).toFixed(2);
+            if(!s) return '0.00';
+            const w = getPesosAtuais();
+            const score =
+                pesoNumero(s.v) * pesoNumero(w.vit) +
+                pesoNumero(s.ptsAtaque) * pesoNumero(s.estrela ? w.atqE : w.atqG, 1) +
+                pesoNumero(s.ptsBloqueio) * pesoNumero(s.estrela ? w.blqE : w.blqG, s.estrela ? 3 : 1) +
+                pesoNumero(s.ptsAce) * pesoNumero(s.estrela ? w.aceE : w.aceG, 1) +
+                pesoNumero(s.ptsErroAdversario) * pesoNumero(w.err, 0.1) +
+                pesoNumero(s.ptsAcertoTime) * pesoNumero(w.wTeam);
+            return score.toFixed(2);
         }
 
         window.abrirPontoTecnico = (l, i) => {
@@ -2239,7 +2331,7 @@
             if(!isAdmin) return window.abrirPerfilJogador(p.nome);
             document.getElementById('modalNomeTec').innerText = p.nome;
             if(isAdmin) {
-                const w = game.weights;
+                const w = getPesosAtuais();
                 document.getElementById('labelAtq').innerText = "+" + (p.estrela?w.atqE:w.atqG);
                 document.getElementById('labelBlq').innerText = "+" + (p.estrela?w.blqE:w.blqG);
                 document.getElementById('labelAce').innerText = "+" + (p.estrela?w.aceE:w.aceG);
@@ -2504,20 +2596,45 @@
                 if(maxG === 0 && maxE === 0) return;
                 const winnersG = listG.filter(p => c.f(p) === maxG).map(p => escapeHtml(p.n)).join(', ');
                 const winnersE = listE.filter(p => c.f(p) === maxE).map(p => escapeHtml(p.n)).join(', ');
-                htmlParts.push('<div class="bg-slate-800 p-3 rounded mb-2"><div class="text-xs text-slate-400 mb-1 font-bold tracking-widest">' + c.i + c.t + '</div><div class="flex gap-1 text-[10px]"><div class="bg-slate-700/30 p-1 flex-1 flex justify-between rounded"><span class="text-orange-500 font-black">' + (maxG>0 ? winnersG : '-') + '</span><span class="text-white">' + (maxG>0 ? maxG : '') + '</span></div><div class="bg-slate-700/30 p-1 flex-1 flex justify-between rounded"><span class="text-orange-500 font-black">' + (maxE>0 ? winnersE : '-') + '</span><span class="text-white">' + (maxE>0 ? maxE : '') + '</span></div></div></div>');
+                const destacaG = maxG > 0 && maxG >= maxE;
+                const destacaE = maxE > 0 && maxE >= maxG;
+                const classeG = destacaG ? 'border border-amber-400 bg-amber-500/10 shadow-[0_0_12px_rgba(251,191,36,.18)]' : 'border border-transparent bg-slate-700/30';
+                const classeE = destacaE ? 'border border-amber-400 bg-amber-500/10 shadow-[0_0_12px_rgba(251,191,36,.18)]' : 'border border-transparent bg-slate-700/30';
+                htmlParts.push('<div class="bg-slate-800 p-3 rounded mb-2"><div class="text-xs text-slate-400 mb-2 font-bold tracking-widest">' + c.i + c.t + '</div><div class="grid grid-cols-2 gap-2 text-[10px]"><div class="' + classeG + ' p-2 rounded-lg"><div class="flex justify-between items-center mb-1"><span class="text-[8px] text-slate-400 font-black uppercase">Geral</span>' + (destacaG ? '<span title="Maior valor">🏅</span>' : '') + '</div><div class="flex justify-between gap-2"><span class="text-orange-500 font-black truncate">' + (maxG>0 ? winnersG : '-') + '</span><span class="text-white font-black">' + (maxG>0 ? maxG : '') + '</span></div></div><div class="' + classeE + ' p-2 rounded-lg"><div class="flex justify-between items-center mb-1"><span class="text-[8px] text-slate-400 font-black uppercase">Estrela ⭐</span>' + (destacaE ? '<span title="Maior valor">🏅</span>' : '') + '</div><div class="flex justify-between gap-2"><span class="text-orange-500 font-black truncate">' + (maxE>0 ? winnersE : '-') + '</span><span class="text-white font-black">' + (maxE>0 ? maxE : '') + '</span></div></div></div></div>');
             });
             document.getElementById('leadersGrid').innerHTML = htmlParts.join('');
         }
 
+        window.toggleMatchLog = () => {
+            matchLogOculto = !matchLogOculto;
+            localStorage.setItem('voleihub_matchlog_oculto', matchLogOculto ? '1' : '0');
+            render();
+        };
+
         function render() {
             if(!currentInstanceId) return;
             if(game.publicRanking) document.body.classList.add('show-public'); else document.body.classList.remove('show-public');
-            if ((game.matchLog||[]).length) {
-                let logParts = []; game.matchLog.forEach(l => { logParts.push('<div class="log-item log-' + l.type + '">' + escapeHtml(l.text) + '</div>'); }); document.getElementById('match-log-box').innerHTML = logParts.join('');
-            } else { document.getElementById('match-log-box').innerHTML = '<div class="text-center text-slate-500 italic py-2">Histórico vazio...</div>'; }
+            const logBox = document.getElementById('match-log-box');
+            if (matchLogOculto) {
+                logBox.innerHTML = '<div class="text-center text-slate-500 font-black uppercase py-1 tracking-widest">📜 Histórico oculto · clique para exibir</div>';
+            } else if ((game.matchLog||[]).length) {
+                let logParts = []; game.matchLog.forEach(l => { logParts.push('<div class="log-item log-' + l.type + '">' + escapeHtml(l.text) + '</div>'); }); logBox.innerHTML = logParts.join('');
+            } else {
+                logBox.innerHTML = '<div class="text-center text-slate-500 italic py-2">Histórico vazio... · clique para ocultar</div>';
+            }
             const placarDiv = document.getElementById('placarDisplay');
-            if (isHistoricalView || !game.partidaAtiva || game.config.hideScoreboard) placarDiv.classList.add('hidden'); else placarDiv.classList.remove('hidden');
+            const matchPointBanner = document.getElementById('matchPointBanner');
+            const placarOculto = isHistoricalView || !game.partidaAtiva || game.config.hideScoreboard;
+            if (placarOculto) placarDiv.classList.add('hidden'); else placarDiv.classList.remove('hidden');
             document.getElementById('scoreA').innerText = game.scoreA || 0; document.getElementById('scoreB').innerText = game.scoreB || 0; document.getElementById('winsA').innerText = "Sets: " + (game.winsConsecA || 0); document.getElementById('winsB').innerText = "Sets: " + (game.winsConsecB || 0);
+
+            const mp = placarOculto ? null : obterMatchPoint();
+            if (mp) {
+                matchPointBanner.classList.remove('hidden');
+                document.getElementById('matchPointText').innerText = mp === 'AMBOS' ? '🔥 MATCH POINT — TIMES A E B 🔥' : ('🔥 MATCH POINT — TIME ' + mp + ' 🔥');
+            } else {
+                matchPointBanner.classList.add('hidden');
+            }
             
             const drawTeam = (l) => {
                 const team = l === 'A' ? (game.timeA||[]) : (game.timeB||[]); let parts = [];
@@ -2530,20 +2647,19 @@
             document.getElementById('areaA').innerHTML = drawTeam('A'); document.getElementById('areaB').innerHTML = drawTeam('B');
             document.getElementById('labelTimeA').innerHTML = 'Time A <span class="block text-[8px] text-blue-300/70 mt-1">Score: ' + calcularScoreEquipe(game.timeA).toFixed(2) + '</span>'; document.getElementById('labelTimeB').innerHTML = 'Time B <span class="block text-[8px] text-orange-300/70 mt-1">Score: ' + calcularScoreEquipe(game.timeB).toFixed(2) + '</span>';
             
-            const f = filaTab === 'geral' ? (game.esperaGeral||[]) : (game.esperaEstrela||[]); let countLib = 0;
+            const f = filaTab === 'geral' ? (game.esperaGeral||[]) : (game.esperaEstrela||[]);
             if (f.length) {
                 let fParts = [];
                 f.forEach((p, i) => {
-                    let dest = ""; if(!p.bloqueado) { countLib++; if(countLib <= 3) dest="is-proximo"; }
                     const blockText = p.bloqueado ? '<span class="text-[8px] text-red-400 font-bold ml-1 tracking-widest">(BLOQUEADO)</span>' : ''; const safeName = escapeHtml(p.nome);
                     let eventClick = isAdmin ? 'onclick="window.abrirEscalacao(\'' + filaTab + '\', ' + i + ')"' : 'onclick="window.abrirPerfilJogador(this.getAttribute(\'data-player-name\'))"';
-                    fParts.push('<div data-id="' + p.id + '" data-player-name="' + safeName + '" ' + eventClick + ' class="bg-slate-800 p-3 rounded-xl flex items-center border border-slate-700 ' + (p.bloqueado ? 'is-bloqueado' : '') + ' ' + dest + ' cursor-pointer hover:bg-slate-700/60"><div class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2">' + (p.estrela ? '⭐ ' : '') + (p.elite ? '💎 ' : '') + safeName + ' ' + blockText + '</div><div class="text-[9px] text-slate-500">❯</div></div>');
+                    fParts.push('<div data-id="' + p.id + '" data-player-name="' + safeName + '" ' + eventClick + ' class="bg-slate-800 p-3 rounded-xl flex items-center border border-slate-700 ' + (p.bloqueado ? 'is-bloqueado' : '') + ' cursor-pointer hover:bg-slate-700/60"><div class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2">' + (p.estrela ? '⭐ ' : '') + (p.elite ? '💎 ' : '') + safeName + ' ' + blockText + '</div><div class="text-[9px] text-slate-500">❯</div></div>');
                 });
-                if(isAdmin) { const placeholderFila = filaTab === 'geral' ? 'Adicionar jogador à Fila Geral — Enter' : 'Adicionar jogador à Fila Estrelas — Enter'; fParts.push('<div class="admin-only-control mt-3"><input type="text" maxlength="40" autocomplete="off" placeholder="' + placeholderFila + '" class="config-input h-11 text-[10px] uppercase" onkeydown="if(event.key===\'Enter\'){event.preventDefault(); const v=this.value; this.value=\'\'; window.adicionarNaFila(\'' + filaTab + '\', v);}"></div>'); }
+                if(isAdmin) { const placeholderFila = filaTab === 'geral' ? 'Adicionar jogador à Fila Geral — Enter' : 'Adicionar jogador à Fila Estrelas — Enter'; fParts.push('<div class="admin-only-control mt-3"><input id="filaAddInput" type="text" maxlength="40" autocomplete="off" placeholder="' + placeholderFila + '" class="config-input h-11 text-[10px] uppercase" onkeydown="if(event.key===\'Enter\'){event.preventDefault(); const v=this.value; this.value=\'\'; window.adicionarNaFila(\'' + filaTab + '\', v);}"></div>'); }
                 document.getElementById('esperaContainer').innerHTML = fParts.join('');
             } else {
                 let htmlFila = '<div class="text-center text-slate-600 text-[10px] py-4 italic">Fila vazia...</div>';
-                if(isAdmin) { const placeholderFila = filaTab === 'geral' ? 'Adicionar jogador à Fila Geral — Enter' : 'Adicionar jogador à Fila Estrelas — Enter'; htmlFila += '<div class="admin-only-control mt-3"><input type="text" maxlength="40" autocomplete="off" placeholder="' + placeholderFila + '" class="config-input h-11 text-[10px] uppercase" onkeydown="if(event.key===\'Enter\'){event.preventDefault(); const v=this.value; this.value=\'\'; window.adicionarNaFila(\'' + filaTab + '\', v);}"></div>'; }
+                if(isAdmin) { const placeholderFila = filaTab === 'geral' ? 'Adicionar jogador à Fila Geral — Enter' : 'Adicionar jogador à Fila Estrelas — Enter'; htmlFila += '<div class="admin-only-control mt-3"><input id="filaAddInput" type="text" maxlength="40" autocomplete="off" placeholder="' + placeholderFila + '" class="config-input h-11 text-[10px] uppercase" onkeydown="if(event.key===\'Enter\'){event.preventDefault(); const v=this.value; this.value=\'\'; window.adicionarNaFila(\'' + filaTab + '\', v);}"></div>'; }
                 document.getElementById('esperaContainer').innerHTML = htmlFila;
             }
             const todos = [...(game.timeA||[]), ...(game.timeB||[])];
