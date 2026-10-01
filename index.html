@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V5.3.3</title>
+    <title>Vôlei Hub PRO - V5.4.0</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -84,7 +84,7 @@
                 <span id="displayEventId" class="text-[10px] ml-1 bg-slate-700 px-2 py-0.5 rounded text-white tracking-widest font-bold hidden">#---</span>
             </h1>
             <div class="flex gap-2 admin-only-control">
-                <button onclick="window.abrirNotificacoesAdmin()" class="relative text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase transition">
+                <button id="btnAdminNotifications" onclick="window.abrirNotificacoesAdmin()" class="relative hidden text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase transition">
                     🔔 <span id="adminNotifCount" class="ml-1 inline-flex min-w-4 h-4 items-center justify-center rounded-full bg-red-600 px-1 text-[8px]">0</span>
                 </button>
                 <button onclick="window.undoLastAction()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase transition">↩ Desfazer</button>
@@ -175,13 +175,15 @@
         </div>
     </div>
     
-    <div id="endMatchCelebration" class="fixed inset-0 bg-slate-950/95 z-[9999] hidden flex-col items-center justify-center backdrop-blur-sm">
+    <div id="endMatchCelebration" class="fixed inset-0 bg-slate-950/95 z-[9999] hidden flex-col backdrop-blur-sm overflow-hidden">
         <div id="endMatchEmojis" class="absolute inset-0 overflow-hidden pointer-events-none"></div>
-        <div class="relative z-10 text-center animate-bounce">
-            <h1 class="text-6xl font-black text-orange-500 uppercase italic mb-2" style="text-shadow: 0 8px 24px rgba(249,115,22,0.8);">FIM DE JOGO</h1>
-            <p id="endMatchText" class="text-2xl text-blue-400 font-black uppercase mb-8 tracking-widest"></p>
-            <button onclick="document.getElementById('endMatchCelebration').classList.add('hidden')" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-4 rounded-2xl font-black uppercase text-sm shadow-[0_0_20px_rgba(37,99,235,0.5)] border border-blue-400 transition transform active:scale-95">Continuar Evento</button>
+        <div class="relative z-10 flex-1 w-full flex items-center justify-center px-5 pb-28 pt-8">
+            <div class="text-center w-full max-w-sm">
+                <h1 class="font-black text-orange-500 uppercase italic mb-3 leading-none" style="font-size:clamp(2.4rem,12vw,4rem); text-shadow:0 8px 24px rgba(249,115,22,0.8);">FIM DE JOGO</h1>
+                <p id="endMatchText" class="text-xl sm:text-2xl text-blue-400 font-black uppercase tracking-widest leading-tight"></p>
+            </div>
         </div>
+        <button onclick="document.getElementById('endMatchCelebration').classList.add('hidden')" class="fixed left-1/2 -translate-x-1/2 z-20 w-[calc(100%-2rem)] max-w-sm bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-2xl font-black uppercase text-sm shadow-[0_0_20px_rgba(37,99,235,0.5)] border border-blue-400 transition active:scale-95" style="bottom:max(1.25rem, env(safe-area-inset-bottom));">CONTINUAR</button>
     </div>
 
     <div id="modalPerfilJogador" class="modal-global hidden">
@@ -210,7 +212,7 @@
             </div>
 
             <div id="reactionBox" class="border-t border-slate-700 pt-4 text-center hidden">
-                <p class="text-[10px] font-bold uppercase text-slate-400 mb-2">Enviar Reação (Elogio):</p>
+                <p class="text-[10px] font-bold uppercase text-slate-400 mb-2">Enviar Reação:</p>
                 <div class="flex justify-center gap-4 text-2xl">
                     <span class="emoji-btn" onclick="window.enviarElogio('👍')">👍</span>
                     <span class="emoji-btn" onclick="window.enviarElogio('🏐')">🏐</span>
@@ -300,11 +302,16 @@
                         <span class="text-[10px] font-black uppercase text-orange-400">Esconder Placar</span>
                         <button id="btnToggleScoreboard" onclick="window.toggleScoreboardVis()" class="text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400">Visível</button>
                     </div>
+                    <div class="flex justify-between items-center border-t border-slate-600 pt-3">
+                        <span class="text-[10px] font-black uppercase text-purple-400">2 💎 = 2 ⭐</span>
+                        <button id="btnToggleBalanceamento" onclick="window.toggleBalanceamentoDiamanteEstrela()" class="text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400">DESATIVADO</button>
+                    </div>
                 </div>
-                <div class="grid grid-cols-3 gap-2">
-                    <div><label class="text-[8px] uppercase font-bold text-slate-500">Jogs/Time*</label><input type="number" id="cSize" class="config-input"></div>
-                    <div><label class="text-[8px] uppercase font-bold text-slate-500">Max Estrelas</label><input type="number" id="cStars" class="config-input"></div>
-                    <div><label class="text-[8px] uppercase font-bold text-slate-500">Max Diamantes</label><input type="number" id="cElites" class="config-input"></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="text-[8px] uppercase font-bold text-slate-500">Jogs/Time*</label><input type="number" id="cSize" min="1" class="config-input"></div>
+                    <div><label class="text-[8px] uppercase font-bold text-slate-500">Mínimo Estrelas</label><input type="number" id="cMinStars" min="0" class="config-input"></div>
+                    <div><label class="text-[8px] uppercase font-bold text-slate-500">Max Estrelas</label><input type="number" id="cStars" min="0" class="config-input"></div>
+                    <div><label class="text-[8px] uppercase font-bold text-slate-500">Max Diamantes</label><input type="number" id="cElites" min="0" max="2" class="config-input"></div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="text-[9px] uppercase font-bold text-slate-500">Pontos/Set</label><input type="number" id="cPoints" class="config-input"></div>
@@ -731,14 +738,21 @@
                         ...data, 
                         timeA: data.timeA || [], timeB: data.timeB || [], esperaGeral: data.esperaGeral || [], esperaEstrela: data.esperaEstrela || [], 
                         ranking: data.ranking || {}, baseJogadores: data.baseJogadores || {}, historicoPartidas: data.historicoPartidas || [], 
-                        matchLog: data.matchLog || [], config: data.config || {}, weights: data.weights || {}, scoreA: data.scoreA || 0, 
+                        matchLog: data.matchLog || [], config: { minStars: 1, stars: 1, elites: 2, ...(data.config || {}) }, weights: data.weights || {}, scoreA: data.scoreA || 0, 
                         scoreB: data.scoreB || 0, winsConsecA: data.winsConsecA || 0, winsConsecB: data.winsConsecB || 0, idxA: data.idxA || 0, 
-                        idxB: data.idxB || 0, saqueLado: data.saqueLado || 'A', matchStartScores: data.matchStartScores || null,
+                        idxB: data.idxB || 0, saqueLado: data.saqueLado || 'A',
+                        saqueInicio: data.saqueInicio || data.saqueLado || 'A',
+                        saqueIndiceBase: data.saqueIndiceBase !== undefined ? data.saqueIndiceBase : (data.saqueLado === 'B' ? (data.idxB || 0) : (data.idxA || 0)),
+                        saqueTurno: data.saqueTurno !== undefined ? data.saqueTurno : 0,
+                        saqueModelo: data.saqueModelo || 'migrar',
+                        matchStartScores: data.matchStartScores || null,
                         lastPoint: data.lastPoint || null, firstServeA: data.firstServeA !== undefined ? data.firstServeA : true,
                         firstServeB: data.firstServeB !== undefined ? data.firstServeB : true,
                         systemMsg: data.systemMsg || { text: "PREPARANDO EVENTO", sub: "Aguarde..." } 
                     };
                     sessionEmojis = data.elogios || {};
+                    normalizarTodasAsFilas();
+                    sincronizarEstadoSaque();
                     if(!lastCelebrationId) lastCelebrationId = game.lastPoint?.id || null;
                     else if(!isAdmin && !isHistoricalView && game.lastPoint?.id && game.lastPoint.id !== lastCelebrationId) { lastCelebrationId = game.lastPoint.id; mostrarCelebracaoPonto(game.lastPoint.nome, game.lastPoint.emoji); }
                     if(!game.matchStartScores && game.scoreA === 0 && game.scoreB === 0) capturarScoreInicialPartida();
@@ -774,9 +788,11 @@
             const listDesbloqueios = Object.entries(unlockRequests || {}).map(([id, n]) => ({ id, ...n, tipoReq: 'desbloqueio' }));
             
             const listAll = [...listBloqueios, ...listDesbloqueios].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-            const pending = listAll.filter(n => n.status === 'pending' || n.tipoReq === 'desbloqueio'); 
-            
-            document.getElementById('adminNotifCount').innerText = pending.length;
+            const pending = listAll.filter(n => n.status === 'pending' || n.tipoReq === 'desbloqueio');
+            const notifBtn = document.getElementById('btnAdminNotifications');
+            const notifCount = document.getElementById('adminNotifCount');
+            if(notifCount) notifCount.innerText = pending.length;
+            if(notifBtn) notifBtn.classList.toggle('hidden', pending.length === 0);
             const c = document.getElementById('adminNotificationsList');
             if (!listAll.length) { c.innerHTML = '<div class="text-center text-slate-500 text-xs italic py-6">Nenhuma notificação.</div>'; return; }
             
@@ -840,7 +856,7 @@
                 // 2. Apaga a solicitação da fila (para sumir da tela de notificações)
                 await remove(ref(db, "solicitacoes_desbloqueio/" + currentShortId + "/" + currentInstanceId + "/" + solicitacaoId));
                 
-                customAlert(req.nome + " foi desbloqueado e agora pode enviar elogios e jogar!");
+                customAlert(req.nome + " foi desbloqueado e agora pode enviar reações e jogar!");
             } catch(e) {
                 console.error(e);
                 customAlert('Erro ao aprovar o desbloqueio. Verifique as permissões.');
@@ -853,21 +869,87 @@
                 await remove(ref(db, "solicitacoes_desbloqueio/" + currentShortId + "/" + currentInstanceId + "/" + solicitacaoId));
             } catch(e) {}
         };
-        function reposicionarJogadorNaFila(p) {
+        function normalizarFilaDinamica(fila) {
+            if (!Array.isArray(fila)) return false;
+
+            const vistos = new Set();
+            const prioridade = [];
+            const zeroJogos = [];
+            const jogados = [];
+            const bloqueados = [];
+
+            fila.forEach(p => {
+                if (!p || !p.nome || vistos.has(p.nome)) return;
+                vistos.add(p.nome);
+
+                const stats = game.ranking?.[p.nome] || { v: 0, d: 0 };
+                const totalGames = Number(stats.v || 0) + Number(stats.d || 0);
+
+                if (p.bloqueado) bloqueados.push(p);
+                else if (p.prioridadeFila) prioridade.push(p);
+                else if (totalGames === 0) zeroJogos.push(p);
+                else jogados.push(p);
+            });
+
+            // Ordem dinâmica:
+            // 1) Diamantes que acabaram de ser pulados pela regra especial;
+            // 2) jogadores liberados com 0 jogos;
+            // 3) jogadores liberados que já jogaram;
+            // 4) jogadores bloqueados.
+            const nova = [...prioridade, ...zeroJogos, ...jogados, ...bloqueados];
+            const mudou = nova.length !== fila.length || nova.some((p, i) => p !== fila[i]);
+
+            if (mudou) fila.splice(0, fila.length, ...nova);
+            return mudou;
+        }
+
+        function normalizarTodasAsFilas() {
+            normalizarFilaDinamica(game.esperaGeral);
+            normalizarFilaDinamica(game.esperaEstrela);
+        }
+
+        function inserirJogadorNaFilaDinamica(p) {
+            if (!p) return;
+
+            // Só um Diamante pulado recebe prioridade especial.
+            if (!p.elite) p.prioridadeFila = false;
+
             const fila = p.estrela ? game.esperaEstrela : game.esperaGeral;
-            const idx = fila.findIndex(x => x.nome === p.nome);
-            if (idx > -1) fila.splice(idx, 1);
-            const stats = game.ranking[p.nome] || {v:0, d:0};
-            const totalGames = (stats.v || 0) + (stats.d || 0);
-            if (totalGames === 0) {
-                let targetIdx = fila.findIndex(x => { const xs = game.ranking[x.nome] || {v:0, d:0}; return x.bloqueado || (xs.v + xs.d) > 0; });
-                if (targetIdx === -1) targetIdx = fila.length;
-                fila.splice(targetIdx, 0, p);
-            } else {
-                let targetIdx = fila.findIndex(x => x.bloqueado);
-                if (targetIdx === -1) targetIdx = fila.length;
-                fila.splice(targetIdx, 0, p);
+            removerDaFilaPorNome(fila, p.nome);
+
+            const stats = game.ranking?.[p.nome] || { v: 0, d: 0 };
+            const totalGames = Number(stats.v || 0) + Number(stats.d || 0);
+
+            if (p.bloqueado) {
+                fila.push(p);
+                return;
             }
+
+            // 0 jogos entra no topo da fila disponível, depois das prioridades
+            // especiais e dos outros jogadores que também têm 0 jogos.
+            if (totalGames === 0) {
+                let pos = 0;
+                while (pos < fila.length && !fila[pos].bloqueado) {
+                    const x = fila[pos];
+                    const xs = game.ranking?.[x.nome] || { v: 0, d: 0 };
+                    const xGames = Number(xs.v || 0) + Number(xs.d || 0);
+
+                    if (!x.prioridadeFila && xGames !== 0) break;
+                    pos++;
+                }
+                fila.splice(pos, 0, p);
+                return;
+            }
+
+            // Quem já jogou volta para o fim da fila dos liberados,
+            // sempre antes dos bloqueados.
+            const idxBloqueado = fila.findIndex(x => x.bloqueado);
+            fila.splice(idxBloqueado === -1 ? fila.length : idxBloqueado, 0, p);
+        }
+
+        function reposicionarJogadorNaFila(p) {
+            if (p) p.prioridadeFila = false;
+            inserirJogadorNaFilaDinamica(p);
         }
 
         function preencherListaIdentificacao() {
@@ -912,7 +994,7 @@
             statsEl.innerHTML = '<div class="bg-slate-900 rounded-lg p-2"><span class="block text-slate-600 uppercase font-bold">Score</span><strong class="text-orange-400 text-lg">' + calcularScoreComPesos(s) + '</strong></div><div class="bg-slate-900 rounded-lg p-2"><span class="block text-slate-600 uppercase font-bold">Partidas</span><strong class="text-white">' + jogos + '</strong></div><div class="bg-slate-900 rounded-lg p-2"><span class="block text-slate-600 uppercase font-bold">Vitórias</span><strong class="text-white">' + (s.v||0) + '</strong></div><div class="bg-slate-900 rounded-lg p-2"><span class="block text-slate-600 uppercase font-bold">Ataques / Bloq. / Aces</span><strong class="text-white">' + (s.ptsAtaque||0) + ' / ' + (s.ptsBloqueio||0) + ' / ' + (s.ptsAce||0) + '</strong></div>';
             duplaEl.innerHTML = dupla ? 'Melhor dupla: <strong class="text-white">' + escapeHtml(dupla.n) + '</strong> · ' + dupla.vitorias + ' vitória(s) em ' + dupla.jogos + ' partida(s)' : 'Melhor dupla: nenhuma registrada nesta sessão.';
             const elogios = formatarElogios(val);
-            elogiosEl.innerHTML = elogios ? '<span class="text-[8px] uppercase font-black text-slate-600 mr-2">Elogios</span>' + elogios : '<span class="text-[8px] uppercase font-black text-slate-600">Elogios: nenhum</span>';
+            elogiosEl.innerHTML = elogios ? '<span class="text-[8px] uppercase font-black text-slate-600 mr-2">Reações</span>' + elogios : '<span class="text-[8px] uppercase font-black text-slate-600">Reações: nenhuma</span>';
             badges.innerHTML = '<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-600 block mb-1">Insígnias</span>' + (renderBadgesJogador(val) || '<span class="text-[8px] text-slate-600 uppercase font-bold">Nenhuma</span>') + '</div>';
             if (info?.p?.bloqueado) { btnAcao.innerText = 'Desbloquear'; btnAcao.className = 'bg-emerald-600 hover:bg-emerald-500 p-3 rounded-xl font-black uppercase text-[9px] shadow-lg transition text-white'; btnAcao.onclick = () => window.salvarIdentificacao('desbloquear'); } else { btnAcao.innerText = 'Bloquear'; btnAcao.className = 'bg-red-600 hover:bg-red-500 p-3 rounded-xl font-black uppercase text-[9px] shadow-lg transition text-white'; btnAcao.onclick = () => window.salvarIdentificacao('bloquear'); }
         };
@@ -936,7 +1018,7 @@
             if(!game.baseJogadores) game.baseJogadores = {};
             if(!game.baseJogadores[n]) {
                 game.baseJogadores[n] = 'geral';
-                const obj = { id: Math.random().toString(36).substr(2, 9), nome: n, estrela: false, elite: false, bloqueado: false };
+                const obj = { id: Math.random().toString(36).substr(2, 9), nome: n, estrela: false, elite: false, bloqueado: false, prioridadeFila: false };
                 if(!game.ranking[n]) {
                     game.ranking[n] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: false, elite: false };
                 }
@@ -980,7 +1062,7 @@
         while((await get(ref(db, "listaEventos/" + instId))).exists()) { count++; instId = sId + "_" + dataH + "_" + String(count).padStart(2,'0'); }
         
         // 1. DADOS PADRÕES ZERADOS (Caso seja realmente um evento novo)
-        let bc = {size:'',stars:0,elites:0,points:12,desempate:'3direto',maxWins:'',reaction:'',hideScoreboard:false};
+        let bc = {size:'',minStars:1,stars:1,elites:2,points:12,desempate:'3direto',maxWins:'',reaction:'',hideScoreboard:false,balanceamentoDiamanteEstrela:false};
         let bw = {atqG:1,blqG:1,aceG:1,atqE:1,blqE:3,aceE:1,err:0.1,vit:0,wTeam:0};
         let bj = {};
     
@@ -1015,7 +1097,7 @@
         let bg = [], be = [], rk = {};
         Object.entries(bj).forEach(([n, c]) => { 
             const isE = (c==='estrela'), isEl = (c==='diamante'); 
-            const obj = { id: Math.random().toString(36).substr(2, 9), nome: n, estrela: isE, elite: isEl, bloqueado: true }; 
+            const obj = { id: Math.random().toString(36).substr(2, 9), nome: n, estrela: isE, elite: isEl, bloqueado: true, prioridadeFila: false }; 
             rk[n] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: isE, elite: isEl }; 
             if(isE) be.push(obj); else bg.push(obj); 
         });
@@ -1023,7 +1105,7 @@
         // 4. SALVAR A NOVA INSTÂNCIA
         await set(ref(db, "partida/" + instId), { 
             baseJogadores: bj, config: bc, weights: bw, publicRanking: true, partidaAtiva: true, 
-            scoreA: 0, scoreB: 0, winsConsecA: 0, winsConsecB: 0, saqueLado: 'A', firstServeA: true, 
+            scoreA: 0, scoreB: 0, winsConsecA: 0, winsConsecB: 0, saqueLado: 'A', saqueInicio: 'A', saqueIndiceBase: 0, saqueTurno: 0, saqueModelo: 'oponente', firstServeA: true, 
             firstServeB: true, historicoPartidas: [], matchLog: [], ranking: rk, 
             esperaGeral: bg, esperaEstrela: be, matchStartScores: null, 
             systemMsg: { text: "NOVA PARTIDA", sub: "Placar: 0 x 0" } 
@@ -1218,9 +1300,25 @@
             tempConfig = JSON.parse(JSON.stringify(game.config || {}));
             tempConfig.publicRanking = game.publicRanking;
             tempConfig.hideScoreboard = game.config.hideScoreboard || false;
+            tempConfig.balanceamentoDiamanteEstrela = game.config.balanceamentoDiamanteEstrela === true;
+
+            // Migração/normalização das configurações antigas.
+            tempConfig.minStars = Number.isFinite(Number(tempConfig.minStars)) ? Number(tempConfig.minStars) : 1;
+            tempConfig.stars = Number.isFinite(Number(tempConfig.stars)) ? Number(tempConfig.stars) : 1;
+            tempConfig.elites = Number.isFinite(Number(tempConfig.elites)) ? Number(tempConfig.elites) : 2;
+            if (tempConfig.stars < tempConfig.minStars) tempConfig.stars = tempConfig.minStars;
+            tempConfig.elites = Math.max(0, Math.min(2, tempConfig.elites));
+
+            if (tempConfig.balanceamentoDiamanteEstrela) {
+                tempConfig.minStars = 1;
+                tempConfig.stars = 2;
+                tempConfig.elites = 2;
+            }
+
             document.getElementById('cSize').value = tempConfig.size || '';
-            document.getElementById('cStars').value = tempConfig.stars || 0;
-            document.getElementById('cElites').value = tempConfig.elites || 0;
+            document.getElementById('cMinStars').value = tempConfig.minStars;
+            document.getElementById('cStars').value = tempConfig.stars;
+            document.getElementById('cElites').value = tempConfig.elites;
             document.getElementById('cPoints').value = tempConfig.points || 12;
             document.getElementById('cMax').value = tempConfig.maxWins || '';
             document.getElementById('cReaction').value = tempConfig.reaction || '';
@@ -1233,23 +1331,65 @@
             const mWins = document.getElementById('cMax').value;
             const react = document.getElementById('cReaction').value;
             if(mWins && parseInt(mWins) > 0 && !react) return customAlert("Selecione a ação 'Ao atingir limite'!");
-            const size = document.getElementById('cSize').value;
-            if(!size) return customAlert("Defina Jogadores por Time!");
-            game.config.size = parseInt(size);
-            game.config.stars = parseInt(document.getElementById('cStars').value) || 0;
-            game.config.elites = parseInt(document.getElementById('cElites').value) || 0;
+            const size = parseInt(document.getElementById('cSize').value);
+            if(!size || size < 1) return customAlert("Defina Jogadores por Time!");
+
+            let minStars = Number.isFinite(parseInt(document.getElementById('cMinStars').value)) ? parseInt(document.getElementById('cMinStars').value) : 1;
+            let maxStars = Number.isFinite(parseInt(document.getElementById('cStars').value)) ? parseInt(document.getElementById('cStars').value) : 1;
+            let maxDiamantes = Number.isFinite(parseInt(document.getElementById('cElites').value)) ? parseInt(document.getElementById('cElites').value) : 2;
+
+            minStars = Math.max(0, Math.min(size, minStars));
+            maxStars = Math.max(0, Math.min(size, maxStars));
+            maxDiamantes = Math.max(0, Math.min(2, maxDiamantes));
+
+            if (tempConfig.balanceamentoDiamanteEstrela) {
+                if (size !== 4) return customAlert("A função 2 💎 = 2 ⭐ exige 4 jogadores por time.");
+                // Modo especial: 1 estrela é o mínimo e 2 é o máximo fixo;
+                // o limite de diamantes também fica fixo em 2.
+                minStars = 1;
+                maxStars = 2;
+                maxDiamantes = 2;
+            }
+
+            if (maxStars < minStars) return customAlert("O Máximo de Estrelas não pode ser menor que o Mínimo de Estrelas.");
+
+            game.config.size = size;
+            game.config.minStars = minStars;
+            game.config.stars = maxStars;
+            game.config.elites = maxDiamantes;
             game.config.points = parseInt(document.getElementById('cPoints').value) || 12;
             game.config.maxWins = mWins ? parseInt(mWins) : null;
             game.config.reaction = react;
             game.config.desempate = document.getElementById('cDesempate').value;
             game.publicRanking = tempConfig.publicRanking;
             game.config.hideScoreboard = tempConfig.hideScoreboard;
+            game.config.balanceamentoDiamanteEstrela = tempConfig.balanceamentoDiamanteEstrela === true;
             window.fecharModais();
             salvarState();
         };
 
         window.togglePublicRanking = () => { tempConfig.publicRanking = !tempConfig.publicRanking; window.atualizarBotoesConfig(); }; 
-        window.toggleScoreboardVis = () => { tempConfig.hideScoreboard = !tempConfig.hideScoreboard; window.atualizarBotoesConfig(); }; 
+        window.toggleScoreboardVis = () => { tempConfig.hideScoreboard = !tempConfig.hideScoreboard; window.atualizarBotoesConfig(); };
+        window.toggleBalanceamentoDiamanteEstrela = () => {
+            const tamanhoAtual = Number(document.getElementById('cSize')?.value || tempConfig.size || 0);
+            if (!tempConfig.balanceamentoDiamanteEstrela && tamanhoAtual && tamanhoAtual !== 4) {
+                return customAlert("A função 2 💎 = 2 ⭐ foi definida para times com 4 jogadores.");
+            }
+            tempConfig.balanceamentoDiamanteEstrela = !tempConfig.balanceamentoDiamanteEstrela;
+            if (tempConfig.balanceamentoDiamanteEstrela) {
+                tempConfig.minStars = 1;
+                tempConfig.stars = 2;
+                tempConfig.elites = 2;
+            } else {
+                tempConfig.minStars = Number.isFinite(Number(tempConfig.minStars)) ? Number(tempConfig.minStars) : 1;
+                tempConfig.stars = Math.max(tempConfig.minStars, Math.min(Number(tempConfig.stars) || 1, Number(tempConfig.size) || 4));
+                tempConfig.elites = Math.max(0, Math.min(2, Number(tempConfig.elites) || 0));
+            }
+            document.getElementById('cMinStars').value = tempConfig.minStars;
+            document.getElementById('cStars').value = tempConfig.stars;
+            document.getElementById('cElites').value = tempConfig.elites;
+            window.atualizarBotoesConfig();
+        };
         
         window.atualizarBotoesConfig = () => {
             const btnRk = document.getElementById('btnToggleRank');
@@ -1267,6 +1407,33 @@
             } else {
                 btnSb.innerText = "VISÍVEL";
                 btnSb.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400";
+            }
+            const btnBal = document.getElementById('btnToggleBalanceamento');
+            if(btnBal) {
+                if(tempConfig.balanceamentoDiamanteEstrela) {
+                    btnBal.innerText = "ATIVADO";
+                    btnBal.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-purple-500 text-purple-300";
+                } else {
+                    btnBal.innerText = "DESATIVADO";
+                    btnBal.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400";
+                }
+            }
+
+            const minStarsInput = document.getElementById('cMinStars');
+            const maxStarsInput = document.getElementById('cStars');
+            const maxDiamantesInput = document.getElementById('cElites');
+            const especial = tempConfig.balanceamentoDiamanteEstrela === true;
+            if (especial) {
+                tempConfig.minStars = 1;
+                tempConfig.stars = 2;
+                tempConfig.elites = 2;
+                if (minStarsInput) { minStarsInput.value = 1; minStarsInput.disabled = true; minStarsInput.classList.add('opacity-60','cursor-not-allowed'); }
+                if (maxStarsInput) { maxStarsInput.value = 2; maxStarsInput.disabled = true; maxStarsInput.classList.add('opacity-60','cursor-not-allowed'); }
+                if (maxDiamantesInput) { maxDiamantesInput.value = 2; maxDiamantesInput.disabled = true; maxDiamantesInput.classList.add('opacity-60','cursor-not-allowed'); }
+            } else {
+                if (minStarsInput) { minStarsInput.disabled = false; minStarsInput.classList.remove('opacity-60','cursor-not-allowed'); minStarsInput.value = tempConfig.minStars ?? 1; }
+                if (maxStarsInput) { maxStarsInput.disabled = false; maxStarsInput.classList.remove('opacity-60','cursor-not-allowed'); maxStarsInput.value = tempConfig.stars ?? 1; }
+                if (maxDiamantesInput) { maxDiamantesInput.disabled = false; maxDiamantesInput.classList.remove('opacity-60','cursor-not-allowed'); maxDiamantesInput.value = tempConfig.elites ?? 2; }
             }
         };
 
@@ -1329,13 +1496,14 @@
             const isE = (cat === 'estrela'), isEl = (cat === 'diamante');
             const jaExiste = [...(game.timeA||[]), ...(game.timeB||[]), ...(game.esperaGeral||[]), ...(game.esperaEstrela||[])].some(p => p.nome === nome);
             if(!jaExiste) {
-                const obj = { id: Math.random().toString(36).substr(2, 9), nome, estrela: isE, elite: isEl, bloqueado: true };
+                const obj = { id: Math.random().toString(36).substr(2, 9), nome, estrela: isE, elite: isEl, bloqueado: true, prioridadeFila: false };
                 if(!game.ranking[nome]) {
                     game.ranking[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: isE, elite: isEl };
                 }
-                (isE ? game.esperaEstrela : game.esperaGeral).push(obj);
+                inserirJogadorNaFilaDinamica(obj);
             }
             document.getElementById('novoBaseNome').value = '';
+            normalizarTodasAsFilas();
             salvarState();
             window.abrirBaseJogadores();
         }; 
@@ -1434,7 +1602,8 @@
             game.ranking[nome] = game.ranking[nome] || { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime:0, estrela, elite:false };
             game.ranking[nome].estrela = estrela;
             game.ranking[nome].elite = false;
-            (estrela ? game.esperaEstrela : game.esperaGeral).push(obj);
+            inserirJogadorNaFilaDinamica(obj);
+            normalizarTodasAsFilas();
             salvarState(true);
             render();
         };
@@ -1455,22 +1624,488 @@
             }
         };
 
+        function balanceamentoDiamanteEstrelaAtivo() {
+            return game.config?.balanceamentoDiamanteEstrela === true && Number(game.config?.size || 4) === 4;
+        }
+
+        function removerDaFilaPorNome(fila, nome) {
+            const idx = (fila || []).findIndex(x => x.nome === nome);
+            if (idx > -1) fila.splice(idx, 1);
+        }
+
+        function moverDiamantesParaInicioDaFila(listaDiamantes) {
+            const nomes = new Set((listaDiamantes || []).filter(Boolean).map(p => p.nome));
+            if (!nomes.size) return;
+
+            const fila = game.esperaGeral || [];
+            const prioridade = [];
+            const restantes = [];
+
+            (listaDiamantes || []).filter(Boolean).forEach(p => {
+                p.prioridadeFila = true;
+                const atual = fila.find(x => x.nome === p.nome) || p;
+                atual.prioridadeFila = true;
+                prioridade.push(atual);
+            });
+
+            fila.forEach(p => {
+                if (!nomes.has(p.nome)) restantes.push(p);
+            });
+
+            game.esperaGeral = [...prioridade, ...restantes];
+        }
+
+        function formarTimeBalanceadoEspecial(t) {
+            if (!balanceamentoDiamanteEstrelaAtivo()) return false;
+            if (!t || t.length > 0) return false;
+
+            normalizarTodasAsFilas();
+
+            const tamanho = Number(game.config?.size || 4);
+            if (tamanho !== 4) return false;
+
+            const maxEstrelas = 2;
+            const maxDiamantes = 2;
+            const minEstrelas = 1;
+            const gerais = (game.esperaGeral || []).filter(p => !p.bloqueado);
+            const estrelas = (game.esperaEstrela || []).filter(p => !p.bloqueado);
+
+            if (gerais.length < 3 || estrelas.length < minEstrelas) return false;
+
+            const selecionados = [];
+            const diamantesPulados = [];
+            const primeiro = gerais[0];
+            const segundo = gerais[1];
+            const estrela1 = estrelas[0];
+
+            const adicionarSelecionado = (p) => {
+                if (p && !selecionados.some(x => x.nome === p.nome)) {
+                    selecionados.push(p);
+                }
+            };
+
+            adicionarSelecionado(primeiro);
+            adicionarSelecionado(estrela1);
+
+            if (!primeiro.elite) {
+                if (segundo.elite) {
+                    // Primeiro Geral + segundo Diamante:
+                    // o Diamante perde a vez e os próximos dois Gerais ocupam as vagas.
+                    diamantesPulados.push(segundo);
+
+                    const proximosGerais = gerais.slice(2).filter(p => !p.elite);
+                    if (proximosGerais.length < 2) return false;
+
+                    adicionarSelecionado(proximosGerais[0]);
+                    adicionarSelecionado(proximosGerais[1]);
+
+                    // Qualquer outro Diamante atravessado nessa busca também foi pulado.
+                    const fim = gerais.indexOf(proximosGerais[1]);
+                    gerais.slice(1, fim).filter(p => p.elite && p.nome !== segundo.nome)
+                        .forEach(p => diamantesPulados.push(p));
+                } else {
+                    // Primeiro Geral + segundo Geral:
+                    // o quarto jogador segue exatamente o terceiro da fila geral.
+                    adicionarSelecionado(segundo);
+                    const quarto = gerais[2];
+                    if (!quarto) return false;
+                    adicionarSelecionado(quarto);
+                }
+            } else {
+                if (segundo.elite) {
+                    // Dois Diamantes => duas Estrelas.
+                    const estrela2 = estrelas[1];
+                    if (!estrela2) return false;
+
+                    adicionarSelecionado(segundo);
+                    adicionarSelecionado(estrela2);
+                } else {
+                    // Primeiro Diamante + segundo Geral:
+                    // o último jogador precisa ser Geral.
+                    adicionarSelecionado(segundo);
+
+                    const quarto = gerais.slice(2).find(p => !p.elite);
+                    if (!quarto) return false;
+
+                    const fim = gerais.indexOf(quarto);
+                    gerais.slice(2, fim).filter(p => p.elite)
+                        .forEach(p => diamantesPulados.push(p));
+
+                    adicionarSelecionado(quarto);
+                }
+            }
+
+            const qtdEstrelas = selecionados.filter(p => p.estrela).length;
+            const qtdDiamantes = selecionados.filter(p => p.elite).length;
+            if (selecionados.length !== tamanho) return false;
+            if (qtdEstrelas < minEstrelas || qtdEstrelas > maxEstrelas) return false;
+            if (qtdDiamantes > maxDiamantes) return false;
+
+            const nomesSelecionados = new Set(selecionados.map(p => p.nome));
+
+            // Só agora alteramos as filas, depois de validar toda a formação.
+            game.esperaGeral = (game.esperaGeral || []).filter(p => !nomesSelecionados.has(p.nome));
+            game.esperaEstrela = (game.esperaEstrela || []).filter(p => !nomesSelecionados.has(p.nome));
+
+            diamantesPulados.forEach(p => {
+                p.prioridadeFila = true;
+                removerDaFilaPorNome(game.esperaGeral, p.nome);
+            });
+            moverDiamantesParaInicioDaFila(diamantesPulados);
+
+            selecionados.forEach(p => {
+                p.bloqueado = false;
+                p.prioridadeFila = false;
+                t.push(p);
+            });
+
+            return true;
+        }
+
+        function formarTimeNormal(t) {
+            if (!t || t.length > 0) return false;
+
+            normalizarTodasAsFilas();
+
+            const tamanho = Number(game.config?.size || 4);
+            const cfgMinStars = Number(game.config?.minStars);
+            const cfgMaxStars = Number(game.config?.stars);
+            const cfgDiamantes = Number(game.config?.elites);
+
+            const minStars = Number.isFinite(cfgMinStars) ? Math.max(0, Math.min(tamanho, cfgMinStars)) : 1;
+            const maxStars = Number.isFinite(cfgMaxStars) ? Math.max(minStars, Math.min(tamanho, cfgMaxStars)) : Math.max(1, minStars);
+            const maxDiamantes = Number.isFinite(cfgDiamantes) ? Math.max(0, Math.min(2, cfgDiamantes)) : 2;
+
+            const estrelas = (game.esperaEstrela || []).filter(p => !p.bloqueado);
+            const gerais = (game.esperaGeral || []).filter(p => !p.bloqueado);
+
+            // O mínimo de estrelas é obrigatório; o máximo é apenas o teto permitido.
+            if (estrelas.length < minStars) return false;
+            if (gerais.length < tamanho - minStars) return false;
+
+            const escolhidosEstrelas = estrelas.slice(0, minStars);
+            const escolhidosGerais = [];
+            let qtdDiamantes = 0;
+
+            // Percorre a fila geral em ordem. Somente Diamantes podem ser pulados
+            // quando o limite configurado já tiver sido atingido.
+            for (const p of gerais) {
+                if (escolhidosEstrelas.length + escolhidosGerais.length >= tamanho) break;
+
+                if (p.elite) {
+                    if (qtdDiamantes >= maxDiamantes) continue;
+                    qtdDiamantes++;
+                }
+
+                escolhidosGerais.push(p);
+            }
+
+            if (escolhidosEstrelas.length + escolhidosGerais.length !== tamanho) return false;
+
+            escolhidosEstrelas.forEach(p => {
+                removerDaFilaPorNome(game.esperaEstrela, p.nome);
+                p.bloqueado = false;
+                p.prioridadeFila = false;
+                t.push(p);
+            });
+
+            escolhidosGerais.forEach(p => {
+                removerDaFilaPorNome(game.esperaGeral, p.nome);
+                p.bloqueado = false;
+                t.push(p);
+            });
+
+            normalizarTodasAsFilas();
+            return t.length === tamanho && t.filter(p => p.estrela).length >= minStars && t.filter(p => p.estrela).length <= maxStars;
+        }
+
+        function formarProximoTime(t) {
+            if (!t || t.length > 0) return false;
+            return formarTimeBalanceadoEspecial(t) || formarTimeNormal(t);
+        }
+
+        function scoreNumericoJogador(p) {
+            const n = parseFloat(calcularScoreComPesos(game.ranking?.[p?.nome] || {}));
+            return Number.isFinite(n) ? n : 0;
+        }
+
+        function timeRespeitaConfiguracaoBalanceamento(time) {
+            const tamanho = Number(game.config?.size || 4);
+            if (!Array.isArray(time) || time.length !== tamanho) return false;
+
+            const estrelas = time.filter(p => p.estrela).length;
+            const diamantes = time.filter(p => p.elite).length;
+
+            if (balanceamentoDiamanteEstrelaAtivo()) {
+                const estrelasObrigatorias = diamantes >= 2 ? 2 : 1;
+                return diamantes <= 2 && estrelas === estrelasObrigatorias;
+            }
+
+            const cfgMin = Number(game.config?.minStars);
+            const cfgMax = Number(game.config?.stars);
+            const cfgDia = Number(game.config?.elites);
+            const minStars = Number.isFinite(cfgMin) ? Math.max(0, Math.min(tamanho, cfgMin)) : 1;
+            const maxStars = Number.isFinite(cfgMax) ? Math.max(minStars, Math.min(tamanho, cfgMax)) : Math.max(1, minStars);
+            const maxDiamantes = Number.isFinite(cfgDia) ? Math.max(0, Math.min(tamanho, cfgDia)) : 2;
+
+            return estrelas >= minStars && estrelas <= maxStars && diamantes <= maxDiamantes;
+        }
+
+        function gerarSelecoesGeraisComPulosPermitidos(qtd) {
+            const gerais = (game.esperaGeral || []).filter(p => !p.bloqueado);
+            if (qtd === 0) return [{ selecionados: [], pulados: [] }];
+
+            const resultados = [];
+            const limiteResultados = 300;
+
+            function rec(idx, selecionados, pulados) {
+                if (resultados.length >= limiteResultados) return;
+                if (selecionados.length === qtd) {
+                    resultados.push({ selecionados: [...selecionados], pulados: [...pulados] });
+                    return;
+                }
+                if (idx >= gerais.length) return;
+                if ((gerais.length - idx) < (qtd - selecionados.length)) return;
+
+                const p = gerais[idx];
+                selecionados.push(p);
+                rec(idx + 1, selecionados, pulados);
+                selecionados.pop();
+
+                // A sequência da fila é rígida. Somente Diamantes podem ser pulados.
+                if (p.elite) {
+                    pulados.push(p);
+                    rec(idx + 1, selecionados, pulados);
+                    pulados.pop();
+                }
+            }
+
+            rec(0, [], []);
+            return resultados;
+        }
+
+        function combinacoesIndices(n, k) {
+            const saida = [];
+            function rec(inicio, atual) {
+                if (atual.length === k) {
+                    saida.push([...atual]);
+                    return;
+                }
+                for (let i = inicio; i < n; i++) {
+                    atual.push(i);
+                    rec(i + 1, atual);
+                    atual.pop();
+                }
+            }
+            rec(0, []);
+            return saida;
+        }
+
+        function encontrarComplementoMaisCompetitivo(baseA, baseB) {
+            const tamanho = Number(game.config?.size || 4);
+            const precisaA = Math.max(0, tamanho - baseA.length);
+            const precisaB = Math.max(0, tamanho - baseB.length);
+            const total = precisaA + precisaB;
+            if (total === 0) return { addA: [], addB: [], pulados: [], diff: Math.abs(calcularScoreEquipe(baseA) - calcularScoreEquipe(baseB)) };
+
+            const estrelasFila = (game.esperaEstrela || []).filter(p => !p.bloqueado);
+            let melhor = null;
+            let menorQtdPulos = Infinity;
+
+            for (let qtdEstrelas = 0; qtdEstrelas <= total; qtdEstrelas++) {
+                if (estrelasFila.length < qtdEstrelas) continue;
+                const qtdGerais = total - qtdEstrelas;
+                const stars = estrelasFila.slice(0, qtdEstrelas); // estrela nunca é pulada
+                const opcoesGerais = gerarSelecoesGeraisComPulosPermitidos(qtdGerais);
+
+                for (const opG of opcoesGerais) {
+                    if (opG.pulados.length > menorQtdPulos) continue;
+                    const pool = [...stars, ...opG.selecionados];
+                    if (pool.length !== total) continue;
+
+                    for (const idxA of combinacoesIndices(pool.length, precisaA)) {
+                        const setA = new Set(idxA);
+                        const addA = pool.filter((_, i) => setA.has(i));
+                        const addB = pool.filter((_, i) => !setA.has(i));
+                        const finalA = [...baseA, ...addA];
+                        const finalB = [...baseB, ...addB];
+
+                        if (!timeRespeitaConfiguracaoBalanceamento(finalA) || !timeRespeitaConfiguracaoBalanceamento(finalB)) continue;
+
+                        const diff = Math.abs(calcularScoreEquipe(finalA) - calcularScoreEquipe(finalB));
+                        const pulos = opG.pulados.length;
+
+                        if (pulos < menorQtdPulos) {
+                            menorQtdPulos = pulos;
+                            melhor = null;
+                        }
+
+                        if (pulos === menorQtdPulos && (!melhor || diff < melhor.diff - 0.0001)) {
+                            melhor = { addA, addB, pulados: [...opG.pulados], diff };
+                        }
+                    }
+                }
+            }
+
+            return melhor;
+        }
+
+        function aplicarComplementoJogadorPorJogador(baseA, baseB, complemento) {
+            game.timeA = [...baseA];
+            game.timeB = [...baseB];
+
+            const pendA = [...(complemento?.addA || [])];
+            const pendB = [...(complemento?.addB || [])];
+
+            complemento?.pulados?.forEach(p => {
+                p.prioridadeFila = true;
+            });
+
+            const removerSelecionado = (p) => {
+                removerDaFilaPorNome(p.estrela ? game.esperaEstrela : game.esperaGeral, p.nome);
+                p.bloqueado = false;
+                p.prioridadeFila = false;
+            };
+
+            // Insere um de cada vez. A cada passo, escolhe a inclusão que deixa
+            // a diferença momentânea de score menor entre as opções já validadas.
+            while (pendA.length || pendB.length) {
+                const opcoes = [];
+                pendA.forEach((p, i) => {
+                    const projA = [...game.timeA, p];
+                    opcoes.push({ lado:'A', i, p, diff: Math.abs(calcularScoreEquipe(projA) - calcularScoreEquipe(game.timeB)) });
+                });
+                pendB.forEach((p, i) => {
+                    const projB = [...game.timeB, p];
+                    opcoes.push({ lado:'B', i, p, diff: Math.abs(calcularScoreEquipe(game.timeA) - calcularScoreEquipe(projB)) });
+                });
+                opcoes.sort((a,b) => a.diff - b.diff);
+                const melhor = opcoes[0];
+                if (!melhor) break;
+
+                removerSelecionado(melhor.p);
+                if (melhor.lado === 'A') {
+                    game.timeA.push(melhor.p);
+                    pendA.splice(melhor.i, 1);
+                } else {
+                    game.timeB.push(melhor.p);
+                    pendB.splice(melhor.i, 1);
+                }
+            }
+
+            moverDiamantesParaInicioDaFila(complemento?.pulados || []);
+            normalizarTodasAsFilas();
+        }
+
+        function dividirVencedoresECompletar(venceu, vencedores) {
+            const tamanho = Number(game.config?.size || 4);
+            const ordenados = [...(vencedores || [])].sort((a,b) => scoreNumericoJogador(b) - scoreNumericoJogador(a));
+            if (!ordenados.length) return false;
+
+            let baseVencedor = [];
+            let baseOutro = [];
+
+            if (tamanho === 4 && ordenados.length >= 4) {
+                // Regra solicitada: melhor + pior ficam juntos; os dois do meio vão ao outro time.
+                baseVencedor = [ordenados[0], ordenados[ordenados.length - 1]];
+                baseOutro = ordenados.slice(1, -1).slice(0, 2);
+            } else {
+                // Compatibilidade com tamanhos diferentes de 4: mantém os extremos juntos
+                // e distribui os demais de forma alternada antes de completar pelas filas.
+                baseVencedor = [ordenados[0]];
+                if (ordenados.length > 1) baseVencedor.push(ordenados[ordenados.length - 1]);
+                ordenados.slice(1, -1).forEach((p, i) => (i % 2 === 0 ? baseOutro : baseVencedor).push(p));
+                baseVencedor = baseVencedor.slice(0, Math.ceil(tamanho / 2));
+                baseOutro = baseOutro.slice(0, Math.floor(tamanho / 2));
+            }
+
+            let baseA = venceu === 'A' ? baseVencedor : baseOutro;
+            let baseB = venceu === 'B' ? baseVencedor : baseOutro;
+
+            const complemento = encontrarComplementoMaisCompetitivo(baseA, baseB);
+            if (!complemento) {
+                game.timeA = [...baseA];
+                game.timeB = [...baseB];
+                return false;
+            }
+
+            aplicarComplementoJogadorPorJogador(baseA, baseB, complemento);
+            return game.timeA.length === tamanho && game.timeB.length === tamanho;
+        }
+
+        function obterTamanhoCicloSaque() {
+            const tamanho = Number(game.config?.size) || Math.max(
+                (game.timeA || []).length,
+                (game.timeB || []).length,
+                4
+            );
+            return Math.max(2, tamanho * 2);
+        }
+
+        function sincronizarEstadoSaque() {
+            // Migração de partidas antigas: o contador antigo significava pontos,
+            // enquanto o novo contador representa somente trocas de saque.
+            if (game.saqueModelo === 'migrar') {
+                const ladoAtual = game.saqueLado === 'B' ? 'B' : 'A';
+                const idxAtual = ladoAtual === 'A' ? (game.idxA || 0) : (game.idxB || 0);
+                game.saqueModelo = 'oponente';
+                game.saqueInicio = ladoAtual;
+                game.saqueIndiceBase = idxAtual;
+                game.saqueTurno = 0;
+            }
+
+            const inicio = game.saqueInicio === 'B' ? 'B' : 'A';
+            const trocas = Math.max(0, Number(game.saqueTurno) || 0);
+
+            const tamanhoA = (game.timeA || []).length;
+            const tamanhoB = (game.timeB || []).length;
+            if (!tamanhoA && !tamanhoB) return;
+
+            const tamanhoReferencia = inicio === 'A' ? tamanhoA : tamanhoB;
+            let base = Number(game.saqueIndiceBase);
+            if (!Number.isFinite(base)) base = 0;
+
+            if (tamanhoReferencia) {
+                base = ((base % tamanhoReferencia) + tamanhoReferencia) % tamanhoReferencia;
+            }
+
+            const ladoAtual = trocas % 2 === 0
+                ? inicio
+                : (inicio === 'A' ? 'B' : 'A');
+
+            const rodada = Math.floor(trocas / 2);
+
+            game.saqueInicio = inicio;
+            game.saqueTurno = trocas;
+            game.saqueLado = ladoAtual;
+            game.saqueIndiceBase = base;
+
+            // O mesmo número de jogador fica associado aos dois lados durante a rodada.
+            // Só quando o saque volta ao lado inicial é que o número avança.
+            game.idxA = tamanhoA ? (base + rodada) % tamanhoA : 0;
+            game.idxB = tamanhoB ? (base + rodada) % tamanhoB : 0;
+        }
+
+        function transferirSaqueSeAdversarioPontuar(ladoQuePontuou) {
+            if (!game.partidaAtiva) return false;
+
+            // Se quem pontuou já estava sacando, nada muda.
+            if (ladoQuePontuou === game.saqueLado) return false;
+
+            // O adversário ganhou o direito de sacar. A troca de lado é que
+            // faz avançar a rodada somente quando o saque voltar ao lado inicial.
+            game.saqueTurno = (Number(game.saqueTurno) || 0) + 1;
+            sincronizarEstadoSaque();
+            return true;
+        }
+
                     window.registrarPontoSimples = (lado, hist) => {
                 if(!isAdmin || !game.partidaAtiva) return;
                 if(!game.matchStartScores) capturarScoreInicialPartida();
                 if(hist) salvarState(true);
                 
-                // Lógica inteligente de rodízio de saque
-                if(game.saqueLado !== lado) {
-                    game.saqueLado = lado;
-                    if(lado === 'A') {
-                        game.idxA = (game.idxA+1) % (game.timeA.length||1);
-                    } else {
-                        game.idxB = (game.idxB+1) % (game.timeB.length||1);
-                    }
-                }
-                
                 if(lado === 'A') game.scoreA++; else game.scoreB++;
+                transferirSaqueSeAdversarioPontuar(lado);
                 if(!game.matchLog) game.matchLog = [];
                 game.matchLog.unshift({ text: "PONTO TIME " + lado + " - Erro Adv", type: lado });
                 if(game.matchLog.length > 40) game.matchLog.pop();
@@ -1493,17 +2128,8 @@
                 if(game.matchLog.length>40) game.matchLog.pop();
                 window.fecharModais();
                 
-                // Lógica inteligente de rodízio de saque
-                if(game.saqueLado !== modalCtx.lado) {
-                    game.saqueLado = modalCtx.lado;
-                    if(modalCtx.lado === 'A') {
-                        game.idxA = (game.idxA+1) % (game.timeA.length||1);
-                    } else {
-                        game.idxB = (game.idxB+1) % (game.timeB.length||1);
-                    }
-                }
-                
                 if(modalCtx.lado === 'A') game.scoreA++; else game.scoreB++;
+                transferirSaqueSeAdversarioPontuar(modalCtx.lado);
                 game.systemMsg = { text: "PONTO TIME " + modalCtx.lado, sub: "Placar: " + game.scoreA + " x " + game.scoreB };
                 verificarFimDeSet();
                 salvarState(false);
@@ -1556,38 +2182,31 @@
                 game.timeA=[]; game.winsConsecB++; game.winsConsecA=0;
             }
             
+            let divisaoAplicada = false;
             if(game.config.maxWins > 0 && (game.winsConsecA >= game.config.maxWins || game.winsConsecB >= game.config.maxWins)) {
                 if(game.config.reaction === 'dividir'){
-                    const pool = [...tV];
-                    const half = Math.ceil(pool.length/2);
-                    game.timeA = pool.slice(0,half);
-                    game.timeB = pool.slice(half);
+                    divisaoAplicada = dividirVencedoresECompletar(venceu, tV);
                 } else {
                     tV.forEach(j => reposicionarJogadorNaFila(j));
                     game.timeA=[]; game.timeB=[];
                 }
                 game.winsConsecA=0; game.winsConsecB=0;
             }
-            const fillTeam = (t) => {
-                while(t.length < game.config.size){
-                    let p = null;
-                    const pS = t.filter(x=>x.estrela).length < game.config.stars;
-                    const pE = t.filter(x=>x.elite).length < (game.config.elites||0);
-                    const fV = (x) => !x.bloqueado && (!x.elite || pE);
-                    if(pS) p = game.esperaEstrela.find(fV);
-                    if(!p) p = game.esperaGeral.find(fV) || game.esperaEstrela.find(fV);
-                    if(!p) p = (game.esperaGeral||[]).find(x=>!x.bloqueado) || (game.esperaEstrela||[]).find(x=>!x.bloqueado);
-                    if(!p) break;
-                    const f = p.estrela ? game.esperaEstrela : game.esperaGeral;
-                    f.splice(f.indexOf(p), 1);
-                    t.push(p);
-                }
-            };
-            if(game.timeA.length < game.config.size) fillTeam(game.timeA);
-            if(game.timeB.length < game.config.size) fillTeam(game.timeB);
-            
+            normalizarTodasAsFilas();
+
+            if (!divisaoAplicada) {
+                if (game.timeA.length === 0) formarProximoTime(game.timeA);
+                if (game.timeB.length === 0) formarProximoTime(game.timeB);
+            }
+
+            normalizarTodasAsFilas();
+
             game.scoreA = 0; game.scoreB = 0; game.idxA = 0; game.idxB = 0;
-            game.saqueLado = venceu;
+            game.saqueModelo = 'oponente';
+            game.saqueInicio = venceu;
+            game.saqueIndiceBase = 0;
+            game.saqueTurno = 0;
+            sincronizarEstadoSaque();
             game.matchStartScores = null;
             capturarScoreInicialPartida();
             game.systemMsg = { text: "FIM DE SET", sub: "Vitória do Time " + venceu };
@@ -1638,8 +2257,11 @@
         };
 
         window.definirSacadorManual = () => {
-            game.saqueLado = modalCtx.lado;
-            if(modalCtx.lado === 'A') { game.idxA = modalCtx.idx; } else { game.idxB = modalCtx.idx; }
+            game.saqueModelo = 'oponente';
+            game.saqueInicio = modalCtx.lado;
+            game.saqueIndiceBase = modalCtx.idx;
+            game.saqueTurno = 0;
+            sincronizarEstadoSaque();
             window.fecharModais();
             salvarState();
         };
@@ -1655,6 +2277,7 @@
 
         window.abrirEscalacao = (tab, idx) => {
             if(!isAdmin) return;
+            normalizarTodasAsFilas();
             const l = tab === 'geral' ? game.esperaGeral : game.esperaEstrela;
             modalCtx = { pFila: l[idx], idxFila: idx, tabFila: tab };
             document.getElementById('modalNomeFila').innerText = modalCtx.pFila.nome;
@@ -1662,7 +2285,7 @@
             btn.innerText = modalCtx.pFila.bloqueado ? "LIBERAR P/ QUADRA" : "BLOQUEAR JOGADOR";
             btn.onclick = () => {
                 modalCtx.pFila.bloqueado = !modalCtx.pFila.bloqueado;
-                if(!modalCtx.pFila.bloqueado) reposicionarJogadorNaFila(modalCtx.pFila);
+                reposicionarJogadorNaFila(modalCtx.pFila);
                 window.fecharModais();
                 salvarState();
             };
@@ -1804,9 +2427,9 @@
             bC.innerHTML = '<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Insígnias</span>' + (renderBadgesJogador(nome) || '<span class="text-[9px] text-slate-600">Nenhuma ainda</span>') + '</div>';
             const elogiosHtml = formatarElogios(nome);
             if (elogiosHtml) {
-                document.getElementById('perfilElogios').innerHTML = '<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Elogios nesta sessão</span><span class="text-lg tracking-wide">' + elogiosHtml + '</span></div>';
+                document.getElementById('perfilElogios').innerHTML = '<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Reações nesta sessão</span><span class="text-lg tracking-wide">' + elogiosHtml + '</span></div>';
             } else {
-                document.getElementById('perfilElogios').innerHTML = '<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Elogios nesta sessão</span><span class="text-[9px] text-slate-600">Nenhum ainda</span></div>';
+                document.getElementById('perfilElogios').innerHTML = '<div class="w-full text-center"><span class="text-[8px] uppercase font-black text-slate-500 block mb-1">Reações nesta sessão</span><span class="text-[9px] text-slate-600">Nenhuma ainda</span></div>';
             }
             if (dupla) {
                 document.getElementById('perfilMelhorDupla').innerHTML = escapeHtml(dupla.n) + ' <span class="text-slate-500 font-bold">· ' + dupla.vitorias + ' vitória(s) em ' + dupla.jogos + ' partida(s) juntos</span>';
@@ -1856,18 +2479,18 @@
             if(isAdmin || !currentInstanceId) return;
             const target = document.getElementById('reactionBox').dataset.target;
             if(!target) return;
-            if(guestIdentificadoNesteEvento() && target === meuNome) return customAlert('Você não pode enviar elogio para si mesmo.');
+            if(guestIdentificadoNesteEvento() && target === meuNome) return customAlert('Você não pode enviar reação para si mesmo.');
             try {
                 await garantirGuestAnonimo();
                 const uid = auth.currentUser?.uid;
                 if(!uid) throw new Error('guest-auth-missing');
                 const elogioRef = ref(db, "partida/" + currentInstanceId + "/elogios/" + target + "/" + uid);
                 const existing = await get(elogioRef);
-                if(existing.exists()) return customAlert('Você já enviou um elogio para este jogador nesta sessão.');
+                if(existing.exists()) return customAlert('Você já enviou uma reação para este jogador nesta sessão.');
                 await set(elogioRef, emoji);
-                customAlert("Elogio enviado para " + target + "!");
+                customAlert("Reação enviada para " + target + "!");
                 window.fecharModais();
-            } catch(e) { customAlert('Não foi possível enviar o elogio.'); }
+            } catch(e) { customAlert('Não foi possível enviar a reação.'); }
         };
 
         function renderLeaders() {
@@ -1911,7 +2534,7 @@
             if (f.length) {
                 let fParts = [];
                 f.forEach((p, i) => {
-                    let dest = ""; if(!p.bloqueado && filaTab === 'geral') { countLib++; if(countLib <= 3) dest="is-proximo"; }
+                    let dest = ""; if(!p.bloqueado) { countLib++; if(countLib <= 3) dest="is-proximo"; }
                     const blockText = p.bloqueado ? '<span class="text-[8px] text-red-400 font-bold ml-1 tracking-widest">(BLOQUEADO)</span>' : ''; const safeName = escapeHtml(p.nome);
                     let eventClick = isAdmin ? 'onclick="window.abrirEscalacao(\'' + filaTab + '\', ' + i + ')"' : 'onclick="window.abrirPerfilJogador(this.getAttribute(\'data-player-name\'))"';
                     fParts.push('<div data-id="' + p.id + '" data-player-name="' + safeName + '" ' + eventClick + ' class="bg-slate-800 p-3 rounded-xl flex items-center border border-slate-700 ' + (p.bloqueado ? 'is-bloqueado' : '') + ' ' + dest + ' cursor-pointer hover:bg-slate-700/60"><div class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2">' + (p.estrela ? '⭐ ' : '') + (p.elite ? '💎 ' : '') + safeName + ' ' + blockText + '</div><div class="text-[9px] text-slate-500">❯</div></div>');
