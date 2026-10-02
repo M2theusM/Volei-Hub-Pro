@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V5.4.2</title>
+    <title>Vôlei Hub PRO - V5.4.3</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -334,7 +334,7 @@
                 </div>
                 <div class="grid grid-cols-2 gap-2 mt-4">
                     <button onclick="window.abrirWeights()" class="bg-slate-700 text-blue-400 p-3 rounded-xl font-black uppercase text-[10px] border border-slate-600">Pesos</button>
-                    <button onclick="window.abrirBaseJogadores()" class="bg-slate-700 text-emerald-400 p-3 rounded-xl font-black uppercase text-[10px] border border-slate-600">Base Jogs</button>
+                    <button onclick="window.abrirBaseJogadores()" class="bg-slate-700 text-emerald-400 p-3 rounded-xl font-black uppercase text-[10px] border border-slate-600">JOGADORES</button>
                 </div>
                 <div class="border-t border-slate-600 pt-6">
                     <button onclick="window.abrirOpcoesEvento()" class="w-full bg-blue-600 text-white p-3 rounded-xl font-black uppercase text-[10px] border border-blue-500 shadow-lg mb-2">GERENCIAR EVENTOS</button>
@@ -484,18 +484,19 @@
                 <h3 id="modalNomeFila" class="font-black text-white uppercase text-xl italic leading-none">---</h3>
                 <button onclick="window.fecharModais()" class="text-slate-400 text-3xl font-light">&times;</button>
             </div>
-            <div class="grid grid-cols-2 gap-4 mb-4 admin-only-control">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 admin-only-control">
                 <div class="space-y-2">
-                    <button onclick="window.escalarParaTime('A')" class="w-full bg-blue-600 p-3 rounded-xl font-black uppercase text-[10px]">Entrar A</button>
-                    <div id="subsA" class="space-y-1"></div>
+                    <button onclick="window.escalarParaTime('A')" class="w-full h-11 bg-blue-600 px-3 rounded-xl font-black uppercase text-[10px]">Entrar A</button>
+                    <div id="subsA" class="space-y-2"></div>
                 </div>
                 <div class="space-y-2">
-                    <button onclick="window.escalarParaTime('B')" class="w-full bg-orange-600 p-3 rounded-xl font-black uppercase text-[10px]">Entrar B</button>
-                    <div id="subsB" class="space-y-1"></div>
+                    <button onclick="window.escalarParaTime('B')" class="w-full h-11 bg-orange-600 px-3 rounded-xl font-black uppercase text-[10px]">Entrar B</button>
+                    <div id="subsB" class="space-y-2"></div>
                 </div>
             </div>
-            <button id="btnStatusBloqueio" class="w-full bg-slate-700 p-3 rounded-xl font-black uppercase text-xs mb-2">---</button>
-            <button onclick="window.fecharModais()" class="w-full bg-slate-700 p-3 rounded-xl uppercase text-xs font-black">Voltar</button>
+            <div id="filaCategoriaAcoes" class="admin-only-control space-y-2 mb-3"></div>
+            <button id="btnStatusBloqueio" class="w-full h-11 bg-slate-700 px-3 rounded-xl font-black uppercase text-xs mb-2">---</button>
+            <button onclick="window.fecharModais()" class="w-full h-11 bg-slate-700 px-3 rounded-xl uppercase text-xs font-black">Voltar</button>
         </div>
     </div>
     
@@ -1028,7 +1029,7 @@
             try { await garantirGuestAnonimo(); } catch (e) {}
             if (acao === 'desbloquear') { await window.desbloquearJogadorGuest(val, true); return; }
             if (acao === 'bloquear') { await window.enviarSolicitacaoBloqueio(val, true); return; }
-            window.fecharModais(); renderMyTrophies(); render(); window.abrirPerfilJogador(val);
+            window.fecharModais(); renderMyTrophies(); render();
         };
 
         window.addESalvarIdentificacao = () => {
@@ -1498,10 +1499,23 @@
             } else {
                 const arr = Object.entries(bj).sort((a,b) => a[0].localeCompare(b[0]));
                 let parts = [];
-                arr.forEach(([nome, cat]) => {
-                    let badge = cat==='estrela' ? "⭐ Estrela" : cat==='diamante' ? "💎 Diamante" : "Geral";
+                arr.forEach(([nome, cat], i) => {
                     const safeName = escapeHtml(nome);
-                    parts.push('<div class="flex justify-between items-center bg-slate-900/50 p-2 rounded border border-slate-700/50 mb-1"><div class="text-[10px] font-black uppercase text-white">' + safeName + ' <span class="text-slate-500 ml-1">(' + badge + ')</span></div><button data-nome="' + safeName + '" onclick="window.removeBaseJogador(this.getAttribute(\'data-nome\'))" class="text-red-500 font-bold px-2 hover:bg-red-900/30 rounded">X</button></div>');
+                    const nomeId = 'editBaseNome_' + i;
+                    const catId = 'editBaseCat_' + i;
+                    const opG = cat === 'geral' ? ' selected' : '';
+                    const opE = cat === 'estrela' ? ' selected' : '';
+                    const opD = cat === 'diamante' ? ' selected' : '';
+                    parts.push('<div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700/50 mb-2 space-y-2">' +
+                        '<div class="grid grid-cols-[1fr_120px] gap-2">' +
+                            '<input id="' + nomeId + '" type="text" value="' + safeName + '" class="config-input h-10 text-[10px] uppercase" onkeydown="if(event.key===\'Enter\'){event.preventDefault(); window.salvarEdicaoBaseJogador(this.dataset.original, \'' + nomeId + '\', \'' + catId + '\');}" data-original="' + safeName + '">' +
+                            '<select id="' + catId + '" class="config-input h-10 text-[10px] px-2"><option value="geral"' + opG + '>Geral</option><option value="estrela"' + opE + '>Estrela</option><option value="diamante"' + opD + '>Diamante</option></select>' +
+                        '</div>' +
+                        '<div class="grid grid-cols-2 gap-2">' +
+                            '<button data-original="' + safeName + '" onclick="window.salvarEdicaoBaseJogador(this.dataset.original, \'' + nomeId + '\', \'' + catId + '\')" class="bg-emerald-600 hover:bg-emerald-500 h-9 rounded-lg text-[9px] font-black uppercase">Salvar</button>' +
+                            '<button data-nome="' + safeName + '" onclick="window.removeBaseJogador(this.getAttribute(\'data-nome\'))" class="bg-red-900/30 hover:bg-red-900/50 text-red-400 h-9 rounded-lg text-[9px] font-black uppercase">Remover</button>' +
+                        '</div>' +
+                    '</div>');
                 });
                 list.innerHTML = parts.join('');
             }
@@ -1531,6 +1545,104 @@
             window.abrirBaseJogadores();
             setTimeout(() => document.getElementById('novoBaseNome')?.focus(), 0);
         }; 
+
+        function definirCategoriaJogador(nome, novaCategoria, salvar = true) {
+            if(!isAdmin || !nome) return false;
+            const cat = ['geral', 'estrela', 'diamante'].includes(novaCategoria) ? novaCategoria : 'geral';
+            if(!game.baseJogadores) game.baseJogadores = {};
+            game.baseJogadores[nome] = cat;
+
+            const isE = cat === 'estrela';
+            const isEl = cat === 'diamante';
+            if(!game.ranking) game.ranking = {};
+            if(!game.ranking[nome]) game.ranking[nome] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime:0 };
+            game.ranking[nome].estrela = isE;
+            game.ranking[nome].elite = isEl;
+
+            const filas = [...(game.esperaGeral || []), ...(game.esperaEstrela || [])];
+            const jogadorFila = filas.find(p => p.nome === nome);
+            const jogadoresAtivos = [...(game.timeA || []), ...(game.timeB || [])];
+            const jogadorAtivo = jogadoresAtivos.find(p => p.nome === nome);
+
+            if(jogadorAtivo) {
+                jogadorAtivo.estrela = isE;
+                jogadorAtivo.elite = isEl;
+                jogadorAtivo.prioridadeFila = false;
+            }
+
+            if(jogadorFila) {
+                removerDaFilaPorNome(game.esperaGeral, nome);
+                removerDaFilaPorNome(game.esperaEstrela, nome);
+                jogadorFila.estrela = isE;
+                jogadorFila.elite = isEl;
+                jogadorFila.prioridadeFila = false;
+                inserirJogadorNaFilaDinamica(jogadorFila);
+                normalizarTodasAsFilas();
+            }
+
+            if(salvar) { salvarState(true); render(); }
+            return true;
+        }
+
+        window.mudarCategoriaFila = (novaCategoria) => {
+            if(!isAdmin || !modalCtx?.pFila) return;
+            const nome = modalCtx.pFila.nome;
+            definirCategoriaJogador(nome, novaCategoria, false);
+            window.fecharModais();
+            salvarState(true);
+            render();
+        };
+
+        window.salvarEdicaoBaseJogador = async (nomeAntigo, nomeInputId, catSelectId) => {
+            if(!isAdmin) return;
+            const input = document.getElementById(nomeInputId);
+            const select = document.getElementById(catSelectId);
+            if(!input || !select) return;
+            const nomeNovo = input.value.toUpperCase().trim();
+            const novaCategoria = select.value;
+            if(!nomeNovo) return customAlert('Informe o nome do jogador.');
+            if(nomeNovo !== nomeAntigo && game.baseJogadores?.[nomeNovo]) return customAlert('Já existe um jogador com esse nome.');
+
+            if(nomeNovo !== nomeAntigo) {
+                const catAnterior = game.baseJogadores?.[nomeAntigo] || 'geral';
+                delete game.baseJogadores[nomeAntigo];
+                game.baseJogadores[nomeNovo] = catAnterior;
+
+                if(game.ranking?.[nomeAntigo]) {
+                    game.ranking[nomeNovo] = game.ranking[nomeAntigo];
+                    delete game.ranking[nomeAntigo];
+                }
+
+                [game.timeA, game.timeB, game.esperaGeral, game.esperaEstrela].forEach(lista => {
+                    (lista || []).forEach(p => { if(p.nome === nomeAntigo) p.nome = nomeNovo; });
+                });
+
+                (game.historicoPartidas || []).forEach(partida => {
+                    if(Array.isArray(partida.timeA)) partida.timeA = partida.timeA.map(n => n === nomeAntigo ? nomeNovo : n);
+                    if(Array.isArray(partida.timeB)) partida.timeB = partida.timeB.map(n => n === nomeAntigo ? nomeNovo : n);
+                });
+                if(game.lastPoint?.nome === nomeAntigo) game.lastPoint.nome = nomeNovo;
+
+                if(sessionEmojis?.[nomeAntigo]) {
+                    sessionEmojis[nomeNovo] = sessionEmojis[nomeAntigo];
+                    delete sessionEmojis[nomeAntigo];
+                    if(!game.elogios) game.elogios = {};
+                    game.elogios[nomeNovo] = sessionEmojis[nomeNovo];
+                    delete game.elogios[nomeAntigo];
+                }
+
+                if(meuNome === nomeAntigo) {
+                    meuNome = nomeNovo;
+                    localStorage.setItem('voleihub_meunome', meuNome);
+                    atualizarBotaoMeuPerfil();
+                }
+            }
+
+            definirCategoriaJogador(nomeNovo, novaCategoria, false);
+            salvarState(true);
+            render();
+            window.abrirBaseJogadores();
+        };
 
         window.removeBaseJogador = (nome) => {
             delete game.baseJogadores[nome];
@@ -1709,8 +1821,9 @@
             if(st.targetIdx === st.sourceIdx) return;
             const team = st.lado === 'A' ? game.timeA : game.timeB;
             if(!team || !team[st.sourceIdx] || !team[st.targetIdx]) return;
-            const [movido] = team.splice(st.sourceIdx, 1);
-            team.splice(st.targetIdx, 0, movido);
+            const temp = team[st.sourceIdx];
+            team[st.sourceIdx] = team[st.targetIdx];
+            team[st.targetIdx] = temp;
             salvarState();
             render();
         };
@@ -2447,17 +2560,35 @@
             modalCtx = { pFila: l[idx], idxFila: idx, tabFila: tab };
             document.getElementById('modalNomeFila').innerText = modalCtx.pFila.nome;
             const btn = document.getElementById('btnStatusBloqueio');
-            btn.innerText = modalCtx.pFila.bloqueado ? "LIBERAR P/ QUADRA" : "BLOQUEAR JOGADOR";
+            btn.innerText = modalCtx.pFila.bloqueado ? "DESBLOQUEAR JOGADOR" : "BLOQUEAR JOGADOR";
             btn.onclick = () => {
                 modalCtx.pFila.bloqueado = !modalCtx.pFila.bloqueado;
                 reposicionarJogadorNaFila(modalCtx.pFila);
                 window.fecharModais();
                 salvarState();
             };
+
+            const catAtual = modalCtx.pFila.estrela ? 'estrela' : (modalCtx.pFila.elite ? 'diamante' : 'geral');
+            const catBox = document.getElementById('filaCategoriaAcoes');
+            if(catBox) {
+                let acoes = '';
+                if(catAtual === 'estrela') {
+                    acoes = '<button onclick="window.mudarCategoriaFila(\'geral\')" class="w-full h-11 bg-slate-700 hover:bg-slate-600 rounded-xl text-[10px] font-black uppercase border border-slate-600">Promover para GERAL</button>';
+                } else if(catAtual === 'diamante') {
+                    acoes = '<button onclick="window.mudarCategoriaFila(\'geral\')" class="w-full h-11 bg-slate-700 hover:bg-slate-600 rounded-xl text-[10px] font-black uppercase border border-slate-600">Mudar para Geral</button>';
+                } else {
+                    acoes = '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">' +
+                        '<button onclick="window.mudarCategoriaFila(\'diamante\')" class="w-full h-11 bg-slate-700 hover:bg-slate-600 rounded-xl text-[10px] font-black uppercase border border-slate-600">Promover para Diamante</button>' +
+                        '<button onclick="window.mudarCategoriaFila(\'estrela\')" class="w-full h-11 bg-slate-700 hover:bg-slate-600 rounded-xl text-[10px] font-black uppercase border border-slate-600">Mudar para Estrela</button>' +
+                    '</div>';
+                }
+                catBox.innerHTML = acoes;
+            }
+
             const gen = (t, side) => {
                 let parts = [];
                 (t||[]).forEach((j, i) => {
-                    parts.push('<button onclick="window.substituirJogador(\'' + side + '\',' + i + ')" class="w-full bg-slate-700 p-2 rounded text-[9px] mb-1 uppercase border border-slate-600">Sub: ' + escapeHtml(j.nome) + '</button>');
+                    parts.push('<button onclick="window.substituirJogador(\'' + side + '\',' + i + ')" class="w-full h-10 bg-slate-700 px-3 rounded-lg text-[9px] uppercase border border-slate-600">Substituir: ' + escapeHtml(j.nome) + '</button>');
                 });
                 return parts.join('');
             };
