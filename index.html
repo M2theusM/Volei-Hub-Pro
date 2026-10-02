@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V5.4.1</title>
+    <title>Vôlei Hub PRO - V5.4.2</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
         .jogador-card { touch-action: manipulation; border: 3px solid transparent; transition: all 0.2s; cursor: pointer; position: relative; z-index: 10; user-select: none; }
+        body.is-admin .jogador-card { touch-action: none; }
+        .jogador-card.drag-touch-active { opacity: .72; transform: scale(.985); border-color: #f59e0b !important; }
+        .jogador-card.drag-touch-target { outline: 2px dashed #f59e0b; outline-offset: 2px; }
         .sacando { border: 3px solid #ffffff !important; background-color: #1e293b !important; box-shadow: 0 0 16px rgba(255, 255, 255, 0.4); }
         .bola-saque { animation: bounce 1s infinite; font-size: 14px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
         .is-bloqueado { opacity: 0.5; filter: grayscale(1); background: #0f172a !important; border: 1px dashed #334155 !important; }
@@ -79,7 +82,7 @@
 
     <header class="p-4 bg-slate-800 sticky top-0 shadow-2xl z-40 border-b border-slate-700">
         <div class="flex justify-between items-center max-w-md mx-auto mb-3">
-            <h1 id="apitoArea" onmousedown="window.iniciarApito(event)" onmouseup="window.pararApito(event)" onmouseleave="window.pararApito(event)" ontouchstart="window.iniciarApito(event)" ontouchend="window.pararApito(event)" title="Apito de jogo Fox 40" class="text-orange-500 font-black text-lg italic uppercase tracking-tighter select-none cursor-pointer">
+            <h1 id="apitoArea" onpointerdown="window.iniciarApito(event)" onpointerup="window.pararApito(event)" onpointercancel="window.pararApito(event)" onpointerleave="window.pararApito(event)" title="Pressione Vôlei Hub para apitar" class="text-orange-500 font-black text-lg italic uppercase tracking-tighter select-none cursor-pointer" style="touch-action:none;">
                 Vôlei Hub <span class="text-xs text-blue-400">PRO</span> 
                 <span id="displayEventId" class="text-[10px] ml-1 bg-slate-700 px-2 py-0.5 rounded text-white tracking-widest font-bold hidden">#---</span>
             </h1>
@@ -220,6 +223,7 @@
                     <span class="emoji-btn" onclick="window.enviarElogio('👍')">👍</span>
                     <span class="emoji-btn" onclick="window.enviarElogio('🏐')">🏐</span>
                     <span class="emoji-btn" onclick="window.enviarElogio('🚀')">🚀</span>
+                    <span class="emoji-btn" onclick="window.enviarElogio('🙌')">🙌</span>
                     <span class="emoji-btn" onclick="window.enviarElogio('😎')">😎</span>
                     <span class="emoji-btn" onclick="window.enviarElogio('🤡')">🤡</span>
                     <span class="emoji-btn" onclick="window.enviarElogio('🥹')">🥹</span>
@@ -612,7 +616,7 @@
         
             window.iniciarApito = (e) => {
         if (!isAdmin) return;
-        if(e && e.type === 'touchstart') e.preventDefault();
+        if(e && (e.type === 'touchstart' || e.type === 'pointerdown')) e.preventDefault();
         if(isApitoTocando) return;
         isApitoTocando = true;
         pressStartTime = Date.now();
@@ -660,7 +664,7 @@
     
     window.pararApito = (e) => {
         if (!isApitoTocando) return;
-        if (e && (e.type === 'touchend' || e.type === 'touchcancel')) e.preventDefault();
+        if (e && (e.type === 'touchend' || e.type === 'touchcancel' || e.type === 'pointerup' || e.type === 'pointercancel' || e.type === 'pointerleave')) e.preventDefault();
         const duration = Date.now() - pressStartTime;
         if (duration < 300) { setTimeout(() => doStopApito(), 300 - duration); } else { doStopApito(); }
     };
@@ -1647,6 +1651,75 @@
             }
         };
 
+        let pointerDragJogador = null;
+        let ignorarCliqueJogadorAte = 0;
+
+        function limparDestaqueDragJogador() {
+            document.querySelectorAll('.jogador-card.drag-touch-active, .jogador-card.drag-touch-target').forEach(el => {
+                el.classList.remove('drag-touch-active', 'drag-touch-target');
+            });
+        }
+
+        window.iniciarDragJogadorTouch = (e, lado, idx) => {
+            if(!isAdmin || isHistoricalView) return;
+            if(e.pointerType === 'mouse' && e.button !== 0) return;
+            pointerDragJogador = {
+                pointerId: e.pointerId,
+                lado,
+                sourceIdx: Number(idx),
+                targetIdx: Number(idx),
+                startX: e.clientX,
+                startY: e.clientY,
+                dragging: false,
+                el: e.currentTarget
+            };
+            try { e.currentTarget.setPointerCapture(e.pointerId); } catch(_) {}
+        };
+
+        window.moverDragJogadorTouch = (e) => {
+            const st = pointerDragJogador;
+            if(!st || st.pointerId !== e.pointerId || !isAdmin) return;
+            const dx = e.clientX - st.startX;
+            const dy = e.clientY - st.startY;
+            if(!st.dragging && Math.hypot(dx, dy) < 10) return;
+            st.dragging = true;
+            e.preventDefault();
+            st.el?.classList.add('drag-touch-active');
+
+            const hit = document.elementFromPoint(e.clientX, e.clientY)?.closest?.('.jogador-card');
+            document.querySelectorAll('.jogador-card.drag-touch-target').forEach(el => el.classList.remove('drag-touch-target'));
+            if(!hit) return;
+            const ladoAlvo = hit.dataset.lado;
+            const idxAlvo = Number(hit.dataset.index);
+            if(ladoAlvo === st.lado && Number.isInteger(idxAlvo)) {
+                st.targetIdx = idxAlvo;
+                if(idxAlvo !== st.sourceIdx) hit.classList.add('drag-touch-target');
+            }
+        };
+
+        window.finalizarDragJogadorTouch = (e) => {
+            const st = pointerDragJogador;
+            if(!st || st.pointerId !== e.pointerId) return;
+            pointerDragJogador = null;
+            try { st.el?.releasePointerCapture?.(e.pointerId); } catch(_) {}
+            limparDestaqueDragJogador();
+            if(!st.dragging) return;
+            e.preventDefault();
+            ignorarCliqueJogadorAte = Date.now() + 450;
+            if(st.targetIdx === st.sourceIdx) return;
+            const team = st.lado === 'A' ? game.timeA : game.timeB;
+            if(!team || !team[st.sourceIdx] || !team[st.targetIdx]) return;
+            const [movido] = team.splice(st.sourceIdx, 1);
+            team.splice(st.targetIdx, 0, movido);
+            salvarState();
+            render();
+        };
+
+        window.abrirPontoTecnicoSeguro = (lado, idx) => {
+            if(Date.now() < ignorarCliqueJogadorAte) return;
+            window.abrirPontoTecnico(lado, idx);
+        };
+
         function balanceamentoDiamanteEstrelaAtivo() {
             return game.config?.balanceamentoDiamanteEstrela === true && Number(game.config?.size || 4) === 4;
         }
@@ -2582,7 +2655,7 @@
                 await set(elogioRef, emoji);
                 customAlert("Reação enviada para " + target + "!");
                 window.fecharModais();
-            } catch(e) { customAlert('Não foi possível enviar a reação.'); }
+            } catch(e) { console.error('Falha ao enviar reação:', e); customAlert('Não foi possível enviar a reação. Verifique se este emoji está liberado nas regras do Firebase.'); }
         };
 
         function renderLeaders() {
@@ -2640,7 +2713,7 @@
                 const team = l === 'A' ? (game.timeA||[]) : (game.timeB||[]); let parts = [];
                 team.forEach((p, i) => {
                     const isSacando = game.partidaAtiva && game.saqueLado === l && (l === 'A' ? game.idxA : game.idxB) === i; const safeName = escapeHtml(p.nome); const bColor = l === 'A' ? 'border-l-blue-500' : 'border-l-orange-500'; const sacandoClass = isSacando ? 'sacando' : ''; const starClass = p.estrela ? 'is-estrela' : ''; const starIcon = p.estrela ? '⭐ ' : ''; const eliteIcon = p.elite ? '💎 ' : ''; const saqueIcon = isSacando ? '<span class="bola-saque">🏐</span>' : '';
-                    parts.push('<div data-player-name="' + safeName + '" class="jogador-card bg-slate-800 p-3 rounded-xl border-l-4 ' + bColor + ' ' + sacandoClass + ' ' + starClass + '" onclick="window.abrirPontoTecnico(\'' + l + '\', ' + i + ')" data-id="' + p.id + '" draggable="' + isAdmin + '" ondragstart="window.dragStart(event, \'' + l + '\', ' + i + ')" ondragover="event.preventDefault()" ondrop="window.drop(event, \'' + l + '\', ' + i + ')"><div class="uppercase font-black text-[10px] flex justify-between items-center overflow-hidden w-full"><span>' + starIcon + eliteIcon + safeName + '</span>' + saqueIcon + '</div></div>');
+                    parts.push('<div data-player-name="' + safeName + '" class="jogador-card bg-slate-800 p-3 rounded-xl border-l-4 ' + bColor + ' ' + sacandoClass + ' ' + starClass + '" onclick="window.abrirPontoTecnicoSeguro(\'' + l + '\', ' + i + ')" data-id="' + p.id + '" data-lado="' + l + '" data-index="' + i + '" draggable="' + isAdmin + '" ondragstart="window.dragStart(event, \'' + l + '\', ' + i + ')" ondragover="event.preventDefault()" ondrop="window.drop(event, \'' + l + '\', ' + i + ')" onpointerdown="window.iniciarDragJogadorTouch(event, \'' + l + '\', ' + i + ')" onpointermove="window.moverDragJogadorTouch(event)" onpointerup="window.finalizarDragJogadorTouch(event)" onpointercancel="window.finalizarDragJogadorTouch(event)"><div class="uppercase font-black text-[10px] flex justify-between items-center overflow-hidden w-full"><span>' + starIcon + eliteIcon + safeName + '</span>' + saqueIcon + '</div></div>');
                 });
                 return parts.join('');
             };
