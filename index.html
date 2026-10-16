@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V5.10</title>
+    <title>Vôlei Hub PRO - V5.1.5</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -3091,7 +3091,7 @@
             active:false, mode:'praia', difficulty:'medio', sound:true, phase:'menu',
             w:360, h:500, target:12, playerScore:0, aiScore:0,
             canvas:null, ctx:null, raf:0, lastTs:0, clock:0, pointerId:null,
-            status:'Toque em JOGAR para começar',
+            status:'Você é o personagem AZUL.',
             audio:null,
             beach:{
                 court:{left:24,right:336,top:36,bottom:464,netY:250},
@@ -3315,7 +3315,7 @@
         };
         window.reiniciarMiniGame = () => {
             miniGame.phase='menu'; miniGame.playerScore=0; miniGame.aiScore=0; miniGame.clock=0;
-            miniGame.status='Toque em JOGAR para começar';
+            miniGame.status='Você é o personagem AZUL.';
             miniGame.beach.serve='player'; miniGame.duel.nextServer='player';
             reiniciarMiniRodada(); painelMini(); desenharMini();
         };
