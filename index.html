@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V5.5</title>
+    <title>Vôlei Hub PRO - V5.10</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -93,7 +93,8 @@
                 <button onclick="window.undoLastAction()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase transition">↩ Desfazer</button>
                 <button onclick="window.abrirConfig()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase transition">⚙️ Menu</button>
             </div>
-            <div id="visitor-controls" class="flex gap-2 ml-auto" style="display: none;">
+            <div id="visitor-controls" class="flex gap-2 ml-auto flex-wrap justify-end" style="display: none;">
+                <button id="btnMiniGame" onclick="window.abrirMiniGame()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg border border-slate-600 font-bold uppercase transition text-white shadow-lg">🏓 Mini Game</button>
                 <button id="btnMeuPerfil" onclick="window.acaoMeuPerfil()" class="text-[10px] bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded-lg border border-blue-500 font-bold uppercase transition text-white shadow-lg">👤 Identificar-se</button>
             </div>
         </div>
@@ -183,13 +184,13 @@
     
     <div id="endMatchCelebration" class="fixed inset-0 bg-slate-950/95 z-[9999] hidden flex-col backdrop-blur-sm overflow-hidden">
         <div id="endMatchEmojis" class="absolute inset-0 overflow-hidden pointer-events-none"></div>
-        <div class="relative z-10 flex-1 w-full flex items-center justify-center px-5 pb-28 pt-8">
+        <div class="relative z-10 flex-1 w-full flex items-center justify-center px-5 py-8">
             <div class="text-center w-full max-w-sm">
                 <h1 class="font-black text-orange-500 uppercase italic mb-3 leading-none" style="font-size:clamp(2.4rem,12vw,4rem); text-shadow:0 8px 24px rgba(249,115,22,0.8);">FIM DE JOGO</h1>
                 <p id="endMatchText" class="text-xl sm:text-2xl text-blue-400 font-black uppercase tracking-widest leading-tight"></p>
+                <button onclick="document.getElementById('endMatchCelebration').classList.add('hidden')" class="mt-10 w-full bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-2xl font-black uppercase text-sm shadow-[0_0_20px_rgba(37,99,235,0.5)] border border-blue-400 transition active:scale-95">CONTINUAR</button>
             </div>
         </div>
-        <button onclick="document.getElementById('endMatchCelebration').classList.add('hidden')" class="fixed left-1/2 -translate-x-1/2 z-20 w-[calc(100%-2rem)] max-w-sm bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-2xl font-black uppercase text-sm shadow-[0_0_20px_rgba(37,99,235,0.5)] border border-blue-400 transition active:scale-95" style="bottom:max(1.25rem, env(safe-area-inset-bottom));">CONTINUAR</button>
     </div>
 
     <div id="modalPerfilJogador" class="modal-global hidden">
@@ -392,25 +393,25 @@
                 <div>
                     <h4 class="text-[10px] font-black text-slate-500 uppercase mb-1">Geral</h4>
                     <div class="grid grid-cols-3 gap-2">
-                        <div><label class="text-[8px] font-bold">Ataque</label><input type="number" step="0.25" id="wAtqG" class="config-input"></div>
-                        <div><label class="text-[8px] font-bold">Bloqueio</label><input type="number" step="0.25" id="wBlqG" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Atq</label><input type="number" step="0.25" id="wAtqG" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Blq</label><input type="number" step="0.25" id="wBlqG" class="config-input"></div>
                         <div><label class="text-[8px] font-bold">Ace</label><input type="number" step="0.25" id="wAceG" class="config-input"></div>
                     </div>
                 </div>
                 <div>
                     <h4 class="text-[10px] font-black text-orange-500 uppercase mb-1">Estrela</h4>
                     <div class="grid grid-cols-3 gap-2">
-                        <div><label class="text-[8px] font-bold">Ataque</label><input type="number" step="0.25" id="wAtqE" class="config-input"></div>
-                        <div><label class="text-[8px] font-bold">Bloqueio</label><input type="number" step="0.25" id="wBlqE" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Atq</label><input type="number" step="0.25" id="wAtqE" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Blq</label><input type="number" step="0.25" id="wBlqE" class="config-input"></div>
                         <div><label class="text-[8px] font-bold">Ace</label><input type="number" step="0.25" id="wAceE" class="config-input"></div>
                     </div>
                 </div>
                 <div>
                     <h4 class="text-[10px] font-black text-emerald-500 uppercase mb-1">Global</h4>
                     <div class="grid grid-cols-3 gap-2">
-                        <div><label class="text-[8px] font-bold">Erro Adversário</label><input type="number" step="0.05" id="wErr" class="config-input"></div>
-                        <div><label class="text-[8px] font-bold">Pontos por Vitória</label><input type="number" step="0.5" id="wVit" class="config-input"></div>
-                        <div><label class="text-[8px] font-bold">Acerto do Time</label><input type="number" step="0.05" id="wTeam" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Err Adv</label><input type="number" step="0.05" id="wErr" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Vitória</label><input type="number" step="0.5" id="wVit" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Time</label><input type="number" step="0.05" id="wTeam" class="config-input"></div>
                     </div>
                 </div>
             </div>
@@ -489,27 +490,64 @@
     </div>
 
     <div id="modalFilaEscala" class="modal-global hidden">
-        <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-emerald-500/30">
+        <div class="bg-slate-800 w-full max-w-md rounded-3xl p-6 border border-emerald-500/30 overflow-y-auto max-h-[90vh]">
             <div class="flex justify-between items-center mb-6">
                 <h3 id="modalNomeFila" class="font-black text-white uppercase text-xl italic leading-none">---</h3>
                 <button onclick="window.fecharModais()" class="text-slate-400 text-3xl font-light">&times;</button>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 admin-only-control">
-                <div class="space-y-2">
-                    <button onclick="window.escalarParaTime('A')" class="w-full h-11 bg-blue-600 px-3 rounded-xl font-black uppercase text-[10px]">Entrar A</button>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 admin-only-control">
+                <div class="bg-slate-900/40 border border-blue-500/20 rounded-2xl p-3 space-y-3">
+                    <div class="text-[9px] font-black uppercase tracking-widest text-blue-300">Time A · Jogadores em quadra</div>
+                    <button onclick="window.escalarParaTime('A')" class="w-full h-11 bg-blue-600 px-3 rounded-xl font-black uppercase text-[10px] shadow-lg">Entrar A</button>
                     <div id="subsA" class="space-y-2"></div>
                 </div>
-                <div class="space-y-2">
-                    <button onclick="window.escalarParaTime('B')" class="w-full h-11 bg-orange-600 px-3 rounded-xl font-black uppercase text-[10px]">Entrar B</button>
+                <div class="bg-slate-900/40 border border-orange-500/20 rounded-2xl p-3 space-y-3">
+                    <div class="text-[9px] font-black uppercase tracking-widest text-orange-300">Time B · Jogadores em quadra</div>
+                    <button onclick="window.escalarParaTime('B')" class="w-full h-11 bg-orange-600 px-3 rounded-xl font-black uppercase text-[10px] shadow-lg">Entrar B</button>
                     <div id="subsB" class="space-y-2"></div>
                 </div>
             </div>
-            <div id="filaCategoriaAcoes" class="admin-only-control space-y-2 mb-3"></div>
-            <button id="btnStatusBloqueio" class="w-full h-11 bg-slate-700 px-3 rounded-xl font-black uppercase text-xs mb-2">---</button>
+            <button id="btnStatusBloqueio" class="w-full h-11 px-3 rounded-xl font-black uppercase text-xs mb-2 border transition">---</button>
+            <button id="btnToggleCategoria" onclick="window.toggleCategoriaAcoes()" class="w-full h-11 bg-slate-700 hover:bg-slate-600 px-3 rounded-xl font-black uppercase text-xs mb-2 border border-slate-600">Alterar categoria</button>
+            <div id="filaCategoriaAcoes" class="admin-only-control hidden space-y-2 mb-3 bg-slate-900/40 border border-slate-700 rounded-2xl p-3"></div>
             <button onclick="window.fecharModais()" class="w-full h-11 bg-slate-700 px-3 rounded-xl uppercase text-xs font-black">Voltar</button>
         </div>
     </div>
-    
+
+    <!-- Mini games independentes: execução exclusiva no navegador do visitante. -->
+    <div id="modalMiniGame" class="modal-global hidden" style="z-index: 3200;">
+        <div class="bg-slate-800 w-full max-w-md rounded-3xl p-4 border border-cyan-500/60 overflow-y-auto max-h-[94vh]" style="overscroll-behavior:contain;">
+            <div class="flex items-start justify-between gap-2 mb-3">
+                <div>
+                    <h3 class="font-black text-white uppercase text-xl italic leading-none">🏐 Jogos de Vôlei</h3>
+                </div>
+                <button onclick="window.fecharMiniGame()" aria-label="Fechar jogos" class="text-slate-400 text-3xl font-light px-2 leading-none">&times;</button>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mb-3">
+                <button id="btnJogoPraia" onclick="window.selecionarMiniJogo('praia')" class="py-3 px-2 rounded-xl uppercase text-[10px] font-black border">🏖️ Vôlei de Praia</button>
+                <button id="btnJogoDuelo" onclick="window.selecionarMiniJogo('duelo')" class="py-3 px-2 rounded-xl uppercase text-[10px] font-black border">💎 vs ⭐ Duelo 2D</button>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mb-3">
+                <button id="btnMiniFacil" onclick="window.setMiniGameDifficulty('facil')" class="py-2.5 rounded-xl uppercase text-[10px] font-black border">Fácil</button>
+                <button id="btnMiniMedio" onclick="window.setMiniGameDifficulty('medio')" class="py-2.5 rounded-xl uppercase text-[10px] font-black border">Médio</button>
+                <button id="btnMiniDificil" onclick="window.setMiniGameDifficulty('dificil')" class="py-2.5 rounded-xl uppercase text-[10px] font-black border">Difícil</button>
+            </div>
+            <div class="bg-slate-900/60 border border-slate-700 rounded-2xl px-3 py-2 mb-2 flex items-center justify-between gap-3">
+                <div class="text-center w-16 shrink-0"><div id="miniGameLabelPlayer" class="text-[10px] text-blue-400 font-black">VOCÊ</div><div id="miniGameScorePlayer" class="text-2xl font-black text-blue-300">0</div></div>
+                <div id="miniGameStatus" aria-live="polite" class="text-center text-[10px] font-black text-emerald-300 uppercase flex-1">Escolha e toque em JOGAR</div>
+                <div class="text-center w-16 shrink-0"><div id="miniGameLabelAi" class="text-[10px] text-orange-400 font-black">CPU</div><div id="miniGameScoreAi" class="text-2xl font-black text-orange-300">0</div></div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mb-3">
+                <button id="btnMiniJogar" onclick="window.controlarMiniGame()" class="bg-emerald-600 hover:bg-emerald-500 py-3.5 rounded-xl uppercase text-xs font-black text-white shadow-lg">▶ JOGAR</button>
+                <button onclick="window.reiniciarMiniGame()" class="bg-slate-700 border border-slate-600 hover:bg-slate-600 py-3 rounded-xl uppercase text-[10px] font-black text-white">↻ Reiniciar</button>
+            </div>
+            <div class="relative overflow-hidden rounded-2xl border border-slate-600 shadow-inner bg-sky-950">
+                <canvas id="miniGameCanvas" width="360" height="500" class="block bg-sky-950 touch-none" style="width:min(100%,42vh,360px);height:auto;aspect-ratio:360/500;touch-action:none;user-select:none;margin:0 auto;" aria-label="Mini game de vôlei interativo"></canvas>
+                <button id="btnMiniSom" onclick="window.alternarSomMiniGame()" type="button" aria-label="Alternar som" title="Ligar ou desligar som" class="absolute top-2 right-2 z-10 w-11 h-11 flex items-center justify-center rounded-full bg-slate-900/75 border border-white/30 text-xl text-white shadow-lg">🔊</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modalPontoTec" class="fixed inset-0 bg-black/90 hidden z-[100] flex items-end justify-center">
         <div class="bg-slate-800 w-full max-w-md rounded-t-3xl p-6 border-t-2 border-orange-500 modal-bottom">
             <div class="flex justify-between items-center mb-6">
@@ -571,6 +609,7 @@
         let adminNotifications = {}, unsubscribeAdminNotifications = null, lastCelebrationId = null;
         let unlockRequests = {};
         let matchLogOculto = localStorage.getItem('voleihub_matchlog_oculto') === '1';
+        let narradorVoice = null;
         window.sessoesCache = {}; 
         
         const badgeMap = { topScore: {i:'🥇', desc:'Top Score'}, matador: {i:'🔥', desc:'Matador'}, paredao: {i:'🚫', desc:'Paredão'}, ace: {i:'⚡', desc:'Ace'}, vitorias: {i:'🏆', desc:'Vitórias'}, second: {i:'🥈', desc:'2º Lugar'}, third: {i:'🥉', desc:'3º Lugar'} };
@@ -622,7 +661,7 @@
         }
         
         function getFormattedDate() { const d = new Date(); return String(d.getDate()).padStart(2, '0') + String(d.getMonth() + 1).padStart(2, '0') + d.getFullYear(); }
-        window.fecharModais = () => { document.querySelectorAll('.modal-global, #modalPontoTec').forEach(m => m.classList.add('hidden')); };
+        window.fecharModais = () => { document.querySelectorAll('.modal-global, #modalPontoTec').forEach(m => m.classList.add('hidden')); if (typeof window.fecharMiniGame === 'function') window.fecharMiniGame(); };
         function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, ch => { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]; }); }
         
             window.iniciarApito = (e) => {
@@ -1704,7 +1743,7 @@
                     const textColor = p.vencedor === 'A' ? 'text-blue-400' : 'text-orange-400';
                     const scoreA = Number(p.teamScoreAInicio || 0).toFixed(2);
                     const scoreB = Number(p.teamScoreBInicio || 0).toFixed(2);
-                    parts.push('<div class="bg-slate-700/40 p-3 rounded-xl border border-slate-600 mb-2 cursor-pointer hover:bg-slate-700/70" onclick="window.abrirDetalhePartida(' + p.id + ')"><div class="flex justify-between mb-1"><span class="text-[9px] font-black uppercase ' + textColor + '">Partida ' + (partidas.length - idx) + ' · Vitória ' + p.vencedor + '</span><span class="text-xl font-black">' + p.scoreA + ' x ' + p.scoreB + '</span></div><div class="text-[8px] text-emerald-400 font-black uppercase text-center mb-2">Score dos times no início: ' + scoreA + ' x ' + scoreB + '</div>' + (p.premiacao ? '<div class="text-[9px] text-amber-300 font-black uppercase text-center mb-2">🏆 Prêmio: +' + Number(p.premiacao.porJogador) + ' score por vencedor</div>' : '') + '<div class="grid grid-cols-2 gap-2 text-[8px] font-bold text-slate-400"><div><div class="text-blue-400 uppercase mb-1">Time A</div>' + escapeHtml((p.timeA||[]).join(', ')) + '</div><div class="border-l border-slate-600 pl-2"><div class="text-orange-400 uppercase mb-1">Time B</div>' + escapeHtml((p.timeB||[]).join(', ')) + '</div></div></div>');
+                    parts.push('<div class="bg-slate-700/40 p-3 rounded-xl border border-slate-600 mb-2 cursor-pointer hover:bg-slate-700/70" onclick="window.abrirDetalhePartida(' + p.id + ')"><div class="flex justify-between mb-1"><span class="text-[9px] font-black uppercase ' + textColor + '">Partida ' + (partidas.length - idx) + ' · Vitória ' + p.vencedor + '</span><span class="text-xl font-black">' + p.scoreA + ' x ' + p.scoreB + '</span></div><div class="text-[8px] text-emerald-400 font-black uppercase text-center mb-2">Score dos times no início: ' + scoreA + ' x ' + scoreB + '</div>' + '<div class="grid grid-cols-2 gap-2 text-[8px] font-bold text-slate-400"><div><div class="text-blue-400 uppercase mb-1">Time A</div>' + escapeHtml((p.timeA||[]).join(', ')) + '</div><div class="border-l border-slate-600 pl-2"><div class="text-orange-400 uppercase mb-1">Time B</div>' + escapeHtml((p.timeB||[]).join(', ')) + '</div></div></div>');
                 });
                 document.getElementById('listaHistoricoContainer').innerHTML = parts.join('');
             }
@@ -1719,7 +1758,6 @@
                 document.getElementById('detalhePartidaScore').innerHTML = '<div class="col-span-2 text-center bg-slate-800/80 rounded-lg p-2 mb-3 border border-slate-700"><div class="text-[8px] text-emerald-400 font-black uppercase">Score dos Times no início</div><div class="text-sm font-black text-white mt-1">Time A ' + scoreA + ' <span class="text-slate-500 mx-1">×</span> Time B ' + scoreB + '</div></div><div class="text-center w-2/5"><div class="text-[9px] text-blue-500 font-black mb-1">TIME A</div><div class="text-4xl font-black leading-none">' + p.scoreA + '</div><div class="text-[9px] mt-2">' + (p.timeA||[]).join('<br>') + '</div></div><div class="text-slate-600 font-black italic text-xl">VS</div><div class="text-center w-2/5"><div class="text-[9px] text-orange-500 font-black mb-1">TIME B</div><div class="text-4xl font-black leading-none">' + p.scoreB + '</div><div class="text-[9px] mt-2">' + (p.timeB||[]).join('<br>') + '</div></div>';
                 if (p.log && p.log.length > 0) {
                     let logParts = [];
-                    if (p.premiacao) logParts.push('<div class="text-amber-300 text-[10px] font-black rounded bg-amber-500/10 p-2">🏆 BÔNUS DE +' + Number(p.premiacao.porJogador) + ' NO SCORE DE CADA VENCEDOR</div>');
                     p.log.forEach(l => { logParts.push('<div class="log-item log-' + l.type + '">' + l.text + '</div>'); });
                     document.getElementById('detalhePartidaLog').innerHTML = logParts.join('');
                 } else {
@@ -2431,6 +2469,29 @@
             });
         }
 
+        function resolverVozNarrador() {
+            if (!('speechSynthesis' in window)) return null;
+            const vozes = window.speechSynthesis.getVoices() || [];
+            if (!vozes.length) return null;
+            const criterios = [
+                (v) => /pt-br/i.test(v.lang || '') && /(luciana|fernanda|m[ôo]nica|monica|paulina|francisca|helena|joana)/i.test(v.name || ''),
+                (v) => /pt-br/i.test(v.lang || '') && v.localService,
+                (v) => /pt-br/i.test(v.lang || ''),
+                (v) => /^pt/i.test(v.lang || '') && v.localService,
+                (v) => /^pt/i.test(v.lang || '')
+            ];
+            for (const criterio of criterios) {
+                const voz = vozes.find(criterio);
+                if (voz) return voz;
+            }
+            return vozes[0] || null;
+        }
+
+        if ('speechSynthesis' in window) {
+            narradorVoice = resolverVozNarrador();
+            window.speechSynthesis.onvoiceschanged = () => { narradorVoice = resolverVozNarrador(); };
+        }
+
         function narrarTipoPonto(tipo) {
             // A voz toca só no aparelho que registra o ponto (admin), evitando ecos entre guests.
             if (!isAdmin || isHistoricalView || game.config?.narradorPontos === false) return;
@@ -2439,12 +2500,12 @@
             try {
                 const fala = new window.SpeechSynthesisUtterance(frases[tipo]);
                 fala.lang = 'pt-BR';
-                fala.rate = 1.05;
+                fala.rate = /iPhone|iPad|iPod/i.test(navigator.userAgent || '') ? 0.93 : 0.98;
+                fala.pitch = 1.02;
                 fala.volume = 1;
-                const vozes = window.speechSynthesis.getVoices();
-                const vozBR = vozes.find(v => v.lang?.toLowerCase() === 'pt-br') || vozes.find(v => v.lang?.toLowerCase().startsWith('pt'));
-                if (vozBR) fala.voice = vozBR;
-                window.speechSynthesis.cancel(); // Não acumular pontos narrados em atraso.
+                narradorVoice = narradorVoice || resolverVozNarrador();
+                if (narradorVoice) fala.voice = narradorVoice;
+                window.speechSynthesis.cancel();
                 window.speechSynthesis.speak(fala);
             } catch (e) { console.warn('Narração de pontos indisponível neste navegador.', e); }
         }
@@ -2590,10 +2651,10 @@
             sincronizarEstadoSaque();
             game.matchStartScores = null;
             capturarScoreInicialPartida();
-            game.systemMsg = { text: "FIM DE SET", sub: "Vitória do Time " + venceu + (premiacaoAplicada ? ' — +' + premiacaoAplicada + ' score por jogador!' : '') };
+            game.systemMsg = { text: "FIM DE SET", sub: "Vitória do Time " + venceu };
             salvarState();
             
-            document.getElementById('endMatchText').innerText = "VITÓRIA DO TIME " + venceu + "!" + (premiacaoAplicada ? " 🏆 +" + premiacaoAplicada + " SCORE POR JOGADOR!" : "");
+            document.getElementById('endMatchText').innerText = "VITÓRIA DO TIME " + venceu + "!";
             const emojis = ['🏐','🏆','🔥','👏','🎉','🥇'];
             let emojiHtml = [];
             for(let i = 0; i < 30; i++) {
@@ -2936,6 +2997,19 @@
             document.getElementById('leadersGrid').innerHTML = htmlParts.join('');
         }
 
+        function timeEmMatchBonus(lado) {
+            if ((game.config?.reaction || '') !== 'sairDois') return false;
+            const maxWins = Number(game.config?.maxWins);
+            if (!Number.isFinite(maxWins) || maxWins <= 0) return false;
+            const atual = lado === 'A' ? Number(game.winsConsecA || 0) : Number(game.winsConsecB || 0);
+            return atual === (maxWins - 1);
+        }
+
+        function formatarSets(lado) {
+            const wins = lado === 'A' ? Number(game.winsConsecA || 0) : Number(game.winsConsecB || 0);
+            return 'Sets: ' + wins + (timeEmMatchBonus(lado) ? ' 🔥' : '');
+        }
+
         window.toggleMatchLog = () => {
             matchLogOculto = !matchLogOculto;
             localStorage.setItem('voleihub_matchlog_oculto', matchLogOculto ? '1' : '0');
@@ -2957,7 +3031,7 @@
             const matchPointBanner = document.getElementById('matchPointBanner');
             const placarOculto = isHistoricalView || !game.partidaAtiva || game.config.hideScoreboard;
             if (placarOculto) placarDiv.classList.add('hidden'); else placarDiv.classList.remove('hidden');
-            document.getElementById('scoreA').innerText = game.scoreA || 0; document.getElementById('scoreB').innerText = game.scoreB || 0; document.getElementById('winsA').innerText = "Sets: " + (game.winsConsecA || 0); document.getElementById('winsB').innerText = "Sets: " + (game.winsConsecB || 0);
+            document.getElementById('scoreA').innerText = game.scoreA || 0; document.getElementById('scoreB').innerText = game.scoreB || 0; document.getElementById('winsA').innerText = formatarSets('A'); document.getElementById('winsB').innerText = formatarSets('B');
 
             const mp = placarOculto ? null : obterMatchPoint();
             if (mp) {
@@ -3011,6 +3085,738 @@
             renderMyTrophies(); if(isAdmin) { const rb = document.getElementById('reactionBox'); rb.classList.add('hidden'); rb.dataset.target=''; } atualizarBotaoMeuPerfil();
         }
 
+
+        // Jogos executados somente em memória no dispositivo. Não leem nem gravam no Firebase.
+        const miniGame = {
+            active:false, mode:'praia', difficulty:'medio', sound:true, phase:'menu',
+            w:360, h:500, target:12, playerScore:0, aiScore:0,
+            canvas:null, ctx:null, raf:0, lastTs:0, clock:0, pointerId:null,
+            status:'Toque em JOGAR para começar',
+            audio:null,
+            beach:{
+                court:{left:24,right:336,top:36,bottom:464,netY:250},
+                player:{x:180,y:392,vx:0,vy:0,w:78,h:14,collectR:22,color:'#2563eb',fireReady:false,bigTimer:0,smallTimer:0},
+                ai:{x:180,y:108,vx:0,vy:0,w:78,h:14,collectR:22,color:'#f97316',fireReady:false,bigTimer:0,smallTimer:0},
+                ball:{x:180,y:210,vx:0,vy:0,r:12,spin:0,trail:[],fire:false,heldBy:'player',inServe:true},
+                powerups:[], nextPower:5, nextPowerId:1, effectText:[], pauseTimer:0, serve:'player',serveWait:0,
+                touchesPlayer:0,touchesAi:0,ballSide:'player',contactCooldown:0
+            },
+            duel:{
+                netX:180, ground:448,
+                player:{x:88,y:0,vx:0,vy:0,w:35,h:46,serve:false},
+                ai:{x:272,y:0,vx:0,vy:0,w:35,h:46,serve:false},
+                ball:{x:88,y:324,vx:0,vy:0,r:12,heldBy:'player',inServe:true,fire:false},
+                side:'player', touchesPlayer:0, touchesAi:0, lastTouch:'player', contactCooldown:0,
+                touchPopups:[], bird:null, nextBird:999, child:null, nextChild:999,
+                rallyTime:0, night:false, pauseTimer:0, nextServer:'player', serveWait:0, netCooldown:0, aiJumpCooldown:0
+            }
+        };
+
+        const limitarMini = (x, min, max) => Math.max(min, Math.min(max, x));
+        const lerpMini = (a,b,t) => a + (b-a)*t;
+        const distMini = (ax,ay,bx,by) => Math.hypot(ax-bx, ay-by);
+        function nivelMini() {
+            if (miniGame.difficulty === 'facil') return {
+                beachPaddle:90, beachBall:3.15, beachAi:1.05,
+                duelAi:1.65, duelNetTop:330, duelBallFactor:0.78, duelGravity:0.22,
+                duelJump:false, duelPrediction:0.32, bird:false, child:false,
+                birdGap:[999,999], childGap:[999,999]
+            };
+            if (miniGame.difficulty === 'dificil') return {
+                beachPaddle:62, beachBall:4.45, beachAi:4.25,
+                duelAi:5.1, duelNetTop:268, duelBallFactor:1.26, duelGravity:0.235,
+                duelJump:true, duelPrediction:0.95, bird:true, child:true,
+                birdGap:[5,8], childGap:[7,12]
+            };
+            return {
+                beachPaddle:76, beachBall:3.7, beachAi:2.45,
+                duelAi:2.85, duelNetTop:297, duelBallFactor:1, duelGravity:0.23,
+                duelJump:true, duelPrediction:0.65, bird:true, child:true,
+                birdGap:[9,14], childGap:[9,15]
+            };
+        }
+        function somMini(tipo) {
+            if (!miniGame.sound) return;
+            const AudioContextLocal = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContextLocal) return;
+            try {
+                if (!miniGame.audio) miniGame.audio = new AudioContextLocal();
+                if (miniGame.audio.state === 'suspended') miniGame.audio.resume().catch(() => {});
+                const a = miniGame.audio;
+                const t = a.currentTime;
+                const mapa = {
+                    toque:[350,210,0.08,'sine',0.12],
+                    forte:[920,450,0.12,'sawtooth',0.13],
+                    saque:[520,300,0.13,'triangle',0.11],
+                    rede:[160,95,0.11,'triangle',0.10],
+                    ponto:[620,860,0.18,'triangle',0.12],
+                    perder:[320,160,0.22,'sine',0.12],
+                    ave:[1100,1400,0.09,'square',0.10],
+                    crianca:[690,520,0.10,'triangle',0.10],
+                    bonus:[780,1180,0.16,'triangle',0.11],
+                    vitoria:[620,980,0.25,'triangle',0.12]
+                };
+                const [f1,f2,dur,wave,gainv] = mapa[tipo] || mapa.toque;
+                const osc = a.createOscillator();
+                const gain = a.createGain();
+                osc.type = wave;
+                osc.frequency.setValueAtTime(f1,t);
+                osc.frequency.exponentialRampToValueAtTime(Math.max(60,f2), t+dur);
+                gain.gain.setValueAtTime(0.0001,t);
+                gain.gain.exponentialRampToValueAtTime(gainv,t+0.015);
+                gain.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+                osc.connect(gain); gain.connect(a.destination);
+                osc.start(t); osc.stop(t+dur+0.03);
+            } catch (e) {}
+        }
+        function painelMini() {
+            const g = miniGame;
+            const get = id => document.getElementById(id);
+            get('miniGameScorePlayer').textContent = g.playerScore;
+            get('miniGameScoreAi').textContent = g.aiScore;
+            get('miniGameLabelPlayer').textContent = g.mode === 'duelo' ? '💎 VOCÊ' : 'VOCÊ';
+            get('miniGameLabelAi').textContent = g.mode === 'duelo' ? '⭐ CPU' : 'CPU';
+            get('miniGameStatus').textContent = g.status;
+            get('btnMiniSom').textContent = g.sound ? '🔊' : '🔇';
+            get('btnMiniSom').setAttribute('aria-label', g.sound ? 'Desligar som' : 'Ligar som');
+            const rot = {menu:'▶ JOGAR',playing:'⏸ PAUSAR',paused:'▶ CONTINUAR',round:'⏸ PAUSAR',finished:'▶ JOGAR NOVAMENTE'};
+            get('btnMiniJogar').textContent = rot[g.phase] || '▶ JOGAR';
+            for (const modo of ['praia','duelo']) {
+                const botao = get(modo === 'praia' ? 'btnJogoPraia' : 'btnJogoDuelo');
+                botao.className = 'py-3 px-2 rounded-xl uppercase text-[10px] font-black border ' +
+                    (g.mode === modo ? 'bg-cyan-600 border-cyan-300 text-white' : 'bg-slate-700 border-slate-600 text-slate-200');
+            }
+            for (const nivel of ['facil','medio','dificil']) {
+                const id = 'btnMini'+nivel.charAt(0).toUpperCase()+nivel.slice(1);
+                get(id).className = 'py-2.5 rounded-xl uppercase text-[10px] font-black border ' +
+                    (g.difficulty === nivel ? 'bg-blue-600 border-blue-300 text-white' : 'bg-slate-700 border-slate-600 text-slate-200');
+            }
+        }
+        function arredondadoMini(ctx,x,y,w,h,r,fill,stroke=null) {
+            ctx.beginPath();
+            ctx.moveTo(x+r,y);
+            ctx.arcTo(x+w,y,x+w,y+h,r);
+            ctx.arcTo(x+w,y+h,x,y+h,r);
+            ctx.arcTo(x,y+h,x,y,r);
+            ctx.arcTo(x,y,x+w,y,r);
+            if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+            if (stroke) { ctx.strokeStyle = stroke; ctx.stroke(); }
+        }
+        function escreverMini(ctx,t,x,y,s=14,c='#fff',align='center') {
+            ctx.fillStyle = c;
+            ctx.font = `900 ${s}px Arial`;
+            ctx.textAlign = align;
+            ctx.textBaseline = 'middle';
+            ctx.fillText(t,x,y);
+        }
+        function bolaVolei(ctx,x,y,r,fire=false) {
+            if (fire) {
+                ctx.fillStyle='rgba(251,146,60,.28)';
+                ctx.beginPath(); ctx.arc(x,y,r+9,0,Math.PI*2); ctx.fill();
+            }
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+            ctx.strokeStyle = '#fff7ed'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(x,y,r*.95,Math.PI*.15,Math.PI*1.25); ctx.stroke();
+            ctx.beginPath(); ctx.arc(x,y,r*.7,Math.PI*1.05,Math.PI*2.08); ctx.stroke();
+        }
+        function resetarPowerupsPraia() {
+            const b = miniGame.beach;
+            b.powerups = [];
+            b.effectText = [];
+            b.nextPower = miniGame.clock + 4 + Math.random()*4;
+            b.nextPowerId = 1;
+            b.player.fireReady = false; b.ai.fireReady = false;
+            b.player.bigTimer = b.player.smallTimer = 0;
+            b.ai.bigTimer = b.ai.smallTimer = 0;
+        }
+        function atualizarLarguraPaletasPraia() {
+            const cfg = nivelMini();
+            const base = cfg.beachPaddle;
+            const b = miniGame.beach;
+            b.player.w = base + (b.player.bigTimer>0?20:0) - (b.player.smallTimer>0?16:0);
+            b.ai.w = base + (b.ai.bigTimer>0?20:0) - (b.ai.smallTimer>0?16:0);
+        }
+        function spawnPowerupPraia() {
+            const b = miniGame.beach, c = b.court;
+            const tipos = ['fogo','bola','foguete','tartaruga','mais','menos'];
+            const tipo = tipos[Math.floor(Math.random()*tipos.length)];
+            const par = b.nextPowerId++;
+            const x = 68 + Math.random()*224;
+            const distancia = 53 + Math.random()*132;
+            // Dois itens espelhados em torno da rede, vinculados ao mesmo prêmio.
+            // Assim que alguém coleta seu item, o par desaparece da outra quadra.
+            b.powerups.push(
+                {par,tipo,x,y:c.netY-distancia,r:13,ttl:10,lado:'ai'},
+                {par,tipo,x,y:c.netY+distancia,r:13,ttl:10,lado:'player'}
+            );
+            b.nextPower = miniGame.clock + 6 + Math.random()*4;
+        }
+        function aplicarPowerupPraia(alvo, tipo) {
+            const b = miniGame.beach;
+            const jogador = alvo === 'player' ? b.player : b.ai;
+            const nomes = {fogo:'🔥 Ataque de fogo!', bola:'🏐 Bola maior!', foguete:'🚀 Bola mais rápida!', tartaruga:'🐢 Bola mais lenta!', mais:'➕ Paleta maior!', menos:'➖ Paleta menor!'};
+            if (tipo === 'fogo') jogador.fireReady = true;
+            else if (tipo === 'bola') b.ball.r = Math.min(20, b.ball.r + 3);
+            else if (tipo === 'foguete') { b.ball.vx *= 1.22; b.ball.vy *= 1.22; }
+            else if (tipo === 'tartaruga') { b.ball.vx *= 0.82; b.ball.vy *= 0.82; }
+            else if (tipo === 'mais') jogador.bigTimer = 8;
+            else if (tipo === 'menos') jogador.smallTimer = 8;
+            b.effectText.push({x:jogador.x, y:jogador.y, t:nomes[tipo], ttl:1.3, color: alvo==='player'?'#93c5fd':'#fdba74'});
+            somMini('bonus');
+            atualizarLarguraPaletasPraia();
+        }
+        function reiniciarMiniRodada() {
+            const g = miniGame;
+            if (g.mode === 'praia') {
+                const cfg = nivelMini();
+                const b = g.beach;
+                atualizarLarguraPaletasPraia();
+                b.player.x=180;b.player.y=388;b.player.vx=0;b.player.vy=0;
+                b.ai.x=180;b.ai.y=112;b.ai.vx=0;b.ai.vy=0;
+                b.ball={x:180,y:210,vx:0,vy:0,r:12,spin:0,trail:[],fire:false,heldBy:b.serve,inServe:true};
+                b.touchesPlayer=0; b.touchesAi=0; b.ballSide=b.serve;
+                b.contactCooldown=0;b.serveWait=0;b.pauseTimer=0;
+                resetarPowerupsPraia();
+                posicionarSaquePraia();
+            } else {
+                const d = g.duel, cfg = nivelMini();
+                d.player.x=88;d.player.y=0;d.player.vx=0;d.player.vy=0;d.player.serve=false;
+                d.ai.x=272;d.ai.y=0;d.ai.vx=0;d.ai.vy=0;d.ai.serve=false;
+                d.touchesPlayer=0;d.touchesAi=0; d.contactCooldown=0;
+                d.side = d.nextServer;
+                d.lastTouch = d.side; d.serveWait=0;d.netCooldown=0;d.aiJumpCooldown=0;
+                d.ball={x:d.side==='player'?88:272, y:324, vx:0, vy:0, r:12, heldBy:d.side, inServe:true, fire:false};
+                d.rallyTime = 0; d.night = false; d.touchPopups=[]; d.bird=null; d.child=null;
+                d.nextBird = cfg.bird ? (5 + Math.random()*(cfg.birdGap[1]-cfg.birdGap[0])) : 999;
+                d.nextChild = cfg.child ? 9 : 999;
+            }
+        }
+        function prepararMiniPartida() {
+            miniGame.playerScore=0; miniGame.aiScore=0; miniGame.clock=0;
+            miniGame.status='Toque na quadra para sacar'; miniGame.phase='playing';
+            miniGame.beach.serve='player';miniGame.duel.nextServer='player';
+            reiniciarMiniRodada(); painelMini();
+        }
+        window.selecionarMiniJogo = modo => {
+            if (!['praia','duelo'].includes(modo)) return;
+            miniGame.mode = modo;
+            window.reiniciarMiniGame();
+        };
+        window.setMiniGameDifficulty = nivel => {
+            if (!['facil','medio','dificil'].includes(nivel)) return;
+            miniGame.difficulty = nivel;
+            window.reiniciarMiniGame();
+        };
+        window.alternarSomMiniGame = () => {
+            miniGame.sound = !miniGame.sound;
+            painelMini();
+            if (miniGame.sound) somMini('toque');
+        };
+        window.reiniciarMiniGame = () => {
+            miniGame.phase='menu'; miniGame.playerScore=0; miniGame.aiScore=0; miniGame.clock=0;
+            miniGame.status='Toque em JOGAR para começar';
+            miniGame.beach.serve='player'; miniGame.duel.nextServer='player';
+            reiniciarMiniRodada(); painelMini(); desenharMini();
+        };
+        window.resetMiniGame = window.reiniciarMiniGame;
+        window.controlarMiniGame = () => {
+            const g=miniGame;
+            if (!g.active) return;
+            if (g.phase==='menu' || g.phase==='finished') prepararMiniPartida();
+            else if (g.phase==='playing' || g.phase==='round') { g.phase='paused'; g.status='Pausado'; painelMini(); }
+            else if (g.phase==='paused') { g.phase='playing'; g.status='Partida em andamento'; painelMini(); }
+            if (!g.raf) { g.lastTs=0; g.raf=requestAnimationFrame(loopMiniGame); }
+        };
+        function encerrarMiniPonto(lado, motivo=null) {
+            if (miniGame.phase!=='playing') return;
+            if (lado==='player') miniGame.playerScore++; else miniGame.aiScore++;
+            somMini(lado==='player'?'ponto':'perder');
+            if (miniGame.playerScore>=miniGame.target || miniGame.aiScore>=miniGame.target) {
+                miniGame.phase='finished';
+                miniGame.status = miniGame.playerScore>=miniGame.target ? '🏆 Você venceu!' : '⭐ A CPU venceu!';
+                if (miniGame.playerScore>=miniGame.target) somMini('vitoria');
+                painelMini(); desenharMini();
+                return;
+            }
+            miniGame.phase='round';
+            miniGame.status = motivo || (lado==='player' ? 'Seu ponto!' : 'Ponto da CPU');
+            if (miniGame.mode==='praia') miniGame.beach.serve = lado;
+            miniGame.duel.nextServer = lado;
+            miniGame.beach.pauseTimer = 0.85;
+            miniGame.duel.pauseTimer = 0.95;
+            painelMini();
+        }
+        function desenharPowerupPraia(ctx,p) {
+            const mapa = {fogo:'🔥',bola:'🏐',foguete:'🚀',tartaruga:'🐢',mais:'➕',menos:'➖'};
+            ctx.fillStyle='rgba(15,23,42,.72)'; ctx.beginPath(); ctx.arc(p.x,p.y,p.r+5,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle='rgba(255,255,255,.1)'; ctx.beginPath(); ctx.arc(p.x,p.y,p.r+2,0,Math.PI*2); ctx.fill();
+            escreverMini(ctx,mapa[p.tipo]||'?',p.x,p.y,16,'#fff');
+        }
+        function desenharPraia(ctx) {
+            const g=miniGame,b=g.beach,c=b.court;
+            const grad=ctx.createLinearGradient(0,0,0,g.h);
+            grad.addColorStop(0,'#38bdf8'); grad.addColorStop(.22,'#7dd3fc'); grad.addColorStop(.2201,'#f0d18b'); grad.addColorStop(1,'#e7c272');
+            ctx.fillStyle=grad; ctx.fillRect(0,0,g.w,g.h);
+            arredondadoMini(ctx,c.left,c.top,c.right-c.left,c.bottom-c.top,18,'rgba(245, 200, 119, .95)','#fff7ed');
+            ctx.strokeStyle='rgba(255,255,255,.9)'; ctx.lineWidth=2;
+            ctx.strokeRect(c.left+10,c.top+10,(c.right-c.left)-20,(c.bottom-c.top)-20);
+            ctx.beginPath(); ctx.moveTo(c.left+10,c.netY); ctx.lineTo(c.right-10,c.netY); ctx.stroke();
+            for (let x=c.left+26; x<c.right-18; x+=22) { ctx.fillStyle='rgba(255,255,255,.22)'; ctx.fillRect(x,c.netY-4,10,8); }
+            // Linha central somente decorativa: não impede a bola de atravessar.
+            const drawPaddle=(p,isPlayer)=>{
+                if (p.fireReady) { ctx.fillStyle='rgba(251,146,60,.18)'; ctx.beginPath(); ctx.arc(p.x,p.y,p.w*.55,0,Math.PI*2); ctx.fill(); }
+                arredondadoMini(ctx,p.x-p.w/2,p.y-10,p.w,20,10,isPlayer?'#2563eb':'#f97316','#e2e8f0');
+            };
+            drawPaddle(b.ai,false); drawPaddle(b.player,true);
+            b.powerups.forEach(p=>desenharPowerupPraia(ctx,p));
+            b.effectText.forEach(t=>escreverMini(ctx,t.t,t.x,t.y,12,t.color));
+            if(b.ball.fire && b.ball.trail) {
+                b.ball.trail.forEach((v,i)=>{ ctx.fillStyle=`rgba(251,110,33,${.32*(1-i/10)})`;ctx.beginPath();ctx.arc(v.x,v.y,b.ball.r*(1-i/16),0,Math.PI*2);ctx.fill(); });
+            }
+            bolaVolei(ctx,b.ball.x,b.ball.y,b.ball.r,b.ball.fire);
+            if(b.ball.inServe && b.ball.heldBy==='player' && g.phase==='playing') escreverMini(ctx,'TOQUE NA QUADRA PARA SACAR',180,475,11,'#713f12');
+            escreverMini(ctx,'🏖️ ARCADE DE PRAIA',180,18,13,'#082f49');
+        }
+        function cenarioDuelo(ctx) {
+            const w=miniGame.w,h=miniGame.h;
+            let ceu=ctx.createLinearGradient(0,0,0,400);
+            ceu.addColorStop(0,'#7dd3fc');ceu.addColorStop(.7,'#baf2ff');ceu.addColorStop(1,'#e7f8d3');
+            ctx.fillStyle=ceu;ctx.fillRect(0,0,w,h);
+            ctx.fillStyle='#fff8cc';ctx.beginPath();ctx.arc(295,80,30,0,Math.PI*2);ctx.fill();
+            ctx.fillStyle='#ffffffcc';
+            for(const [x,y] of [[40,90],[195,124],[318,175]]) {
+                ctx.beginPath();ctx.ellipse(x,y,32,12,0,0,Math.PI*2);ctx.fill();
+                ctx.beginPath();ctx.arc(x-16,y-8,12,0,Math.PI*2);ctx.arc(x+12,y-7,14,0,Math.PI*2);ctx.fill();
+            }
+            ctx.fillStyle='#31b6c4';ctx.fillRect(0,295,w,125);
+            ctx.fillStyle='#83e5dc';ctx.fillRect(0,319,w,31);
+            ctx.fillStyle='#eec887';ctx.fillRect(0,390,w,h-390);
+            ctx.fillStyle='#f6d79c';ctx.fillRect(0,420,w,h-420);
+            ctx.strokeStyle='#ffffff';ctx.lineWidth=3;
+            ctx.beginPath();ctx.moveTo(22,466);ctx.lineTo(338,466);ctx.stroke();
+            ctx.setLineDash([5,8]);ctx.beginPath();ctx.moveTo(22,455);ctx.lineTo(338,455);ctx.stroke();ctx.setLineDash([]);
+            // Rede alta central e postes (colisões tratadas pela física).
+            const netTop=nivelMini().duelNetTop,ground=451;
+            ctx.fillStyle='#4d5c68';ctx.fillRect(176,netTop-14,8,ground-netTop+15);
+            ctx.fillStyle='#f7f9ffbb';ctx.fillRect(178,netTop,4,ground-netTop);
+            ctx.strokeStyle='#fff';ctx.lineWidth=2;
+            ctx.beginPath();ctx.moveTo(172,netTop);ctx.lineTo(188,netTop);ctx.stroke();
+            ctx.strokeStyle='#f9f9f9b0';ctx.lineWidth=1;
+            for(let y=netTop+10;y<ground;y+=12) {ctx.beginPath();ctx.moveTo(176,y);ctx.lineTo(184,y);ctx.stroke();}
+        }
+        function bonecoMini(ctx,x,salto,icone,cor,orientacao) {
+            const y=433-salto;
+            ctx.save();ctx.globalAlpha=.26;ctx.fillStyle='#825c3c';
+            ctx.beginPath();ctx.ellipse(x,450,24,5,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+            ctx.lineWidth=5;ctx.lineCap='round';ctx.strokeStyle=cor;
+            ctx.beginPath();ctx.moveTo(x-9,y+12);ctx.lineTo(x-16,y+20);
+            ctx.moveTo(x+9,y+12);ctx.lineTo(x+16,y+20);ctx.stroke();
+            ctx.beginPath();ctx.moveTo(x-14,y-2);ctx.lineTo(x-24,y-11);
+            ctx.moveTo(x+14,y-2);ctx.lineTo(x+23,y-13);ctx.stroke();
+            ctx.fillStyle=cor;ctx.strokeStyle='#fff';ctx.lineWidth=3;
+            ctx.beginPath();ctx.arc(x,y,23,0,Math.PI*2);ctx.fill();ctx.stroke();
+            ctx.font='29px system-ui,Apple Color Emoji,Segoe UI Emoji';ctx.textAlign='center';ctx.textBaseline='middle';
+            ctx.fillText(icone,x,y+1);
+            ctx.restore();
+        }
+        function desenharPassaro(ctx,ave,clock) {
+            if(!ave) return;
+            const y=ave.y+Math.sin(clock*5+ave.x*.02)*5;
+            ctx.save();ctx.translate(ave.x,y);ctx.scale(ave.vx<0?-1:1,1);
+            ctx.strokeStyle='#334155';ctx.lineWidth=3;ctx.lineCap='round';
+            const asa=Math.sin(clock*19)*8;
+            ctx.beginPath();ctx.moveTo(-18,0);ctx.quadraticCurveTo(-9,-15-asa,0,-4);
+            ctx.quadraticCurveTo(10,-14+asa,20,0);ctx.stroke();
+            ctx.fillStyle='#334155';ctx.beginPath();ctx.arc(0,-3,4,0,Math.PI*2);ctx.fill();
+            ctx.restore();
+        }
+        function desenharCrianca(ctx,c) {
+            if(!c)return;
+            escreverMini(ctx,'👶',c.x,c.y-10,22,'#fff');
+        }
+        function desenharDuelo(ctx) {
+            const g=miniGame,d=g.duel;
+            cenarioDuelo(ctx);
+            if(d.night) {
+                ctx.fillStyle='rgba(4,13,37,.67)';ctx.fillRect(0,0,g.w,390);
+                ctx.fillStyle='#dbeafe';ctx.beginPath();ctx.arc(303,61,20,0,Math.PI*2);ctx.fill();
+                for(let i=0;i<16;i++) { const x=17+(i*73)%320,y=14+(i*41)%210;ctx.fillStyle='#ffffffaa';ctx.fillRect(x,y,2,2); }
+            }
+            bonecoMini(ctx,d.player.x,d.player.y,'💎','#2563eb');
+            bonecoMini(ctx,d.ai.x,d.ai.y,'⭐','#ed8f19');
+            desenharPassaro(ctx,d.bird,g.clock);
+            desenharCrianca(ctx,d.child);
+            d.touchPopups.forEach(p=>escreverMini(ctx,String(p.n),p.x,p.y,16,p.side==='player'?'#93c5fd':'#fdba74'));
+            bolaVolei(ctx,d.ball.x,d.ball.y,d.ball.r,d.ball.fire);
+            escreverMini(ctx,'💎 vs ⭐',180,20,15,d.night?'#f8fafc':'#082f49');
+            if(d.ball.inServe && d.ball.heldBy==='player' && g.phase==='playing') escreverMini(ctx,'TOQUE PARA SACAR',90,344,11,'#075985');
+        }
+        function desenharMini() {
+            const ctx=miniGame.ctx; if(!ctx) return;
+            ctx.clearRect(0,0,miniGame.w,miniGame.h);
+            if (miniGame.mode==='praia') desenharPraia(ctx); else desenharDuelo(ctx);
+            if(miniGame.phase==='menu'||miniGame.phase==='paused'||miniGame.phase==='finished') {
+                arredondadoMini(ctx,22,205,316,104,16,'rgba(6,18,34,.62)');
+                escreverMini(ctx, miniGame.phase==='menu'?'🏐 PRONTO PARA JOGAR?': miniGame.phase==='paused'?'⏸ JOGO PAUSADO':miniGame.status,180,243,20,'#fff');
+                escreverMini(ctx, miniGame.phase==='menu'?'Toque no botão JOGAR': miniGame.phase==='paused'?'Toque em CONTINUAR':'Toque em JOGAR NOVAMENTE',180,276,13,'#d1fae5');
+            } else if(miniGame.phase==='round') {
+                arredondadoMini(ctx,78,217,204,56,12,'#061627bb');
+                escreverMini(ctx,miniGame.status,180,244,14);
+            }
+        }
+        function posicionarSaquePraia() {
+            const b=miniGame.beach, bola=b.ball;
+            if (!bola.inServe) return;
+            const servidor=bola.heldBy==='player' ? b.player : b.ai;
+            bola.x=servidor.x;
+            bola.y=servidor.y+(bola.heldBy==='player'?-24:24);
+            bola.vx=0;bola.vy=0;bola.spin=0;
+        }
+        function executarSaquePraia(lado) {
+            const g=miniGame,b=g.beach,bola=b.ball,cfg=nivelMini();
+            if(g.phase!=='playing' || !bola.inServe || bola.heldBy!==lado) return;
+            bola.inServe=false;bola.heldBy=null;
+            bola.vy=(lado==='player'?-1:1)*cfg.beachBall*1.22;
+            bola.vx=(Math.random()-.5)*1.4;
+            bola.spin=0;bola.fire=false;
+            b.ballSide=lado;b.touchesPlayer=0;b.touchesAi=0;b.contactCooldown=10;
+            g.status='Partida em andamento'; painelMini();somMini('saque');
+        }
+        function atualizarPraia(dt) {
+            const g=miniGame,b=g.beach,c=b.court,cfg=nivelMini();
+            atualizarLarguraPaletasPraia();
+            if (g.clock >= b.nextPower && new Set(b.powerups.map(p=>p.par)).size < 2) spawnPowerupPraia();
+            [b.player,b.ai].forEach(p=>{
+                p.bigTimer=Math.max(0,p.bigTimer-dt/60);p.smallTimer=Math.max(0,p.smallTimer-dt/60);
+            });
+            atualizarLarguraPaletasPraia();
+            b.contactCooldown=Math.max(0,b.contactCooldown-dt);
+            b.player.vx *= Math.pow(0.72,dt);b.player.vy *= Math.pow(0.72,dt);
+            b.effectText=b.effectText.filter(t=>(t.ttl-=dt/60)>0).map(t=>({...t,y:t.y-18*dt/60}));
+
+            const prevAiX=b.ai.x,prevAiY=b.ai.y;
+            // Velocidade de deslocamento realmente limitada por dificuldade.
+            // Fácil demora para reagir; difícil antecipa a posição de aterrissagem.
+            const previsao = miniGame.difficulty==='dificil' ? 9 : miniGame.difficulty==='medio' ? 4 : 0;
+            let aimX = b.ball.x + b.ball.vx*previsao;
+            let aimY = b.ball.inServe && b.ball.heldBy==='ai' ? c.top+65
+                : b.ball.y<c.netY ? limitarMini(b.ball.y+39,c.top+34,c.netY-32) : c.top+77;
+            const premioDisponivel = b.powerups.filter(p=>p.lado==='ai');
+            if (premioDisponivel.length && (b.ball.inServe || b.ball.y>c.netY || b.ball.vy>0)) {
+                // A CPU também disputa os prêmios espelhados, sem teletransporte.
+                const premio = premioDisponivel.reduce((a,p)=>!a||distMini(p.x,p.y,b.ai.x,b.ai.y)<distMini(a.x,a.y,b.ai.x,b.ai.y)?p:a,null);
+                aimX = premio.x; aimY = premio.y;
+            }
+            const deslocX = cfg.beachAi*dt, deslocY=cfg.beachAi*dt*.88;
+            b.ai.x+=limitarMini(aimX-b.ai.x,-deslocX,deslocX);
+            b.ai.y+=limitarMini(aimY-b.ai.y,-deslocY,deslocY);
+            b.ai.x=limitarMini(b.ai.x,c.left+b.ai.w/2+7,c.right-b.ai.w/2-7);
+            b.ai.y=limitarMini(b.ai.y,c.top+24,c.netY-22);
+            b.ai.vx=b.ai.x-prevAiX;b.ai.vy=b.ai.y-prevAiY;
+            const bola=b.ball;
+            if(bola.inServe) {
+                posicionarSaquePraia();
+                if(bola.heldBy==='ai') {
+                    b.serveWait+=dt/60;
+                    if(b.serveWait>=0.85) executarSaquePraia('ai');
+                }
+                return;
+            }
+
+            const prevY=bola.y;
+            bola.vx+=bola.spin*0.045*dt;
+            bola.spin*=Math.pow(0.992,dt);
+            bola.x+=bola.vx*dt;bola.y+=bola.vy*dt;
+            if(bola.fire) {bola.trail.unshift({x:bola.x,y:bola.y});if(bola.trail.length>9)bola.trail.pop();}
+            else bola.trail=[];
+            if(bola.x<c.left+bola.r || bola.x>c.right-bola.r) {
+                bola.x=limitarMini(bola.x,c.left+bola.r,c.right-bola.r);bola.vx*=-0.91;
+            }
+            // A linha/rede do meio é apenas visual no arcade; cruzamentos renovam o toque do lado que recebe.
+            if(prevY>=c.netY && bola.y<c.netY) {b.ballSide='ai';b.touchesAi=0;}
+            else if(prevY<=c.netY && bola.y>c.netY) {b.ballSide='player';b.touchesPlayer=0;}
+            if(bola.y<c.top+bola.r) {encerrarMiniPonto('player');return;}
+            if(bola.y>c.bottom-bola.r) {encerrarMiniPonto('ai');return;}
+
+            const colisao=(paleta,lado)=>{
+                if (b.contactCooldown>0) return;
+                const paraCima=lado==='player';
+                if ((paraCima && bola.vy<=0) || (!paraCima && bola.vy>=0)) return;
+                const xDist=Math.abs(bola.x-paleta.x);
+                if (xDist>paleta.w/2+bola.r) return;
+                const topo=paleta.y-10,base=paleta.y+10;
+                if(bola.y+bola.r<topo || bola.y-bola.r>base) return;
+                const toqueKey=lado==='player'?'touchesPlayer':'touchesAi';
+                b[toqueKey]++;
+                if(b[toqueKey]>1) {
+                    encerrarMiniPonto(lado==='player'?'ai':'player','Falta! 2 toques');
+                    return;
+                }
+                const offset=limitarMini((bola.x-paleta.x)/(paleta.w/2),-1.25,1.25);
+                const frente=paraCima?Math.max(0,-paleta.vy):Math.max(0,paleta.vy);
+                const slide=limitarMini(paleta.vx*0.15,-2.4,2.4);
+                const forte=paleta.fireReady||frente>1.45;
+                const velY=cfg.beachBall+(forte?1.75:0.50)+Math.abs(offset)*.45;
+                bola.vy=(paraCima?-1:1)*velY;
+                bola.vx=offset*2.65+slide;
+                bola.spin=slide*.38;
+                bola.fire=forte;
+                bola.y=paraCima?topo-bola.r-2:base+bola.r+2;
+                b.contactCooldown=9;
+                if(forte){paleta.fireReady=false;somMini('forte');}else somMini('toque');
+            };
+            colisao(b.player,'player');
+            if(g.phase!=='playing')return;
+            colisao(b.ai,'ai');
+            if(g.phase!=='playing')return;
+            // A coleta é exclusiva por par: só o primeiro contato fica com o prêmio.
+            const coletados = new Set();
+            const candidatos = [];
+            for(const item of b.powerups) {
+                item.ttl-=dt/60;
+                if(item.ttl<=0)continue;
+                const ator=item.lado==='player'?b.player:b.ai;
+                const dist=distMini(item.x,item.y,ator.x,ator.y);
+                if(dist < item.r+ator.collectR) candidatos.push({item,dist});
+            }
+            candidatos.sort((a,b)=>a.dist-b.dist);
+            for(const cdt of candidatos) {
+                if(coletados.has(cdt.item.par))continue;
+                coletados.add(cdt.item.par);
+                aplicarPowerupPraia(cdt.item.lado,cdt.item.tipo);
+            }
+            b.powerups=b.powerups.filter(item=>item.ttl>0&&!coletados.has(item.par));
+        }
+        function popupToque(side, x, y, n) {
+            miniGame.duel.touchPopups.push({side, x, y, n, ttl:0.75});
+        }
+        function golpeDuelo(lado, forcar=false) {
+            const d=miniGame.duel, b=d.ball, cfg=nivelMini();
+            if(miniGame.phase!=='playing' || d.contactCooldown>0)return false;
+            if(b.inServe && b.heldBy!==lado)return false;
+            const pl=lado==='player'?d.player:d.ai;
+            // Mesmo eixo do centro dos bonecos desenhados.
+            const centroY=433-pl.y;
+            const dx=b.x-pl.x, dy=b.y-centroY;
+            if(Math.abs(dx)>pl.w/2+b.r+7 || Math.abs(dy)>(b.inServe?67:pl.h/2+b.r+11))return false;
+            const key=lado==='player'?'touchesPlayer':'touchesAi';
+            if(d[key]>=3){encerrarMiniPonto(lado==='player'?'ai':'player','Falta! 4 toques');return false;}
+            const saque=b.inServe;
+            d[key]++;
+            d.lastTouch=lado;
+            d.contactCooldown=12;
+            popupToque(lado,pl.x,centroY-52,d[key]);
+            const lateral=limitarMini(dx/(pl.w*.57),-1,1);
+            const saltando=pl.y>8 || pl.vy>1.6;
+            const ataque=saltando || forcar || d[key]===3 || saque;
+            const fator=cfg.duelBallFactor;
+            const dir=lado==='player'?1:-1;
+            // Centro: bola sobe verticalmente. Borda direita/esquerda: desvia para o lado.
+            // Durante ataque por salto, ganha direção horizontal e força extra.
+            if(Math.abs(lateral)<0.22){
+                b.vx=ataque ? dir*2.05*fator : lateral*.7*fator;
+                b.vy=-(ataque?8.8:7.45)*fator;
+            }else{
+                b.vx=(lateral*3.15+(ataque?dir*1.7:0))*fator;
+                b.vy=-(ataque?8.55:6.9)*fator;
+            }
+            // Primeiro e segundo toques normais preparam a jogada; o terceiro cruza.
+            b.vx=limitarMini(b.vx,-6.6*fator,6.6*fator);
+            b.fire=ataque&&!saque;
+            b.heldBy=null;b.inServe=false;
+            b.y=centroY-(pl.h/2+b.r+3);
+            if(!saque && b.y>395) b.y=395;
+            somMini(ataque?'forte':'toque');
+            miniGame.status='Partida em andamento';
+            return true;
+        }
+        function spawnBirdMini() {
+            const d = miniGame.duel;
+            const dir = Math.random()<.5 ? 1 : -1;
+            d.bird = {x: dir===1 ? -28 : 388, y: 146 + Math.random()*120, vx: dir*(2.1 + Math.random()*1.2), hit:false};
+            const gap = nivelMini().birdGap;
+            d.nextBird = d.rallyTime + gap[0] + Math.random()*(gap[1]-gap[0]);
+            somMini('ave');
+        }
+        function spawnChildMini() {
+            const d = miniGame.duel;
+            const dir = Math.random()<.5 ? 1 : -1;
+            d.child = {x: dir===1 ? -26 : 386, y: 458, vx: dir*(1.55 + (miniGame.difficulty==='dificil'?0.45:0)), w:24, h:24};
+            const gap = nivelMini().childGap;
+            d.nextChild = d.rallyTime + gap[0] + Math.random()*(gap[1]-gap[0]);
+            somMini('crianca');
+        }
+        function atualizarDuelo(dt) {
+            const g=miniGame,d=g.duel,b=d.ball,cfg=nivelMini(),netX=d.netX;
+            if(!b.inServe) {d.rallyTime+=dt/60;if(d.rallyTime>20)d.night=true;}
+            d.contactCooldown=Math.max(0,d.contactCooldown-dt);
+            d.netCooldown=Math.max(0,d.netCooldown-dt);
+            d.touchPopups=d.touchPopups.filter(p=>(p.ttl-=dt/60)>0).map(p=>({...p,y:p.y-20*dt/60}));
+            if(cfg.bird && !d.bird && d.rallyTime>=d.nextBird)spawnBirdMini();
+            if(cfg.child && !d.child && d.rallyTime>=d.nextChild)spawnChildMini();
+
+            // Movimento do personagem: o arrasto ajusta a posição; velocidade decai após soltar.
+            d.player.x=limitarMini(d.player.x+d.player.vx*dt*0.12,25,154);
+            d.player.vx*=Math.pow(.6,dt);
+            d.player.y=Math.max(0,d.player.y+d.player.vy*dt);
+            d.player.vy-=.54*dt;
+            if(d.player.y<=0){d.player.y=0;d.player.vy=0;}
+            // CPU busca o ponto de interceptação da bola antes que ela caia.
+            // A precisão cresce bastante no Difícil e a CPU não salta no Fácil.
+            const grav=cfg.duelGravity;
+            const alturaAlvo=410-d.ai.y;
+            let tempoInterceptacao=0;
+            if(!b.inServe && b.x>=netX-30) {
+                const raiz=Math.sqrt(Math.max(0,b.vy*b.vy+2*grav*(alturaAlvo-b.y)));
+                tempoInterceptacao=limitarMini((-b.vy+raiz)/grav,0,65);
+            }
+            const previsaoX=b.x+b.vx*tempoInterceptacao;
+            const bordaMin=10+b.r,bordaMax=g.w-10-b.r;
+            const largura=bordaMax-bordaMin;
+            const posEspelhada=((previsaoX-bordaMin)%(2*largura)+2*largura)%(2*largura);
+            const pousoX=bordaMin+(posEspelhada>largura?2*largura-posEspelhada:posEspelhada);
+            const podeReagir=miniGame.difficulty!=='facil'||(b.x>netX&&b.y>313);
+            const prioridadeAlvo=b.inServe&&b.heldBy==='ai'?272:
+                (podeReagir&&b.x>netX-24 ? lerpMini(b.x,pousoX,cfg.duelPrediction) : 272);
+            const alvoCpu=limitarMini(prioridadeAlvo,207,337);
+            d.ai.vx=limitarMini(alvoCpu-d.ai.x,-cfg.duelAi,cfg.duelAi);
+            d.ai.x=limitarMini(d.ai.x+d.ai.vx*dt,207,337);
+            d.aiJumpCooldown=Math.max(0,d.aiJumpCooldown-dt);
+            if(cfg.duelJump && !b.inServe && b.x>netX+15 && d.ai.y===0 && d.aiJumpCooldown===0 &&
+                    b.y>315 && b.y<394 && b.vy>-.7 && Math.abs(b.x-d.ai.x)<46){
+                d.ai.vy=miniGame.difficulty==='dificil'?10.7:9.0;
+                d.aiJumpCooldown=42;
+            }
+            d.ai.y=Math.max(0,d.ai.y+d.ai.vy*dt);
+            d.ai.vy-=.54*dt;
+            if(d.ai.y<=0){d.ai.y=0;d.ai.vy=0;}
+
+            if(b.inServe) {
+                if(b.heldBy==='player'){b.x=d.player.x+16;b.y=378-d.player.y;}
+                else {b.x=d.ai.x-16;b.y=378-d.ai.y;d.serveWait+=dt/60;
+                    if(d.serveWait>=.9){if(cfg.duelJump&&d.ai.y===0)d.ai.vy=9.2;golpeDuelo('ai',true);}}
+            }
+
+            if(d.bird){
+                d.bird.x+=d.bird.vx*dt;
+                const y=d.bird.y+Math.sin(g.clock*5+d.bird.x*.02)*5;
+                if(!b.inServe && !d.bird.hit && distMini(d.bird.x,y,b.x,b.y)<25+b.r){
+                    b.vx+=(d.bird.vx>0?1.8:-1.8);b.vy-=1.25;d.bird.hit=true;somMini('ave');
+                    g.status='🐦 Pássaro desviou a bola!';
+                }
+                if(d.bird.x<-45||d.bird.x>405)d.bird=null;
+            }
+            if(d.child){
+                d.child.x+=d.child.vx*dt;
+                const empurrar=pl=>{
+                    if(pl.y<19 && Math.abs(pl.x-d.child.x)<27){
+                        pl.x+=d.child.vx*1.65*dt;
+                        pl.x=limitarMini(pl.x,pl===d.player?25:207,pl===d.player?154:337);
+                    }
+                };
+                empurrar(d.player);empurrar(d.ai);
+                if(d.child.x<-35||d.child.x>395)d.child=null;
+            }
+            if(b.inServe) return;
+            const xAnterior=b.x;
+            b.x+=b.vx*dt;b.y+=b.vy*dt;b.vy+=cfg.duelGravity*dt;
+            // Parede invisível nos cantos; não marca ponto nas laterais.
+            if(b.x<10+b.r||b.x>g.w-10-b.r){b.x=limitarMini(b.x,10+b.r,g.w-10-b.r);b.vx*=-.88;}
+            if(b.y<15+b.r){b.y=15+b.r;b.vy=Math.abs(b.vy)*.78;}
+            // Rede com altura regulada por dificuldade. A fita e a malha
+            // levantam a bola e nunca contam como toque de personagem.
+            const netTop=cfg.duelNetTop, meioLargura=5;
+            const atravessou=(xAnterior-netX)*(b.x-netX)<=0;
+            const tocaRede=(Math.min(xAnterior,b.x)-b.r<=netX+meioLargura &&
+                Math.max(xAnterior,b.x)+b.r>=netX-meioLargura &&
+                b.y+b.r>=netTop && b.y-b.r<=d.ground);
+            if(d.netCooldown<=0 && tocaRede){
+                const impactoFita=b.y-b.r<netTop+11;
+                const origemEsquerda=xAnterior<netX;
+                if(impactoFita){
+                    b.y=netTop-b.r-2;
+                    b.vy=-Math.max(7.0*cfg.duelBallFactor,Math.abs(b.vy)*.92);
+                    // Na fita a bola pode continuar para o outro lado.
+                    b.vx=(origemEsquerda?1:-1)*Math.max(2.0*cfg.duelBallFactor,Math.abs(b.vx)*.78);
+                }else{
+                    b.x=netX+(origemEsquerda?-1:1)*(meioLargura+b.r+3);
+                    b.vy=-Math.max(8.0*cfg.duelBallFactor,Math.abs(b.vy)*.92);
+                    // Corpo da rede rebate a bola para dar chance ao toque seguinte.
+                    b.vx=(origemEsquerda?-1:1)*1.25*cfg.duelBallFactor;
+                }
+                d.netCooldown=16;
+                somMini('rede');
+            }
+            if(b.x<netX && d.side!=='player'){d.side='player';d.touchesPlayer=0;}
+            else if(b.x>netX && d.side!=='ai'){d.side='ai';d.touchesAi=0;}
+            if(b.y>d.ground-b.r){encerrarMiniPonto(b.x<netX?'ai':'player');return;}
+            if(b.x<netX) golpeDuelo('player'); else golpeDuelo('ai');
+        }
+        function loopMiniGame(timestamp) {
+            const g=miniGame; g.raf=0; if(!g.active) return;
+            if(!g.lastTs) g.lastTs=timestamp; const dt=limitarMini((timestamp-g.lastTs)/16.667,0,1.6); g.lastTs=timestamp;
+            if(g.phase==='playing') {
+                g.clock += dt/60;
+                if(g.mode==='praia') atualizarPraia(dt); else atualizarDuelo(dt);
+            } else if (g.phase==='round') {
+                if (g.mode==='praia') g.beach.pauseTimer -= dt/60; else g.duel.pauseTimer -= dt/60;
+                if ((g.mode==='praia' && g.beach.pauseTimer<=0) || (g.mode==='duelo' && g.duel.pauseTimer<=0)) {
+                    reiniciarMiniRodada(); g.phase='playing';
+                    g.status=g.mode==='praia'?(g.beach.serve==='player'?'Toque na quadra para sacar':'A CPU vai sacar')
+                        :(g.duel.ball.heldBy==='player'?'Toque na quadra para sacar':'A CPU vai sacar');
+                    painelMini();
+                }
+            }
+            desenharMini();
+            if(g.phase==='playing'||g.phase==='round') g.raf=requestAnimationFrame(loopMiniGame);
+        }
+        function atualizarMiniControle(event,isDown=false) {
+            const g=miniGame;if(!g.active||g.phase!=='playing')return;
+            const r=g.canvas.getBoundingClientRect();
+            const x=(event.clientX-r.left)*g.w/r.width;
+            const y=(event.clientY-r.top)*g.h/r.height;
+            if(g.mode==='praia'){
+                const p=g.beach.player,oldX=p.x,oldY=p.y;
+                // A paleta move-se livremente somente na sua metade.
+                p.x=limitarMini(x,g.beach.court.left+p.w/2+8,g.beach.court.right-p.w/2-8);
+                p.y=limitarMini(y,g.beach.court.netY+22,g.beach.court.bottom-22);
+                p.vx=p.x-oldX;p.vy=p.y-oldY;
+                if(isDown && g.beach.ball.inServe && g.beach.ball.heldBy==='player'){
+                    posicionarSaquePraia();executarSaquePraia('player');
+                }
+            } else {
+                const p=g.duel.player,old=p.x;
+                p.x=limitarMini(x,25,154);p.vx=p.x-old;
+                if(isDown)window.acaoMiniJogo();
+            }
+        }
+        window.acaoMiniJogo=()=>{
+            const g=miniGame;if(!g.active||g.mode!=='duelo'||g.phase!=='playing')return;
+            const d=g.duel;
+            if(d.player.y===0)d.player.vy=10.4;
+            if(d.ball.inServe && d.ball.heldBy==='player'){d.ball.x=d.player.x+16;d.ball.y=378-d.player.y;golpeDuelo('player',true);}
+            else if(d.ball.x<d.netX)golpeDuelo('player',true);
+        };
+        function garantirMiniGame() {
+            const g=miniGame; if(g.canvas) return;
+            g.canvas=document.getElementById('miniGameCanvas'); g.ctx=g.canvas?.getContext('2d'); if(!g.ctx) return;
+            g.canvas.addEventListener('pointerdown',event=>{ g.pointerId=event.pointerId; try{g.canvas.setPointerCapture(event.pointerId);}catch(e){} atualizarMiniControle(event,true); event.preventDefault(); },{passive:false});
+            g.canvas.addEventListener('pointermove',event=>{ if(g.pointerId===event.pointerId || (event.pointerType==='mouse'&&event.buttons)) atualizarMiniControle(event); });
+            const limpar=e=>{ if(g.pointerId===e.pointerId) g.pointerId=null; };
+            g.canvas.addEventListener('pointerup',limpar); g.canvas.addEventListener('pointercancel',limpar);
+            document.addEventListener('visibilitychange',()=>{ if(document.hidden && g.active && (g.phase==='playing'||g.phase==='round')) { g.phase='paused'; g.status='Pausado'; if(g.raf)cancelAnimationFrame(g.raf); g.raf=0; g.lastTs=0; painelMini(); desenharMini(); } });
+        }
+        window.abrirMiniGame = () => {
+            if(isAdmin) return;
+            garantirMiniGame(); if(!miniGame.ctx) return;
+            miniGame.active=true; document.getElementById('modalMiniGame').classList.remove('hidden');
+            window.reiniciarMiniGame();
+        };
+        window.fecharMiniGame = () => {
+            miniGame.active=false; if(miniGame.raf) cancelAnimationFrame(miniGame.raf); miniGame.raf=0; miniGame.lastTs=0; miniGame.pointerId=null; miniGame.phase='menu';
+            document.getElementById('modalMiniGame')?.classList.add('hidden');
+        };
         document.addEventListener('click', (event) => {
             if(isAdmin) return;
             const card = event.target.closest('[data-player-name]');
