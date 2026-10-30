@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vôlei Hub PRO - V5.1.5</title>
+    <title>Vôlei Hub PRO - V5.2.0 | Fila Única</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -135,7 +135,7 @@
         <section id="filaContainerSec" class="bg-slate-800/50 rounded-2xl border border-slate-700 overflow-hidden shadow-lg">
             <div class="p-3 bg-slate-800/80 border-b border-slate-700 flex justify-between items-center">
                 <div class="flex gap-2 items-center">
-                    <button onclick="window.setFilaTab('geral')" id="tabGeral" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg transition">Geral <span id="countGeral" class="ml-1 opacity-50">0</span></button>
+                    <button onclick="window.setFilaTab('geral')" id="tabGeral" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg transition">Fila Única <span id="countGeral" class="ml-1 opacity-50">0</span></button>
                     <button onclick="window.setFilaTab('estrela')" id="tabEstrela" class="text-[10px] font-black uppercase px-4 py-2 rounded-lg transition">Estrelas ⭐ <span id="countEstrela" class="ml-1 opacity-50">0</span></button>
                 </div>
                 <div class="flex gap-2 items-center">
@@ -160,8 +160,8 @@
                 <h2 class="text-xs font-black uppercase text-orange-500 italic mb-2 tracking-widest">🥇 Ranking Master</h2>
                 <div class="flex gap-2">
                     <button onclick="window.setRankingTab('tudo')" id="rkTabTudo" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg bg-slate-700">Tudo</button>
-                    <button onclick="window.setRankingTab('geral')" id="rkTabGeral" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg bg-slate-700">Geral</button>
-                    <button onclick="window.setRankingTab('estrela')" id="rkTabEstrela" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg bg-slate-700">Estrelas ⭐</button>
+                    <button onclick="window.setRankingTab('geral')" id="rkTabGeral" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg bg-slate-700">Geral + ⭐</button>
+                    <button onclick="window.setRankingTab('diamante')" id="rkTabEstrela" class="flex-1 text-[9px] font-black uppercase py-2 rounded-lg bg-slate-700">Diamantes 💎</button>
                 </div>
             </div>
             <div id="rankingContainer" class="p-2 space-y-1"></div>
@@ -311,16 +311,29 @@
                         <span class="text-[10px] font-black uppercase text-orange-400">Esconder Placar</span>
                         <button id="btnToggleScoreboard" onclick="window.toggleScoreboardVis()" class="text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400">Visível</button>
                     </div>
-                    <div class="flex justify-between items-center border-t border-slate-600 pt-3">
-                        <span class="text-[10px] font-black uppercase text-purple-400">2 💎 = 2 ⭐</span>
-                        <button id="btnToggleBalanceamento" onclick="window.toggleBalanceamentoDiamanteEstrela()" class="text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400">DESATIVADO</button>
+                </div>
+                <div class="rounded-xl bg-slate-700/40 border border-slate-600 p-3 space-y-3">
+                    <div class="flex justify-between items-center gap-2">
+                        <label class="text-[10px] uppercase font-black text-orange-400">Fila única (OFF = filas separadas)</label>
+                        <button id="btnFilaUnica" type="button" onclick="window.toggleFilaUnica()" class="text-[10px] font-bold px-3 py-2 rounded border border-slate-500">ATIVADO</button>
                     </div>
+                    <div class="flex justify-between items-center gap-2 border-t border-slate-600 pt-3">
+                        <label class="text-[10px] uppercase font-black text-purple-400">Vincular ⭐ a 💎</label>
+                        <button id="btnVinculo" type="button" onclick="window.toggleVinculoCategorias()" class="text-[10px] font-bold px-3 py-2 rounded border border-slate-500">DESATIVADO</button>
+                    </div>
+                    <p class="text-[9px] text-slate-400">No modo de fila única, quando houver um adversário, o vínculo poderá ser flexibilizado se a equipe com ⭐ sem 💎 já estiver equilibrada (diferença até 3 pontos ou 15%).</p>
+                    <label for="cJanela" class="text-[10px] uppercase font-black text-blue-300 block">Janela de seleção</label>
+                    <select id="cJanela" class="config-input"><option value="4">4 jogadores — ordem da fila</option><option value="6">6 jogadores — equilíbrio e rotação</option><option value="8">8 jogadores — equilíbrio ampliado</option></select>
+                    <p class="text-[9px] text-slate-400">Quem ficar de fora ganha vaga prioritária na próxima formação válida. A busca aumenta apenas se for indispensável cumprir requisitos.</p>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div><label class="text-[8px] uppercase font-bold text-slate-500">Jogs/Time*</label><input type="number" id="cSize" min="1" class="config-input"></div>
-                    <div><label class="text-[8px] uppercase font-bold text-slate-500">Mínimo Estrelas</label><input type="number" id="cMinStars" min="0" class="config-input"></div>
-                    <div><label class="text-[8px] uppercase font-bold text-slate-500">Max Estrelas</label><input type="number" id="cStars" min="0" class="config-input"></div>
-                    <div><label class="text-[8px] uppercase font-bold text-slate-500">Max Diamantes</label><input type="number" id="cElites" min="0" max="2" class="config-input"></div>
+                    <div><div class="flex items-center justify-between gap-1"><label class="text-[8px] uppercase font-bold text-slate-500">Mín. Estrelas ⭐</label><button type="button" id="btnExigirEstrela" onclick="window.toggleObrigatorioCategoria('Estrela')" class="text-[9px] border border-slate-500 rounded px-1">Opcional</button></div><input type="number" id="cMinStars" min="0" class="config-input"></div>
+                    <div><label class="text-[8px] uppercase font-bold text-slate-500">Máx. ⭐</label><input type="number" id="cStars" min="0" class="config-input"></div>
+                    <div><div class="flex items-center justify-between gap-1"><label class="text-[8px] uppercase font-bold text-slate-500">Mín. Diamantes 💎</label><button type="button" id="btnExigirDiamante" onclick="window.toggleObrigatorioCategoria('Diamante')" class="text-[9px] border border-slate-500 rounded px-1">Opcional</button></div><input type="number" id="cMinDiamantes" min="0" class="config-input"></div>
+                    <div><label class="text-[8px] uppercase font-bold text-slate-500">Máx. 💎</label><input type="number" id="cElites" min="0" class="config-input"></div>
+                    <div><div class="flex items-center justify-between gap-1"><label class="text-[8px] uppercase font-bold text-slate-500">Mín. Gerais</label><button type="button" id="btnExigirGeral" onclick="window.toggleObrigatorioCategoria('Geral')" class="text-[9px] border border-slate-500 rounded px-1">Opcional</button></div><input type="number" id="cMinGerais" min="0" class="config-input"></div>
+                    <div><label class="text-[8px] uppercase font-bold text-slate-500">Máx. Geral</label><input type="number" id="cMaxGerais" min="0" class="config-input"></div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="text-[9px] uppercase font-bold text-slate-500">Pontos/Set</label><input type="number" id="cPoints" class="config-input"></div>
@@ -396,6 +409,9 @@
                         <div><label class="text-[8px] font-bold">Atq</label><input type="number" step="0.25" id="wAtqG" class="config-input"></div>
                         <div><label class="text-[8px] font-bold">Blq</label><input type="number" step="0.25" id="wBlqG" class="config-input"></div>
                         <div><label class="text-[8px] font-bold">Ace</label><input type="number" step="0.25" id="wAceG" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Err Adv</label><input type="number" step="0.05" id="wErrG" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Vitória</label><input type="number" step="0.5" id="wVitG" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Acerto Time</label><input type="number" step="0.05" id="wTeamG" class="config-input"></div>
                     </div>
                 </div>
                 <div>
@@ -404,14 +420,20 @@
                         <div><label class="text-[8px] font-bold">Atq</label><input type="number" step="0.25" id="wAtqE" class="config-input"></div>
                         <div><label class="text-[8px] font-bold">Blq</label><input type="number" step="0.25" id="wBlqE" class="config-input"></div>
                         <div><label class="text-[8px] font-bold">Ace</label><input type="number" step="0.25" id="wAceE" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Err Adv</label><input type="number" step="0.05" id="wErrE" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Vitória</label><input type="number" step="0.5" id="wVitE" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Acerto Time</label><input type="number" step="0.05" id="wTeamE" class="config-input"></div>
                     </div>
                 </div>
                 <div>
-                    <h4 class="text-[10px] font-black text-emerald-500 uppercase mb-1">Global</h4>
+                    <h4 class="text-[10px] font-black text-emerald-500 uppercase mb-1">Diamante 💎</h4>
                     <div class="grid grid-cols-3 gap-2">
-                        <div><label class="text-[8px] font-bold">Err Adv</label><input type="number" step="0.05" id="wErr" class="config-input"></div>
-                        <div><label class="text-[8px] font-bold">Vitória</label><input type="number" step="0.5" id="wVit" class="config-input"></div>
-                        <div><label class="text-[8px] font-bold">Time</label><input type="number" step="0.05" id="wTeam" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Atq</label><input type="number" step="0.25" id="wAtqD" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Blq</label><input type="number" step="0.25" id="wBlqD" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Ace</label><input type="number" step="0.25" id="wAceD" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Err Adv</label><input type="number" step="0.05" id="wErrD" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Vitória</label><input type="number" step="0.5" id="wVitD" class="config-input"></div>
+                        <div><label class="text-[8px] font-bold">Acerto Time</label><input type="number" step="0.05" id="wTeamD" class="config-input"></div>
                     </div>
                 </div>
             </div>
@@ -604,7 +626,7 @@
         let meuNomeEvento = localStorage.getItem('voleihub_meuevento') || '';
         let unsubscribeUnlockRequests = null;
         let filaTab = 'geral', rkTab = 'tudo', modalCtx = {};
-        let game = { baseJogadores: {}, config: {}, weights: {}, esperaGeral: [], esperaEstrela: [] };
+        let game = { baseJogadores: {}, config: {}, weights: {}, esperaGeral: [], esperaEstrela: [], esperaUnica: [] };
         let isHistoricalView = false, globalBadges = {}, sessionEmojis = {}, sessoesFiltradasInfo = [], historicoLocal = [], tempConfig = {};
         let adminNotifications = {}, unsubscribeAdminNotifications = null, lastCelebrationId = null;
         let unlockRequests = {};
@@ -804,9 +826,9 @@
                 if(data) {
                     game = { 
                         ...data, 
-                        timeA: data.timeA || [], timeB: data.timeB || [], esperaGeral: data.esperaGeral || [], esperaEstrela: data.esperaEstrela || [], 
+                        timeA: data.timeA || [], timeB: data.timeB || [], esperaGeral: data.esperaGeral || [], esperaEstrela: data.esperaEstrela || [], esperaUnica: data.esperaUnica || [], 
                         ranking: data.ranking || {}, baseJogadores: data.baseJogadores || {}, historicoPartidas: data.historicoPartidas || [], 
-                        matchLog: data.matchLog || [], config: { minStars: 1, stars: 1, elites: 2, premiacaoMaxVitorias: 5, narradorPontos: true, ...(data.config || {}) }, weights: data.weights || {}, scoreA: data.scoreA || 0, 
+                        matchLog: data.matchLog || [], config: normalizarConfigFormacao(data.config || {}), weights: data.weights || {}, scoreA: data.scoreA || 0, 
                         scoreB: data.scoreB || 0, winsConsecA: data.winsConsecA || 0, winsConsecB: data.winsConsecB || 0, idxA: data.idxA || 0, 
                         idxB: data.idxB || 0, saqueLado: data.saqueLado || 'A',
                         saqueInicio: data.saqueInicio || data.saqueLado || 'A',
@@ -938,86 +960,117 @@
                 await remove(ref(db, "solicitacoes_desbloqueio/" + currentShortId + "/" + currentInstanceId + "/" + solicitacaoId));
             } catch(e) {}
         };
-        function normalizarFilaDinamica(fila) {
-            if (!Array.isArray(fila)) return false;
+        function normalizarConfigFormacao(c = {}) {
+            const base = { size: 4, filaUnica: true, janelaBalanceamento: 6, minStars: 0, stars: 2,
+                minDiamantes: 0, elites: 2, minGerais: 0, maxGerais: 4,
+                vincularEstrelaDiamante: false, points: 12, desempate: '3direto',
+                premiacaoMaxVitorias: 5, narradorPontos: true };
+            const cfg = { ...base, ...c };
+            // Converte os limites históricos sem tornar a Estrela obrigatória em fila única.
+            if (c.filaUnica === undefined) {
+                cfg.filaUnica = true;
+                cfg.minStars = 0;
+                cfg.minGerais = 0;
+            }
+            if (c.vincularEstrelaDiamante === undefined && c.balanceamentoDiamanteEstrela === true)
+                cfg.vincularEstrelaDiamante = true;
+            if (c.maxGerais === undefined) cfg.maxGerais = Number(cfg.size || 4);
+            if (![4, 6, 8].includes(Number(cfg.janelaBalanceamento))) cfg.janelaBalanceamento = 6;
+            return cfg;
+        }
 
+        function modoFilaUnica() { return game.config?.filaUnica !== false; }
+        function filasAtivas() {
+            return modoFilaUnica() ? [game.esperaUnica || []] : [game.esperaGeral || [], game.esperaEstrela || []];
+        }
+        function obterFilaJogador(p) {
+            return modoFilaUnica() ? game.esperaUnica : (p.estrela ? game.esperaEstrela : game.esperaGeral);
+        }
+        function todosNaEspera() { return filasAtivas().flat(); }
+        function removerJogadorDasFilas(nome) {
+            [game.esperaUnica, game.esperaGeral, game.esperaEstrela].forEach(f => removerDaFilaPorNome(f, nome));
+        }
+        function migrarModoFila(unica = modoFilaUnica()) {
+            game.esperaUnica ||= [];
+            game.esperaGeral ||= [];
+            game.esperaEstrela ||= [];
+            const existentes = [...game.esperaUnica, ...game.esperaGeral, ...game.esperaEstrela];
             const vistos = new Set();
-            const prioridade = [];
-            const zeroJogos = [];
-            const jogados = [];
-            const bloqueados = [];
-
+            const todos = existentes.filter(p => {
+                if (!p || !p.nome || vistos.has(p.nome)) return false;
+                vistos.add(p.nome);
+                return !(game.timeA || []).some(x => x.nome === p.nome) && !(game.timeB || []).some(x => x.nome === p.nome);
+            });
+            // A migração de duas filas antigas não possui carimbo de chegada cruzado.
+            // Preserva a ordem relativa de cada uma; eventos novos registram ordemFila.
+            todos.forEach((p,i) => { if (!Number.isFinite(Number(p.ordemFila))) p.ordemFila = i + 1; });
+            // No modo único, a ordem exibida prevalece sobre um carimbo anterior.
+            if (unica && game.esperaUnica.length === 0) {
+                todos.sort((a,b) => Number(a.ordemFila) - Number(b.ordemFila));
+            }
+            if (unica) {
+                game.esperaUnica = todos;
+                game.esperaGeral = [];
+                game.esperaEstrela = [];
+            } else {
+                // Memoriza o intercalamento para restaurar a mesma ordem ao unir novamente.
+                todos.forEach((p,i)=>{p.ordemFila=i+1;});
+                game.esperaUnica = [];
+                game.esperaGeral = todos.filter(p => !p.estrela);
+                game.esperaEstrela = todos.filter(p => p.estrela);
+            }
+        }
+        function normalizarFilaDinamica(fila) {
+            if (!Array.isArray(fila)) return;
+            const vistos = new Set(), livres = [], bloqueados = [];
             fila.forEach(p => {
                 if (!p || !p.nome || vistos.has(p.nome)) return;
                 vistos.add(p.nome);
-
-                const stats = game.ranking?.[p.nome] || { v: 0, d: 0 };
-                const totalGames = Number(stats.v || 0) + Number(stats.d || 0);
-
-                if (p.bloqueado) bloqueados.push(p);
-                else if (p.prioridadeFila) prioridade.push(p);
-                else if (totalGames === 0) zeroJogos.push(p);
-                else jogados.push(p);
+                (p.bloqueado ? bloqueados : livres).push(p);
             });
-
-            // Ordem dinâmica:
-            // 1) Diamantes que acabaram de ser pulados pela regra especial;
-            // 2) jogadores liberados com 0 jogos;
-            // 3) jogadores liberados que já jogaram;
-            // 4) jogadores bloqueados.
-            const nova = [...prioridade, ...zeroJogos, ...jogados, ...bloqueados];
-            const mudou = nova.length !== fila.length || nova.some((p, i) => p !== fila[i]);
-
-            if (mudou) fila.splice(0, fila.length, ...nova);
-            return mudou;
+            // Não altera a ordem de chegada por score nem movimenta prioridades visuais.
+            fila.splice(0, fila.length, ...livres, ...bloqueados);
         }
-
         function normalizarTodasAsFilas() {
-            normalizarFilaDinamica(game.esperaGeral);
-            normalizarFilaDinamica(game.esperaEstrela);
+            // Recebe eventos antigos sem filaUnica e efetua migração apenas em memória.
+            if (modoFilaUnica() && (!Array.isArray(game.esperaUnica) ||
+                ((game.esperaGeral?.length || game.esperaEstrela?.length) && !game.esperaUnica.length))) {
+                migrarModoFila(true);
+            }
+            filasAtivas().forEach(normalizarFilaDinamica);
         }
-
         function inserirJogadorNaFilaDinamica(p) {
             if (!p) return;
-
-            // Só um Diamante pulado recebe prioridade especial.
-            if (!p.elite) p.prioridadeFila = false;
-
-            const fila = p.estrela ? game.esperaEstrela : game.esperaGeral;
-            removerDaFilaPorNome(fila, p.nome);
-
-            const stats = game.ranking?.[p.nome] || { v: 0, d: 0 };
-            const totalGames = Number(stats.v || 0) + Number(stats.d || 0);
-
-            if (p.bloqueado) {
-                fila.push(p);
-                return;
-            }
-
-            // 0 jogos entra no topo da fila disponível, depois das prioridades
-            // especiais e dos outros jogadores que também têm 0 jogos.
-            if (totalGames === 0) {
-                let pos = 0;
+            removerJogadorDasFilas(p.nome);
+            const fila = obterFilaJogador(p);
+            if (!fila) return;
+            // O jogador que acabou de sair é colocado no fim dos elegíveis.
+            // O cadastro/desbloqueio com zero partidas recebe tratamento especial.
+            const stats = game.ranking?.[p.nome] || {};
+            const jogos = Number(stats.v || 0) + Number(stats.d || 0);
+            let pos = fila.findIndex(x => x.bloqueado);
+            if (pos < 0) pos = fila.length;
+            if (p.bloqueado) pos = fila.length;
+            else if (jogos === 0) {
+                pos = 0;
                 while (pos < fila.length && !fila[pos].bloqueado) {
-                    const x = fila[pos];
-                    const xs = game.ranking?.[x.nome] || { v: 0, d: 0 };
-                    const xGames = Number(xs.v || 0) + Number(xs.d || 0);
-
-                    if (!x.prioridadeFila && xGames !== 0) break;
+                    const st = game.ranking?.[fila[pos].nome] || {};
+                    if (Number(st.v || 0) + Number(st.d || 0) > 0) break;
                     pos++;
                 }
-                fila.splice(pos, 0, p);
-                return;
             }
-
-            // Quem já jogou volta para o fim da fila dos liberados,
-            // sempre antes dos bloqueados.
-            const idxBloqueado = fila.findIndex(x => x.bloqueado);
-            fila.splice(idxBloqueado === -1 ? fila.length : idxBloqueado, 0, p);
+            fila.splice(pos, 0, p);
+            game.ultimoOrdemFila = Math.max(Number(game.ultimoOrdemFila) || 0,
+                ...todosNaEspera().map(x=>Number(x.ordemFila)||0)) + 1;
+            p.ordemFila = game.ultimoOrdemFila;
+            normalizarTodasAsFilas();
         }
-
         function reposicionarJogadorNaFila(p) {
-            if (p) p.prioridadeFila = false;
+            if (!p) return;
+            p.prioridadeFila = false;
+            p.reservaFormacao = false;
+            delete p.reservaPosicaoOriginal;
+            delete p.reservaVagasOriginais;
             inserirJogadorNaFilaDinamica(p);
         }
 
@@ -1025,7 +1078,7 @@
             const bj = game.baseJogadores || {};
             const nomes = isHistoricalView ? new Set([...Object.keys(bj), ...Object.keys(game.ranking || {})]) : new Set(Object.keys(bj));
             const list = [...nomes].map(n => {
-                const p = (game.esperaGeral||[]).find(x=>x.nome===n) || (game.esperaEstrela||[]).find(x=>x.nome===n) || (game.timeA||[]).find(x=>x.nome===n) || (game.timeB||[]).find(x=>x.nome===n);
+                const p = todosNaEspera().find(x=>x.nome===n) || (game.timeA||[]).find(x=>x.nome===n) || (game.timeB||[]).find(x=>x.nome===n);
                 return { n, bloqueado: !!p?.bloqueado };
             }).sort((a,b)=>a.n.localeCompare(b.n));
             const current = guestIdentificadoNesteEvento() ? meuNome : '';
@@ -1102,8 +1155,7 @@
                 if(!game.ranking[n]) {
                     game.ranking[n] = { v:0, d:0, ptsAtaque:0, ptsBloqueio:0, ptsAce:0, ptsErroAdversario:0, ptsAcertoTime: 0, estrela: false, elite: false };
                 }
-                game.esperaGeral.push(obj);
-                reposicionarJogadorNaFila(obj);
+                inserirJogadorNaFilaDinamica(obj);
                 salvarState(true);
             }
             meuNome = n; meuNomeEvento = currentInstanceId || '';
@@ -1142,8 +1194,8 @@
         while((await get(ref(db, "listaEventos/" + instId))).exists()) { count++; instId = sId + "_" + dataH + "_" + String(count).padStart(2,'0'); }
         
         // 1. DADOS PADRÕES ZERADOS (Caso seja realmente um evento novo)
-        let bc = {size:'',minStars:1,stars:1,elites:2,points:12,desempate:'3direto',maxWins:'',reaction:'',hideScoreboard:false,balanceamentoDiamanteEstrela:false,premiacaoMaxVitorias:5,narradorPontos:true};
-        let bw = {atqG:1,blqG:1,aceG:1,atqE:1,blqE:3,aceE:1,err:0.1,vit:0,wTeam:0};
+        let bc = {size:4,filaUnica:true,janelaBalanceamento:6,minStars:0,stars:2,minDiamantes:0,elites:2,minGerais:0,maxGerais:4,vincularEstrelaDiamante:false,points:12,desempate:'3direto',maxWins:'',reaction:'',hideScoreboard:false,premiacaoMaxVitorias:5,narradorPontos:true};
+        let bw = {atqG:1,blqG:1,aceG:1,atqE:1,blqE:3,aceE:1,atqD:1,blqD:1,aceD:1,err:0.1,vit:0,wTeam:0};
         let bj = {};
     
         // 2. BUSCAR DADOS DA ÚLTIMA SESSÃO (Para Herdar Base, Configs e Pesos)
@@ -1161,7 +1213,7 @@
                         const data = snap.val();
                         // Checa se essa sessão antiga tinha jogadores
                         if(data.baseJogadores && Object.keys(data.baseJogadores).length > 0) {
-                            if(data.config) bc = data.config;
+                            if(data.config) bc = normalizarConfigFormacao(data.config);
                             if(data.weights) bw = data.weights;
                             bj = data.baseJogadores;
                             break; // Achou a base válida, para a busca!
@@ -1187,7 +1239,8 @@
             baseJogadores: bj, config: bc, weights: bw, publicRanking: true, partidaAtiva: true, 
             scoreA: 0, scoreB: 0, winsConsecA: 0, winsConsecB: 0, saqueLado: 'A', saqueInicio: 'A', saqueIndiceBase: 0, saqueTurno: 0, saqueModelo: 'oponente', firstServeA: true, 
             firstServeB: true, historicoPartidas: [], matchLog: [], ranking: rk, 
-            esperaGeral: bg, esperaEstrela: be, matchStartScores: null, 
+            esperaGeral: bc.filaUnica ? [] : bg, esperaEstrela: bc.filaUnica ? [] : be,
+            esperaUnica: bc.filaUnica ? [...bg, ...be] : [], matchStartScores: null, 
             systemMsg: { text: "NOVA PARTIDA", sub: "Placar: 0 x 0" } 
         });
         
@@ -1222,26 +1275,65 @@
         };
 
         async function computarESalvarInsigneas() {
-            if(!game.ranking) return;
-            const pl = Object.entries(game.ranking).map(([n, s]) => ({ n, ...s, score: parseFloat(calcularScoreComPesos(s)) }));
-            const rkG = [...pl].sort((a,b)=>b.score-a.score);
-            const rkA = [...pl].sort((a,b)=>(b.ptsAtaque||0)-(a.ptsAtaque||0));
-            const rkB = [...pl].sort((a,b)=>(b.ptsBloqueio||0)-(a.ptsBloqueio||0));
-            const rkAc = [...pl].sort((a,b)=>(b.ptsAce||0)-(a.ptsAce||0));
-            const rkV = [...pl].sort((a,b)=>(b.v||0)-(a.v||0));
-            const updates = {};
-            const addBadge = (nome, tipo) => { if(!globalBadges[nome]) globalBadges[nome] = {}; globalBadges[nome][tipo] = (globalBadges[nome][tipo]||0) + 1; updates[nome + "/" + tipo] = globalBadges[nome][tipo]; };
-            const awardBadges = (list, getValue, badge) => { if(!list.length) return; const max = getValue(list[0]); if(max > 0) { list.filter(p => getValue(p) === max).forEach(p => addBadge(p.n, badge)); } };
-            awardBadges(rkG, p => p.score, 'topScore');
-            const uniqueScores = [...new Set(rkG.map(p => p.score))].filter(s => s > 0).sort((a,b)=>b-a);
-            if(uniqueScores.length > 1) rkG.filter(p => p.score === uniqueScores[1]).forEach(p => addBadge(p.n, 'second'));
-            if(uniqueScores.length > 2) rkG.filter(p => p.score === uniqueScores[2]).forEach(p => addBadge(p.n, 'third'));
-            awardBadges(rkA, p => p.ptsAtaque||0, 'matador');
-            awardBadges(rkB, p => p.ptsBloqueio||0, 'paredao');
-            awardBadges(rkAc, p => p.ptsAce||0, 'ace');
-            awardBadges(rkV, p => p.v||0, 'vitorias');
-            if(Object.keys(updates).length > 0 && currentShortId) {
-                await set(ref(db, "global_badges/" + currentShortId), globalBadges);
+            if (!game.ranking || !currentShortId) return;
+
+            // Mantém a divisão existente do Ranking Master / Hall da Fama:
+            // Geral + Estrela concorrem juntos; Diamantes concorrem entre si.
+            const jogadores = Object.entries(game.ranking).map(([nome, stats]) => ({
+                nome,
+                ...stats,
+                scorePremiacao: Number(Number(calcularScoreComPesos(stats)).toFixed(2))
+            }));
+            const grupos = [
+                jogadores.filter(j => !j.elite),
+                jogadores.filter(j => j.elite)
+            ];
+            const numero = valor => {
+                const n = Number(valor);
+                return Number.isFinite(n) ? n : 0;
+            };
+            const premiados = new Map();
+            const premiarEmpatados = (grupo, tipo, valorDeReferencia) => {
+                const maior = Math.max(0, ...grupo.map(j => numero(valorDeReferencia(j))));
+                if (maior <= 0) return;
+                grupo.filter(j => numero(valorDeReferencia(j)) === maior).forEach(j => {
+                    if (!premiados.has(j.nome)) premiados.set(j.nome, new Set());
+                    premiados.get(j.nome).add(tipo);
+                });
+            };
+            const premiarPosicao = (grupo, posicao, tipo) => {
+                // Empatados ocupam a mesma colocação. A próxima medalha é para
+                // o próximo score distinto (ex.: 50, 50, 40 => dois 1º e um 2º).
+                const scoresDistintos = [...new Set(grupo.map(j => numero(j.scorePremiacao)))]
+                    .filter(score => score > 0).sort((a, b) => b - a);
+                const scoreDaPosicao = scoresDistintos[posicao - 1];
+                if (scoreDaPosicao === undefined) return;
+                grupo.filter(j => numero(j.scorePremiacao) === scoreDaPosicao).forEach(j => {
+                    if (!premiados.has(j.nome)) premiados.set(j.nome, new Set());
+                    premiados.get(j.nome).add(tipo);
+                });
+            };
+
+            for (const grupo of grupos) {
+                premiarEmpatados(grupo, 'topScore', j => j.scorePremiacao);
+                premiarEmpatados(grupo, 'matador', j => j.ptsAtaque);
+                premiarEmpatados(grupo, 'paredao', j => j.ptsBloqueio);
+                premiarEmpatados(grupo, 'ace', j => j.ptsAce);
+                premiarEmpatados(grupo, 'vitorias', j => j.v);
+                premiarPosicao(grupo, 2, 'second');
+                premiarPosicao(grupo, 3, 'third');
+            }
+
+            // Adiciona uma conquista por tipo a cada premiado, sem apagar
+            // conquistas acumuladas de eventos anteriores no Firebase.
+            for (const [nome, tipos] of premiados) {
+                if (!globalBadges[nome]) globalBadges[nome] = {};
+                for (const tipo of tipos) {
+                    globalBadges[nome][tipo] = numero(globalBadges[nome][tipo]) + 1;
+                }
+            }
+            if (premiados.size > 0) {
+                await set(ref(db, 'global_badges/' + currentShortId), globalBadges);
             }
         }
 
@@ -1378,193 +1470,137 @@
         };
 
         window.abrirConfig = () => {
-            tempConfig = JSON.parse(JSON.stringify(game.config || {}));
-            tempConfig.publicRanking = game.publicRanking;
-            tempConfig.hideScoreboard = game.config.hideScoreboard || false;
-            tempConfig.balanceamentoDiamanteEstrela = game.config.balanceamentoDiamanteEstrela === true;
-            tempConfig.narradorPontos = game.config.narradorPontos !== false;
-
-            // Migração/normalização das configurações antigas.
-            tempConfig.minStars = Number.isFinite(Number(tempConfig.minStars)) ? Number(tempConfig.minStars) : 1;
-            tempConfig.stars = Number.isFinite(Number(tempConfig.stars)) ? Number(tempConfig.stars) : 1;
-            tempConfig.elites = Number.isFinite(Number(tempConfig.elites)) ? Number(tempConfig.elites) : 2;
-            if (tempConfig.stars < tempConfig.minStars) tempConfig.stars = tempConfig.minStars;
-            tempConfig.elites = Math.max(0, Math.min(2, tempConfig.elites));
-
-            if (tempConfig.balanceamentoDiamanteEstrela) {
-                tempConfig.minStars = 1;
-                tempConfig.stars = 2;
-                tempConfig.elites = 2;
-            }
-
-            document.getElementById('cSize').value = tempConfig.size || '';
-            document.getElementById('cMinStars').value = tempConfig.minStars;
-            document.getElementById('cStars').value = tempConfig.stars;
-            document.getElementById('cElites').value = tempConfig.elites;
-            document.getElementById('cPoints').value = tempConfig.points || 12;
+            tempConfig = { ...normalizarConfigFormacao(game.config || {}), publicRanking: game.publicRanking,
+                hideScoreboard: !!game.config?.hideScoreboard };
+            ['size','minStars','stars','minDiamantes','elites','minGerais','maxGerais'].forEach((k) => {
+                const id = { size:'cSize',minStars:'cMinStars',stars:'cStars',minDiamantes:'cMinDiamantes',
+                    elites:'cElites',minGerais:'cMinGerais',maxGerais:'cMaxGerais' }[k];
+                document.getElementById(id).value = tempConfig[k];
+            });
+            document.getElementById('cJanela').value = tempConfig.janelaBalanceamento;
+            tempConfig.obrigarCategoria = {
+                Estrela: Number(tempConfig.minStars)>0, Diamante: Number(tempConfig.minDiamantes)>0,
+                Geral: Number(tempConfig.minGerais)>0
+            };
+            document.getElementById('cPoints').value = tempConfig.points ?? 12;
             document.getElementById('cMax').value = tempConfig.maxWins || '';
             document.getElementById('cReaction').value = tempConfig.reaction || '';
             document.getElementById('cPremiacao').value = tempConfig.premiacaoMaxVitorias ?? 5;
-            window.atualizarVisibilidadePremiacao();
             document.getElementById('cDesempate').value = tempConfig.desempate || '3direto';
+            window.atualizarVisibilidadePremiacao();
             window.atualizarBotoesConfig();
             document.getElementById('modalConfigMenu').classList.remove('hidden');
         };
-
         window.salvarConfigEClose = () => {
-            const mWins = document.getElementById('cMax').value;
-            const react = document.getElementById('cReaction').value;
-            if(mWins && parseInt(mWins) > 0 && !react) return customAlert("Selecione a ação 'Ao atingir limite'!");
-            const size = parseInt(document.getElementById('cSize').value);
-            if(!size || size < 1) return customAlert("Defina Jogadores por Time!");
-
-            let minStars = Number.isFinite(parseInt(document.getElementById('cMinStars').value)) ? parseInt(document.getElementById('cMinStars').value) : 1;
-            let maxStars = Number.isFinite(parseInt(document.getElementById('cStars').value)) ? parseInt(document.getElementById('cStars').value) : 1;
-            let maxDiamantes = Number.isFinite(parseInt(document.getElementById('cElites').value)) ? parseInt(document.getElementById('cElites').value) : 2;
-
-            minStars = Math.max(0, Math.min(size, minStars));
-            maxStars = Math.max(0, Math.min(size, maxStars));
-            maxDiamantes = Math.max(0, Math.min(2, maxDiamantes));
-
-            if (tempConfig.balanceamentoDiamanteEstrela) {
-                if (size !== 4) return customAlert("A função 2 💎 = 2 ⭐ exige 4 jogadores por time.");
-                // Modo especial: 1 estrela é o mínimo e 2 é o máximo fixo;
-                // o limite de diamantes também fica fixo em 2.
-                minStars = 1;
-                maxStars = 2;
-                maxDiamantes = 2;
+            const size = Number(document.getElementById('cSize').value);
+            if (!Number.isInteger(size) || size < 1 || size > 8) return customAlert('Jogadores por time: informe de 1 a 8.');
+            const limits = {};
+            const ids = { minStars:'cMinStars', stars:'cStars', minDiamantes:'cMinDiamantes',
+                elites:'cElites', minGerais:'cMinGerais', maxGerais:'cMaxGerais' };
+            for (const [key, id] of Object.entries(ids)) {
+                const val = Number(document.getElementById(id).value);
+                if (!Number.isInteger(val) || val < 0 || val > size || !document.getElementById(id).value.trim())
+                    return customAlert('Informe um número válido entre 0 e ' + size + ' para ' + key + '.');
+                limits[key] = val;
             }
-
-            if (maxStars < minStars) return customAlert("O Máximo de Estrelas não pode ser menor que o Mínimo de Estrelas.");
-            const premiacao = Number(document.getElementById('cPremiacao').value);
-            if (!Number.isFinite(premiacao) || premiacao < 0 || !document.getElementById('cPremiacao').value.trim()) return customAlert('Defina uma premiação válida (zero ou maior).');
-
-            game.config.size = size;
-            game.config.minStars = minStars;
-            game.config.stars = maxStars;
-            game.config.elites = maxDiamantes;
-            game.config.points = parseInt(document.getElementById('cPoints').value) || 12;
-            game.config.maxWins = mWins ? parseInt(mWins) : null;
-            game.config.reaction = react;
-            game.config.premiacaoMaxVitorias = premiacao;
-            game.config.narradorPontos = tempConfig.narradorPontos !== false;
-            game.config.desempate = document.getElementById('cDesempate').value;
+            if (limits.minStars > limits.stars || limits.minDiamantes > limits.elites || limits.minGerais > limits.maxGerais)
+                return customAlert('O mínimo de uma categoria não pode superar o seu máximo.');
+            if (limits.minStars + limits.minDiamantes + limits.minGerais > size ||
+                limits.stars + limits.elites + limits.maxGerais < size)
+                return customAlert('Os mínimos e máximos das categorias não permitem completar o time.');
+            if (tempConfig.vincularEstrelaDiamante && limits.minStars > limits.elites)
+                return customAlert('O vínculo ⭐/💎 exige máximo de Diamantes suficiente para o mínimo de Estrelas.');
+            const exigir = tempConfig.obrigarCategoria || {};
+            if (!exigir.Estrela) limits.minStars=0;
+            if (!exigir.Diamante) limits.minDiamantes=0;
+            if (!exigir.Geral) limits.minGerais=0;
+            if ((exigir.Estrela && !limits.minStars) || (exigir.Diamante && !limits.minDiamantes) ||
+                (exigir.Geral && !limits.minGerais)) return customAlert('Informe pelo menos 1 para as categorias obrigatórias.');
+            const mWins = document.getElementById('cMax').value.trim();
+            const reaction = document.getElementById('cReaction').value;
+            if (mWins && (!Number.isInteger(Number(mWins)) || Number(mWins) < 1)) return customAlert('Máximo de vitórias inválido.');
+            if (mWins && !reaction) return customAlert('Selecione a ação ao atingir o limite de vitórias.');
+            const premio = Number(document.getElementById('cPremiacao').value);
+            if (!Number.isFinite(premio) || premio < 0) return customAlert('Premiação inválida.');
+            const eraUnica = modoFilaUnica();
+            game.config = { ...game.config, ...limits, size,
+                filaUnica: tempConfig.filaUnica !== false, vincularEstrelaDiamante: tempConfig.vincularEstrelaDiamante === true,
+                janelaBalanceamento: Number(document.getElementById('cJanela').value) || 6,
+                balanceamentoDiamanteEstrela: false, points: Number(document.getElementById('cPoints').value) || 12,
+                maxWins: mWins ? Number(mWins) : null, reaction, desempate: document.getElementById('cDesempate').value,
+                premiacaoMaxVitorias: premio, narradorPontos: tempConfig.narradorPontos !== false,
+                hideScoreboard: !!tempConfig.hideScoreboard };
             game.publicRanking = tempConfig.publicRanking;
-            game.config.hideScoreboard = tempConfig.hideScoreboard;
-            game.config.balanceamentoDiamanteEstrela = tempConfig.balanceamentoDiamanteEstrela === true;
+            if (eraUnica !== modoFilaUnica()) migrarModoFila(modoFilaUnica());
+            normalizarTodasAsFilas();
             window.fecharModais();
-            salvarState();
+            salvarState(true);
+            render();
         };
-
         window.atualizarVisibilidadePremiacao = () => {
-            document.getElementById('premiacaoSairAmbosConfig')?.classList.toggle('hidden', document.getElementById('cReaction')?.value !== 'sairDois');
+            document.getElementById('premiacaoSairAmbosConfig')?.classList.toggle('hidden',
+                document.getElementById('cReaction')?.value !== 'sairDois');
         };
-        window.toggleNarradorPontos = () => {
-            tempConfig.narradorPontos = !tempConfig.narradorPontos;
-            window.atualizarBotoesConfig();
-        };
-        window.togglePublicRanking = () => { tempConfig.publicRanking = !tempConfig.publicRanking; window.atualizarBotoesConfig(); }; 
+        window.toggleNarradorPontos = () => { tempConfig.narradorPontos = tempConfig.narradorPontos === false; window.atualizarBotoesConfig(); };
+        window.togglePublicRanking = () => { tempConfig.publicRanking = !tempConfig.publicRanking; window.atualizarBotoesConfig(); };
         window.toggleScoreboardVis = () => { tempConfig.hideScoreboard = !tempConfig.hideScoreboard; window.atualizarBotoesConfig(); };
-        window.toggleBalanceamentoDiamanteEstrela = () => {
-            const tamanhoAtual = Number(document.getElementById('cSize')?.value || tempConfig.size || 0);
-            if (!tempConfig.balanceamentoDiamanteEstrela && tamanhoAtual && tamanhoAtual !== 4) {
-                return customAlert("A função 2 💎 = 2 ⭐ foi definida para times com 4 jogadores.");
-            }
-            tempConfig.balanceamentoDiamanteEstrela = !tempConfig.balanceamentoDiamanteEstrela;
-            if (tempConfig.balanceamentoDiamanteEstrela) {
-                tempConfig.minStars = 1;
-                tempConfig.stars = 2;
-                tempConfig.elites = 2;
-            } else {
-                tempConfig.minStars = Number.isFinite(Number(tempConfig.minStars)) ? Number(tempConfig.minStars) : 1;
-                tempConfig.stars = Math.max(tempConfig.minStars, Math.min(Number(tempConfig.stars) || 1, Number(tempConfig.size) || 4));
-                tempConfig.elites = Math.max(0, Math.min(2, Number(tempConfig.elites) || 0));
-            }
-            document.getElementById('cMinStars').value = tempConfig.minStars;
-            document.getElementById('cStars').value = tempConfig.stars;
-            document.getElementById('cElites').value = tempConfig.elites;
+        window.toggleObrigatorioCategoria = (categoria) => {
+            tempConfig.obrigarCategoria ||= {};
+            tempConfig.obrigarCategoria[categoria]=!tempConfig.obrigarCategoria[categoria];
+            const inputs={Estrela:'cMinStars',Diamante:'cMinDiamantes',Geral:'cMinGerais'};
+            const campo=document.getElementById(inputs[categoria]);
+            if (campo && tempConfig.obrigarCategoria[categoria] && Number(campo.value)===0) campo.value=1;
             window.atualizarBotoesConfig();
         };
-        
+        window.toggleFilaUnica = () => { tempConfig.filaUnica = tempConfig.filaUnica === false; window.atualizarBotoesConfig(); };
+        window.toggleVinculoCategorias = () => { tempConfig.vincularEstrelaDiamante = !tempConfig.vincularEstrelaDiamante; window.atualizarBotoesConfig(); };
         window.atualizarBotoesConfig = () => {
-            const btnNarrador = document.getElementById('btnToggleNarrador');
-            if (btnNarrador) {
-                const ativo = tempConfig.narradorPontos !== false;
-                btnNarrador.innerText = ativo ? 'ATIVADO' : 'DESATIVADO';
-                btnNarrador.className = 'text-[10px] font-bold uppercase px-3 py-2 rounded bg-slate-900 border ' + (ativo ? 'border-emerald-500 text-emerald-400' : 'border-slate-500 text-slate-400');
-            }
-            const btnRk = document.getElementById('btnToggleRank');
-            if(tempConfig.publicRanking) {
-                btnRk.innerText = "ATIVADO";
-                btnRk.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-green-500 text-green-400";
-            } else {
-                btnRk.innerText = "DESATIVADO";
-                btnRk.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400";
-            }
-            const btnSb = document.getElementById('btnToggleScoreboard');
-            if(tempConfig.hideScoreboard) {
-                btnSb.innerText = "OCULTO";
-                btnSb.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-green-500 text-green-400";
-            } else {
-                btnSb.innerText = "VISÍVEL";
-                btnSb.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400";
-            }
-            const btnBal = document.getElementById('btnToggleBalanceamento');
-            if(btnBal) {
-                if(tempConfig.balanceamentoDiamanteEstrela) {
-                    btnBal.innerText = "ATIVADO";
-                    btnBal.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-purple-500 text-purple-300";
-                } else {
-                    btnBal.innerText = "DESATIVADO";
-                    btnBal.className = "text-[10px] font-bold uppercase px-3 py-1 rounded bg-slate-900 border border-slate-500 text-slate-400";
+            const botoes = [
+                ['btnToggleNarrador', tempConfig.narradorPontos !== false, 'ATIVADO', 'DESATIVADO'],
+                ['btnToggleRank', !!tempConfig.publicRanking, 'ATIVADO', 'DESATIVADO'],
+                ['btnToggleScoreboard', !!tempConfig.hideScoreboard, 'OCULTO', 'VISÍVEL'],
+                ['btnFilaUnica', tempConfig.filaUnica !== false, 'ATIVADO', 'SEPARADAS'],
+                ['btnVinculo', !!tempConfig.vincularEstrelaDiamante, 'ATIVADO', 'DESATIVADO']
+            ];
+            ['Estrela','Diamante','Geral'].forEach(cat=>{
+                const btn=document.getElementById('btnExigir'+cat);
+                const input=document.getElementById({Estrela:'cMinStars',Diamante:'cMinDiamantes',Geral:'cMinGerais'}[cat]);
+                const enabled=tempConfig.obrigarCategoria?.[cat]===true;
+                if(btn) {
+                    btn.innerText=enabled?'OBRIGATÓRIO':'OPCIONAL';
+                    btn.className='text-[9px] rounded px-1 border '+(enabled?'border-orange-400 text-orange-300':'border-slate-500 text-slate-400');
                 }
-            }
-
-            const minStarsInput = document.getElementById('cMinStars');
-            const maxStarsInput = document.getElementById('cStars');
-            const maxDiamantesInput = document.getElementById('cElites');
-            const especial = tempConfig.balanceamentoDiamanteEstrela === true;
-            if (especial) {
-                tempConfig.minStars = 1;
-                tempConfig.stars = 2;
-                tempConfig.elites = 2;
-                if (minStarsInput) { minStarsInput.value = 1; minStarsInput.disabled = true; minStarsInput.classList.add('opacity-60','cursor-not-allowed'); }
-                if (maxStarsInput) { maxStarsInput.value = 2; maxStarsInput.disabled = true; maxStarsInput.classList.add('opacity-60','cursor-not-allowed'); }
-                if (maxDiamantesInput) { maxDiamantesInput.value = 2; maxDiamantesInput.disabled = true; maxDiamantesInput.classList.add('opacity-60','cursor-not-allowed'); }
-            } else {
-                if (minStarsInput) { minStarsInput.disabled = false; minStarsInput.classList.remove('opacity-60','cursor-not-allowed'); minStarsInput.value = tempConfig.minStars ?? 1; }
-                if (maxStarsInput) { maxStarsInput.disabled = false; maxStarsInput.classList.remove('opacity-60','cursor-not-allowed'); maxStarsInput.value = tempConfig.stars ?? 1; }
-                if (maxDiamantesInput) { maxDiamantesInput.disabled = false; maxDiamantesInput.classList.remove('opacity-60','cursor-not-allowed'); maxDiamantesInput.value = tempConfig.elites ?? 2; }
-            }
+                if(input) { input.disabled=!enabled; input.classList.toggle('opacity-60',!enabled); }
+            });
+            botoes.forEach(([id, sim, yes, no]) => {
+                const b = document.getElementById(id);
+                if (!b) return;
+                b.innerText = sim ? yes : no;
+                b.className = 'text-[10px] font-bold uppercase px-3 py-2 rounded bg-slate-900 border ' +
+                    (sim ? 'border-emerald-500 text-emerald-400' : 'border-slate-500 text-slate-400');
+            });
         };
 
         window.abrirWeights = () => {
             document.getElementById('modalConfigMenu').classList.add('hidden');
             const w = getPesosAtuais();
-            document.getElementById('wAtqG').value = w.atqG;
-            document.getElementById('wBlqG').value = w.blqG;
-            document.getElementById('wAceG').value = w.aceG;
-            document.getElementById('wAtqE').value = w.atqE;
-            document.getElementById('wBlqE').value = w.blqE;
-            document.getElementById('wAceE').value = w.aceE;
-            document.getElementById('wErr').value = w.err;
-            document.getElementById('wVit').value = w.vit;
-            document.getElementById('wTeam').value = w.wTeam;
+            ['G','E','D'].forEach(cat=>{
+                ['Atq','Blq','Ace','Err','Vit','Team'].forEach(tipo=>{
+                    const ch = (tipo==='Team'?'wTeam':tipo.toLowerCase())+cat;
+                    document.getElementById('w'+tipo+cat).value=w[ch];
+                });
+            });
             document.getElementById('modalWeights').classList.remove('hidden');
-        }; 
-
+        };
         window.salvarWeightsEClose = () => {
-            game.weights = {
-                atqG: pesoNumero(document.getElementById('wAtqG').value, 1),
-                blqG: pesoNumero(document.getElementById('wBlqG').value, 1),
-                aceG: pesoNumero(document.getElementById('wAceG').value, 1),
-                atqE: pesoNumero(document.getElementById('wAtqE').value, 1),
-                blqE: pesoNumero(document.getElementById('wBlqE').value, 3),
-                aceE: pesoNumero(document.getElementById('wAceE').value, 1),
-                err: pesoNumero(document.getElementById('wErr').value, 0.1),
-                vit: pesoNumero(document.getElementById('wVit').value, 0),
-                wTeam: pesoNumero(document.getElementById('wTeam').value, 0)
-            };
+            const pesos = { ...game.weights };
+            ['G','E','D'].forEach(cat=>{
+                ['Atq','Blq','Ace','Err','Vit','Team'].forEach(tipo=>{
+                    const ch=(tipo==='Team'?'wTeam':tipo.toLowerCase())+cat;
+                    pesos[ch]=pesoNumero(document.getElementById('w'+tipo+cat).value,0);
+                });
+            });
+            game.weights=pesos;
             salvarState();
             render();
             document.getElementById('modalWeights').classList.add('hidden');
@@ -1610,7 +1646,7 @@
             if(!game.baseJogadores) game.baseJogadores = {};
             game.baseJogadores[nome] = cat;
             const isE = (cat === 'estrela'), isEl = (cat === 'diamante');
-            const jaExiste = [...(game.timeA||[]), ...(game.timeB||[]), ...(game.esperaGeral||[]), ...(game.esperaEstrela||[])].some(p => p.nome === nome);
+            const jaExiste = [...(game.timeA||[]), ...(game.timeB||[]), ...todosNaEspera()].some(p => p.nome === nome);
             if(!jaExiste) {
                 const obj = { id: Math.random().toString(36).substr(2, 9), nome, estrela: isE, elite: isEl, bloqueado: true, prioridadeFila: false };
                 if(!game.ranking[nome]) {
@@ -1640,7 +1676,7 @@
             game.ranking[nome].estrela = isE;
             game.ranking[nome].elite = isEl;
 
-            const filas = [...(game.esperaGeral || []), ...(game.esperaEstrela || [])];
+            const filas = todosNaEspera();
             const jogadorFila = filas.find(p => p.nome === nome);
             const jogadoresAtivos = [...(game.timeA || []), ...(game.timeB || [])];
             const jogadorAtivo = jogadoresAtivos.find(p => p.nome === nome);
@@ -1652,12 +1688,13 @@
             }
 
             if(jogadorFila) {
-                removerDaFilaPorNome(game.esperaGeral, nome);
-                removerDaFilaPorNome(game.esperaEstrela, nome);
                 jogadorFila.estrela = isE;
                 jogadorFila.elite = isEl;
-                jogadorFila.prioridadeFila = false;
-                inserirJogadorNaFilaDinamica(jogadorFila);
+                // Atualização de categoria não altera a posição em uma fila única.
+                if (!modoFilaUnica()) {
+                    removerJogadorDasFilas(nome);
+                    inserirJogadorNaFilaDinamica(jogadorFila);
+                }
                 normalizarTodasAsFilas();
             }
 
@@ -1694,7 +1731,7 @@
                     delete game.ranking[nomeAntigo];
                 }
 
-                [game.timeA, game.timeB, game.esperaGeral, game.esperaEstrela].forEach(lista => {
+                [game.timeA, game.timeB, game.esperaUnica, game.esperaGeral, game.esperaEstrela].forEach(lista => {
                     (lista || []).forEach(p => { if(p.nome === nomeAntigo) p.nome = nomeNovo; });
                 });
 
@@ -1727,8 +1764,7 @@
 
         window.removeBaseJogador = (nome) => {
             delete game.baseJogadores[nome];
-            if(game.esperaGeral) game.esperaGeral = game.esperaGeral.filter(p => p.nome !== nome);
-            if(game.esperaEstrela) game.esperaEstrela = game.esperaEstrela.filter(p => p.nome !== nome);
+            removerJogadorDasFilas(nome);
             salvarState();
             window.abrirBaseJogadores();
         };
@@ -1779,6 +1815,7 @@
         function localizarJogador(nome) {
             const a = (game.timeA || []).findIndex(p => p.nome === nome); if(a > -1) return { p: game.timeA[a], local: 'Time A', lado: 'A', idx: a };
             const b = (game.timeB || []).findIndex(p => p.nome === nome); if(b > -1) return { p: game.timeB[b], local: 'Time B', lado: 'B', idx: b };
+            const u = (game.esperaUnica || []).findIndex(p => p.nome === nome); if(u > -1) return { p: game.esperaUnica[u], local: 'Fila Única', fila: 'unica', idx: u };
             const g = (game.esperaGeral || []).findIndex(p => p.nome === nome); if(g > -1) return { p: game.esperaGeral[g], local: 'Fila Geral', fila: 'geral', idx: g };
             const e = (game.esperaEstrela || []).findIndex(p => p.nome === nome); if(e > -1) return { p: game.esperaEstrela[e], local: 'Fila Estrelas', fila: 'estrela', idx: e };
             return null;
@@ -1811,9 +1848,9 @@
             const nome = (nomeDigitado || '').toUpperCase().trim();
             if(!nome) return;
             if((game.baseJogadores || {})[nome]) return customAlert('Jogador já existe na base.');
-            const ocupando = [...(game.timeA||[]), ...(game.timeB||[]), ...(game.esperaGeral||[]), ...(game.esperaEstrela||[])].some(p => p.nome === nome);
+            const ocupando = [...(game.timeA||[]), ...(game.timeB||[]), ...todosNaEspera()].some(p => p.nome === nome);
             if(ocupando) return customAlert('Jogador já está no evento.');
-            const estrela = tab === 'estrela';
+            const estrela = !modoFilaUnica() && tab === 'estrela';
             const obj = { id: Math.random().toString(36).substr(2, 9), nome, estrela, elite: false, bloqueado: false };
             if(!game.baseJogadores) game.baseJogadores = {};
             game.baseJogadores[nome] = estrela ? 'estrela' : 'geral';
@@ -1914,459 +1951,260 @@
             window.abrirPontoTecnico(lado, idx);
         };
 
-        function balanceamentoDiamanteEstrelaAtivo() {
-            return game.config?.balanceamentoDiamanteEstrela === true && Number(game.config?.size || 4) === 4;
-        }
-
         function removerDaFilaPorNome(fila, nome) {
-            const idx = (fila || []).findIndex(x => x.nome === nome);
-            if (idx > -1) fila.splice(idx, 1);
+            const idx = (fila || []).findIndex(p => p.nome === nome);
+            if (idx >= 0) fila.splice(idx, 1);
         }
-
-        function moverDiamantesParaInicioDaFila(listaDiamantes) {
-            const nomes = new Set((listaDiamantes || []).filter(Boolean).map(p => p.nome));
-            if (!nomes.size) return;
-
-            const fila = game.esperaGeral || [];
-            const prioridade = [];
-            const restantes = [];
-
-            (listaDiamantes || []).filter(Boolean).forEach(p => {
-                p.prioridadeFila = true;
-                const atual = fila.find(x => x.nome === p.nome) || p;
-                atual.prioridadeFila = true;
-                prioridade.push(atual);
-            });
-
-            fila.forEach(p => {
-                if (!nomes.has(p.nome)) restantes.push(p);
-            });
-
-            game.esperaGeral = [...prioridade, ...restantes];
+        function scoreNumericoJogador(p) {
+            const r = game.ranking?.[p?.nome] || {};
+            const s = { ...r, estrela: !!p?.estrela, elite: !!p?.elite };
+            return Number(calcularScoreComPesos(s)) || 0;
         }
-
-        function formarTimeBalanceadoEspecial(t) {
-            if (!balanceamentoDiamanteEstrelaAtivo()) return false;
-            if (!t || t.length > 0) return false;
-
-            normalizarTodasAsFilas();
-
-            const tamanho = Number(game.config?.size || 4);
-            if (tamanho !== 4) return false;
-
-            const maxEstrelas = 2;
-            const maxDiamantes = 2;
-            const minEstrelas = 1;
-            const gerais = (game.esperaGeral || []).filter(p => !p.bloqueado);
-            const estrelas = (game.esperaEstrela || []).filter(p => !p.bloqueado);
-
-            if (gerais.length < 3 || estrelas.length < minEstrelas) return false;
-
-            const selecionados = [];
-            const diamantesPulados = [];
-            const primeiro = gerais[0];
-            const segundo = gerais[1];
-            const estrela1 = estrelas[0];
-
-            const adicionarSelecionado = (p) => {
-                if (p && !selecionados.some(x => x.nome === p.nome)) {
-                    selecionados.push(p);
-                }
-            };
-
-            adicionarSelecionado(primeiro);
-            adicionarSelecionado(estrela1);
-
-            if (!primeiro.elite) {
-                if (segundo.elite) {
-                    // Primeiro Geral + segundo Diamante:
-                    // o Diamante perde a vez e os próximos dois Gerais ocupam as vagas.
-                    diamantesPulados.push(segundo);
-
-                    const proximosGerais = gerais.slice(2).filter(p => !p.elite);
-                    if (proximosGerais.length < 2) return false;
-
-                    adicionarSelecionado(proximosGerais[0]);
-                    adicionarSelecionado(proximosGerais[1]);
-
-                    // Qualquer outro Diamante atravessado nessa busca também foi pulado.
-                    const fim = gerais.indexOf(proximosGerais[1]);
-                    gerais.slice(1, fim).filter(p => p.elite && p.nome !== segundo.nome)
-                        .forEach(p => diamantesPulados.push(p));
-                } else {
-                    // Primeiro Geral + segundo Geral:
-                    // o quarto jogador segue exatamente o terceiro da fila geral.
-                    adicionarSelecionado(segundo);
-                    const quarto = gerais[2];
-                    if (!quarto) return false;
-                    adicionarSelecionado(quarto);
-                }
-            } else {
-                if (segundo.elite) {
-                    // Dois Diamantes => duas Estrelas.
-                    const estrela2 = estrelas[1];
-                    if (!estrela2) return false;
-
-                    adicionarSelecionado(segundo);
-                    adicionarSelecionado(estrela2);
-                } else {
-                    // Primeiro Diamante + segundo Geral:
-                    // o último jogador precisa ser Geral.
-                    adicionarSelecionado(segundo);
-
-                    const quarto = gerais.slice(2).find(p => !p.elite);
-                    if (!quarto) return false;
-
-                    const fim = gerais.indexOf(quarto);
-                    gerais.slice(2, fim).filter(p => p.elite)
-                        .forEach(p => diamantesPulados.push(p));
-
-                    adicionarSelecionado(quarto);
+        function combinacoesIndices(n, k) {
+            const resultado = [];
+            if (k < 0 || k > n) return resultado;
+            function visita(inicio, escolhidos) {
+                if (escolhidos.length === k) { resultado.push([...escolhidos]); return; }
+                for (let i = inicio; i <= n - (k - escolhidos.length); i++) {
+                    escolhidos.push(i); visita(i + 1, escolhidos); escolhidos.pop();
                 }
             }
-
-            const qtdEstrelas = selecionados.filter(p => p.estrela).length;
-            const qtdDiamantes = selecionados.filter(p => p.elite).length;
-            if (selecionados.length !== tamanho) return false;
-            if (qtdEstrelas < minEstrelas || qtdEstrelas > maxEstrelas) return false;
-            if (qtdDiamantes > maxDiamantes) return false;
-
-            const nomesSelecionados = new Set(selecionados.map(p => p.nome));
-
-            // Só agora alteramos as filas, depois de validar toda a formação.
-            game.esperaGeral = (game.esperaGeral || []).filter(p => !nomesSelecionados.has(p.nome));
-            game.esperaEstrela = (game.esperaEstrela || []).filter(p => !nomesSelecionados.has(p.nome));
-
-            diamantesPulados.forEach(p => {
-                p.prioridadeFila = true;
-                removerDaFilaPorNome(game.esperaGeral, p.nome);
-            });
-            moverDiamantesParaInicioDaFila(diamantesPulados);
-
-            selecionados.forEach(p => {
-                p.bloqueado = false;
-                p.prioridadeFila = false;
-                t.push(p);
-            });
-
+            visita(0, []);
+            return resultado;
+        }
+        function categoriasDoTime(time) {
+            return { estrela:time.filter(p=>p.estrela).length, diamante:time.filter(p=>p.elite).length,
+                geral:time.filter(p=>!p.estrela&&!p.elite).length };
+        }
+        function timeRespeitaConfiguracaoBalanceamento(time, rival = null) {
+            const size = Number(game.config?.size || 4);
+            if (time.length !== size) return false;
+            const c = categoriasDoTime(time), cfg = normalizarConfigFormacao(game.config);
+            if (c.estrela < cfg.minStars || c.estrela > cfg.stars ||
+                c.diamante < cfg.minDiamantes || c.diamante > cfg.elites ||
+                c.geral < cfg.minGerais || c.geral > cfg.maxGerais) return false;
+            if (cfg.vincularEstrelaDiamante && c.estrela > c.diamante) {
+                // Exceção pedida: não puxar Diamante se a Estrela já deixa o time
+                // equiparado ao adversário. Não flexibiliza mínimos explícitos.
+                if (!cfg.filaUnica || !rival?.length) return false;
+                const diferenca = Math.abs(calcularScoreEquipe(time)-calcularScoreEquipe(rival));
+                const tolerancia = Math.max(3, Math.abs(calcularScoreEquipe(rival))*0.15);
+                if (diferenca > tolerancia + 0.0001) return false;
+            }
             return true;
         }
-
-        function formarTimeNormal(t) {
-            if (!t || t.length > 0) return false;
-
+        function candidatosDeFila() {
             normalizarTodasAsFilas();
-
-            const tamanho = Number(game.config?.size || 4);
-            const cfgMinStars = Number(game.config?.minStars);
-            const cfgMaxStars = Number(game.config?.stars);
-            const cfgDiamantes = Number(game.config?.elites);
-
-            const minStars = Number.isFinite(cfgMinStars) ? Math.max(0, Math.min(tamanho, cfgMinStars)) : 1;
-            const maxStars = Number.isFinite(cfgMaxStars) ? Math.max(minStars, Math.min(tamanho, cfgMaxStars)) : Math.max(1, minStars);
-            const maxDiamantes = Number.isFinite(cfgDiamantes) ? Math.max(0, Math.min(2, cfgDiamantes)) : 2;
-
-            const estrelas = (game.esperaEstrela || []).filter(p => !p.bloqueado);
-            const gerais = (game.esperaGeral || []).filter(p => !p.bloqueado);
-
-            // O mínimo de estrelas é obrigatório; o máximo é apenas o teto permitido.
-            if (estrelas.length < minStars) return false;
-            if (gerais.length < tamanho - minStars) return false;
-
-            const escolhidosEstrelas = estrelas.slice(0, minStars);
-            const escolhidosGerais = [];
-            let qtdDiamantes = 0;
-
-            // Percorre a fila geral em ordem. Somente Diamantes podem ser pulados
-            // quando o limite configurado já tiver sido atingido.
-            for (const p of gerais) {
-                if (escolhidosEstrelas.length + escolhidosGerais.length >= tamanho) break;
-
-                if (p.elite) {
-                    if (qtdDiamantes >= maxDiamantes) continue;
-                    qtdDiamantes++;
-                }
-
-                escolhidosGerais.push(p);
-            }
-
-            if (escolhidosEstrelas.length + escolhidosGerais.length !== tamanho) return false;
-
-            escolhidosEstrelas.forEach(p => {
-                removerDaFilaPorNome(game.esperaEstrela, p.nome);
-                p.bloqueado = false;
-                p.prioridadeFila = false;
-                t.push(p);
-            });
-
-            escolhidosGerais.forEach(p => {
-                removerDaFilaPorNome(game.esperaGeral, p.nome);
-                p.bloqueado = false;
-                t.push(p);
-            });
-
-            normalizarTodasAsFilas();
-            return t.length === tamanho && t.filter(p => p.estrela).length >= minStars && t.filter(p => p.estrela).length <= maxStars;
+            const fila = modoFilaUnica() ? (game.esperaUnica||[]) :
+                [...(game.esperaGeral||[]),...(game.esperaEstrela||[])].sort((a,b)=>(Number(a.ordemFila)||0)-(Number(b.ordemFila)||0));
+            return fila.filter(p=>!p.bloqueado);
         }
-
-        function formarProximoTime(t) {
-            if (!t || t.length > 0) return false;
-            return formarTimeBalanceadoEspecial(t) || formarTimeNormal(t);
+        function janelaComReservas(candidatos, desejados, limite) {
+            // Reservas pendentes têm preferência mesmo que tenham caído após a janela.
+            const selecionados = candidatos.slice(0, Math.max(desejados, limite));
+            const prioridade = candidatos.filter(p=>p.reservaFormacao);
+            const nomes = new Set(selecionados.map(p=>p.nome));
+            prioridade.forEach(p=>{ if (!nomes.has(p.nome)) { selecionados.push(p); nomes.add(p.nome); } });
+            return selecionados;
         }
-
-        function scoreNumericoJogador(p) {
-            const n = parseFloat(calcularScoreComPesos(game.ranking?.[p?.nome] || {}));
-            return Number.isFinite(n) ? n : 0;
-        }
-
-        function timeRespeitaConfiguracaoBalanceamento(time) {
-            const tamanho = Number(game.config?.size || 4);
-            if (!Array.isArray(time) || time.length !== tamanho) return false;
-
-            const estrelas = time.filter(p => p.estrela).length;
-            const diamantes = time.filter(p => p.elite).length;
-
-            if (balanceamentoDiamanteEstrelaAtivo()) {
-                const estrelasObrigatorias = diamantes >= 2 ? 2 : 1;
-                return diamantes <= 2 && estrelas === estrelasObrigatorias;
-            }
-
-            const cfgMin = Number(game.config?.minStars);
-            const cfgMax = Number(game.config?.stars);
-            const cfgDia = Number(game.config?.elites);
-            const minStars = Number.isFinite(cfgMin) ? Math.max(0, Math.min(tamanho, cfgMin)) : 1;
-            const maxStars = Number.isFinite(cfgMax) ? Math.max(minStars, Math.min(tamanho, cfgMax)) : Math.max(1, minStars);
-            const maxDiamantes = Number.isFinite(cfgDia) ? Math.max(0, Math.min(tamanho, cfgDia)) : 2;
-
-            return estrelas >= minStars && estrelas <= maxStars && diamantes <= maxDiamantes;
-        }
-
-        function gerarSelecoesGeraisComPulosPermitidos(qtd) {
-            const gerais = (game.esperaGeral || []).filter(p => !p.bloqueado);
-            if (qtd === 0) return [{ selecionados: [], pulados: [] }];
-
-            const resultados = [];
-            const limiteResultados = 300;
-
-            function rec(idx, selecionados, pulados) {
-                if (resultados.length >= limiteResultados) return;
-                if (selecionados.length === qtd) {
-                    resultados.push({ selecionados: [...selecionados], pulados: [...pulados] });
-                    return;
-                }
-                if (idx >= gerais.length) return;
-                if ((gerais.length - idx) < (qtd - selecionados.length)) return;
-
-                const p = gerais[idx];
-                selecionados.push(p);
-                rec(idx + 1, selecionados, pulados);
-                selecionados.pop();
-
-                // A sequência da fila é rígida. Somente Diamantes podem ser pulados.
-                if (p.elite) {
-                    pulados.push(p);
-                    rec(idx + 1, selecionados, pulados);
-                    pulados.pop();
+        function penalidadeParceiros(time) {
+            let repeticoes = 0;
+            const anteriores = (game.historicoPartidas||[]).slice(0,4);
+            for (const partida of anteriores) {
+                for (const grupo of [partida.timeA||[], partida.timeB||[]]) {
+                    const comuns = time.filter(p=>grupo.includes(p.nome)).length;
+                    repeticoes += comuns*(comuns-1)/2;
                 }
             }
-
-            rec(0, [], []);
-            return resultados;
+            return repeticoes;
         }
-
-        function combinacoesIndices(n, k) {
-            const saida = [];
-            function rec(inicio, atual) {
-                if (atual.length === k) {
-                    saida.push([...atual]);
-                    return;
-                }
-                for (let i = inicio; i < n; i++) {
-                    atual.push(i);
-                    rec(i + 1, atual);
-                    atual.pop();
-                }
-            }
-            rec(0, []);
-            return saida;
-        }
-
-        function encontrarComplementoMaisCompetitivo(baseA, baseB, opcoes = {}) {
-            const tamanho = Number(game.config?.size || 4);
-            const precisaA = Math.max(0, tamanho - baseA.length);
-            const precisaB = Math.max(0, tamanho - baseB.length);
+        function avaliarCandidato(baseA, baseB, opcoes = {}) {
+            const size = Number(game.config?.size || 4);
+            const precisaA = size - baseA.length, precisaB = size - baseB.length;
+            if (precisaA < 0 || precisaB < 0) return null;
             const total = precisaA + precisaB;
-            if (total === 0) return { addA: [], addB: [], pulados: [], diff: Math.abs(calcularScoreEquipe(baseA) - calcularScoreEquipe(baseB)) };
-
-            const estrelasFila = (game.esperaEstrela || []).filter(p => !p.bloqueado);
+            const fila = candidatosDeFila();
+            if (fila.length < total) return null;
+            const janela = Number(game.config?.janelaBalanceamento || 6);
+            const baseJanela = Math.max(total, janela,
+                (precisaA && precisaB) ? total + Math.max(0,janela-size) : janela);
+            const evitarRetorno = opcoes.evitarRetorno || new Set();
             let melhor = null;
-            let menorQtdPulos = Infinity;
-            let menorQtdRetornos = Infinity;
-            const evitarRetorno = opcoes.evitarRetorno || null;
-
-            for (let qtdEstrelas = 0; qtdEstrelas <= total; qtdEstrelas++) {
-                if (estrelasFila.length < qtdEstrelas) continue;
-                const qtdGerais = total - qtdEstrelas;
-                const stars = estrelasFila.slice(0, qtdEstrelas); // estrela nunca é pulada
-                const opcoesGerais = gerarSelecoesGeraisComPulosPermitidos(qtdGerais);
-
-                for (const opG of opcoesGerais) {
-                    if (!evitarRetorno && opG.pulados.length > menorQtdPulos) continue;
-                    const pool = [...stars, ...opG.selecionados];
-                    if (pool.length !== total) continue;
-
-                    for (const idxA of combinacoesIndices(pool.length, precisaA)) {
-                        const setA = new Set(idxA);
-                        const addA = pool.filter((_, i) => setA.has(i));
-                        const addB = pool.filter((_, i) => !setA.has(i));
-                        const finalA = [...baseA, ...addA];
-                        const finalB = [...baseB, ...addB];
-
-                        if (!timeRespeitaConfiguracaoBalanceamento(finalA) || !timeRespeitaConfiguracaoBalanceamento(finalB)) continue;
-                        if (opcoes.apenasMinimoEstrelas) {
-                            const minimo = Math.max(0, Number(game.config?.minStars ?? 1) || 0);
-                            if (finalA.filter(p => p.estrela).length !== minimo || finalB.filter(p => p.estrela).length !== minimo) continue;
+            // Expande somente se nenhuma formação válida existir; nunca ignora requisito.
+            for (let limite = Math.min(fila.length, baseJanela); limite <= Math.min(fila.length, Math.max(24,total+6)); limite++) {
+                let pool = janelaComReservas(fila,total,limite);
+                if (pool.length > Math.max(total+5, 14)) {
+                    const fixos = pool.filter(p=>p.reservaFormacao);
+                    const maxPool = Math.max(total>=12 ? total : 14,fixos.length);
+                    const outros = pool.filter(p=>!p.reservaFormacao);
+                    const vagas = Math.max(0,maxPool-fixos.length);
+                    const primeiras = outros.slice(0,Math.max(0,vagas-3));
+                    const nomesPrimeiras = new Set(primeiras.map(p=>p.nome));
+                    // Preserva os primeiros da fila e inclui candidatos recentes
+                    // para encontrar categoria necessária além da janela.
+                    const finais = outros.filter(p=>!nomesPrimeiras.has(p.nome)).slice(-Math.max(0,vagas-primeiras.length));
+                    pool = [...fixos,...primeiras,...finais];
+                }
+                const indicesEscolha = combinacoesIndices(pool.length,total);
+                const indicesTimes = combinacoesIndices(total,precisaA);
+                const indiceFila = new Map(fila.map((p,i)=>[p.nome,i]));
+                const prioridades = pool.filter(p=>p.reservaFormacao).map(p=>p.nome);
+                for (const indices of indicesEscolha) {
+                    const conjunto = indices.map(i=>pool[i]);
+                    const nomes = new Set(conjunto.map(p=>p.nome));
+                    const faltamPrioritarios = prioridades.filter(n=>!nomes.has(n)).length;
+                    const pulados = pool.filter(p=>!nomes.has(p.nome));
+                    const retirados = conjunto.filter(p=>evitarRetorno.has(p.nome)).length;
+                    const custoFila = conjunto.reduce((v,p)=>v+(indiceFila.get(p.nome)||0),0);
+                    for (const partesA of indicesTimes) {
+                        const pickA = new Set(partesA);
+                        const addA = conjunto.filter((_,i)=>pickA.has(i));
+                        const addB = conjunto.filter((_,i)=>!pickA.has(i));
+                        const a = [...baseA,...addA], b = [...baseB,...addB];
+                        // Equipe adversária que já estava em quadra não pode ser
+                        // reprovada por uma configuração alterada durante a sessão.
+                        if ((baseA.length!==size && !timeRespeitaConfiguracaoBalanceamento(a,baseB.length===size?baseB:null)) ||
+                            (baseB.length!==size && !timeRespeitaConfiguracaoBalanceamento(b,baseA.length===size?baseA:null))) continue;
+                        const diferenca = Math.abs(calcularScoreEquipe(a)-calcularScoreEquipe(b));
+                        const retorno = retirados;
+                        const repetidos = penalidadeParceiros(a)+penalidadeParceiros(b);
+                        // Se uma Estrela já equilibra o adversário sem Diamante,
+                        // essa composição tem preferência na exceção solicitada.
+                        const rivalFixo = baseA.length===size ? a : (baseB.length===size ? b : null);
+                        const novoTime = baseA.length===size ? b : (baseB.length===size ? a : null);
+                        const contagemNovo = novoTime ? categoriasDoTime(novoTime) : null;
+                        const tolerancia = rivalFixo ? Math.max(3,Math.abs(calcularScoreEquipe(rivalFixo))*0.15) : 0;
+                        const estrelaEquilibradaSemDiamante = !!(rivalFixo && contagemNovo?.estrela>0 &&
+                            contagemNovo.diamante===0 && diferenca<=tolerancia);
+                        // Ordem lexicográfica: prioridade > evitar retorno > justiça na fila > equilíbrio.
+                        // A janela permite ultrapassar alguns jogadores para ajustar os scores.
+                        const chave = [faltamPrioritarios, retorno, custoFila / Math.max(1,total), diferenca,
+                            repetidos];
+                        // Quando há rival fixo, score vem antes do custo pequeno da posição.
+                        if (baseA.length===size || baseB.length===size) {
+                            chave.splice(2,2,estrelaEquilibradaSemDiamante ? -1 : 0,
+                                diferenca,custoFila / Math.max(1,total));
+                        } else if (baseA.length && baseB.length) {
+                            chave.splice(2,2,diferenca,custoFila / Math.max(1,total));
                         }
-
-                        const diff = Math.abs(calcularScoreEquipe(finalA) - calcularScoreEquipe(finalB));
-                        const pulos = opG.pulados.length;
-
-                        const retornos = evitarRetorno ? pool.filter(p => evitarRetorno.has(p.nome)).length : 0;
-                        // Em Sair Ambos, minimizar retornos precede otimizar score;
-                        // só depois disso considerar quantidade de diamantes pulados.
-                        const preferivel = retornos < menorQtdRetornos ||
-                            (retornos === menorQtdRetornos && (pulos < menorQtdPulos ||
-                            (pulos === menorQtdPulos && (!melhor || diff < melhor.diff - 0.0001))));
-                        if (preferivel) {
-                            menorQtdRetornos = retornos;
-                            menorQtdPulos = pulos;
-                            melhor = { addA, addB, pulados: [...opG.pulados], diff, retornos };
-                        }
+                        // Evita que equipes recém-saídas repitam parceiros com scores idênticos.
+                        const sol = {addA,addB,pulados, diff:diferenca,chave};
+                        if (!melhor || compararChaves(chave,melhor.chave)<0) melhor=sol;
                     }
                 }
+                if (melhor) return melhor;
             }
-
             return melhor;
         }
-
-        function aplicarComplementoJogadorPorJogador(baseA, baseB, complemento) {
-            game.timeA = [...baseA];
-            game.timeB = [...baseB];
-
-            const pendA = [...(complemento?.addA || [])];
-            const pendB = [...(complemento?.addB || [])];
-
-            complemento?.pulados?.forEach(p => {
-                p.prioridadeFila = true;
+        function compararChaves(a,b) {
+            for (let i=0;i<Math.max(a.length,b.length);i++) {
+                if (Math.abs((a[i]||0)-(b[i]||0))>0.0001) return a[i]<b[i]?-1:1;
+            }
+            return 0;
+        }
+        function registrarPrioridadeDeUltrapassagem(filaAntes, escolhidos, vagasDaFila) {
+            // A janela 6/8 SOMENTE aumenta as opções para balancear o time.
+            // Direito à vez é definido exclusivamente pelas primeiras vagas da fila:
+            // 4 ao completar um time, 8 ao criar dois times completos (com tamanho 4).
+            // Ao dividir vencedores, contam apenas as vagas ainda abertas na quadra.
+            const escolhidosNomes = new Set(escolhidos.map(p => p.nome));
+            const comDireitoAVez = filaAntes.slice(0, vagasDaFila);
+            comDireitoAVez.forEach((p, indice) => {
+                if (p.bloqueado || escolhidosNomes.has(p.nome)) return;
+                p.reservaFormacao = true;
+                // Metadados apenas para auditoria: janela extra nunca gera prioridade.
+                p.reservaPosicaoOriginal = indice + 1;
+                p.reservaVagasOriginais = vagasDaFila;
+                p.vezesIgnorado = (Number(p.vezesIgnorado) || 0) + 1;
             });
-
-            const removerSelecionado = (p) => {
-                removerDaFilaPorNome(p.estrela ? game.esperaEstrela : game.esperaGeral, p.nome);
+            // Não marcar candidatos extras não escolhidos. Se algum já tinha
+            // prioridade legítima de uma formação ANTERIOR, mantê-la intacta.
+        }
+        function aplicarFormacao(baseA,baseB,complemento) {
+            if (!complemento) return false;
+            const escolhidos = [...complemento.addA,...complemento.addB];
+            // Captura a ordem ANTES de tirar jogadores. Não se baseia no tamanho
+            // da janela de 6/8 nem em quantos candidatos foram examinados.
+            const filaAntes = candidatosDeFila().slice();
+            const vagasDaFila = escolhidos.length;
+            escolhidos.forEach(p => {
+                removerJogadorDasFilas(p.nome);
                 p.bloqueado = false;
+                p.reservaFormacao = false;
                 p.prioridadeFila = false;
-            };
-
-            // Insere um de cada vez. A cada passo, escolhe a inclusão que deixa
-            // a diferença momentânea de score menor entre as opções já validadas.
-            while (pendA.length || pendB.length) {
-                const opcoes = [];
-                pendA.forEach((p, i) => {
-                    const projA = [...game.timeA, p];
-                    opcoes.push({ lado:'A', i, p, diff: Math.abs(calcularScoreEquipe(projA) - calcularScoreEquipe(game.timeB)) });
-                });
-                pendB.forEach((p, i) => {
-                    const projB = [...game.timeB, p];
-                    opcoes.push({ lado:'B', i, p, diff: Math.abs(calcularScoreEquipe(game.timeA) - calcularScoreEquipe(projB)) });
-                });
-                opcoes.sort((a,b) => a.diff - b.diff);
-                const melhor = opcoes[0];
-                if (!melhor) break;
-
-                removerSelecionado(melhor.p);
-                if (melhor.lado === 'A') {
-                    game.timeA.push(melhor.p);
-                    pendA.splice(melhor.i, 1);
-                } else {
-                    game.timeB.push(melhor.p);
-                    pendB.splice(melhor.i, 1);
-                }
-            }
-
-            moverDiamantesParaInicioDaFila(complemento?.pulados || []);
+                delete p.reservaPosicaoOriginal;
+                delete p.reservaVagasOriginais;
+            });
+            registrarPrioridadeDeUltrapassagem(filaAntes, escolhidos, vagasDaFila);
+            game.timeA = [...baseA,...complemento.addA];
+            game.timeB = [...baseB,...complemento.addB];
             normalizarTodasAsFilas();
+            return true;
         }
-
+        function formarProximoTime(t) {
+            if (!Array.isArray(t) || t.length) return false;
+            const eA = t === game.timeA;
+            const baseA = eA ? [] : [...game.timeA];
+            const baseB = eA ? [...game.timeB] : [];
+            const sol = avaliarCandidato(baseA,baseB);
+            if (!sol) return false;
+            return aplicarFormacao(baseA,baseB,sol);
+        }
+        function misturarJogadoresRetornados(jogadores) {
+            const nomes = new Set(jogadores.map(p=>p.nome));
+            if (nomes.size<2) return;
+            const fila = modoFilaUnica() ? game.esperaUnica : null;
+            if (!fila) {
+                // No modo separado, cada categoria permanece na sua própria fila.
+                [game.esperaGeral,game.esperaEstrela].forEach(lista=>{
+                    const selecionados=lista.filter(p=>nomes.has(p.nome)).sort((a,b)=>scoreNumericoJogador(a)-scoreNumericoJogador(b));
+                    const outros=lista.filter(p=>!nomes.has(p.nome));
+                    lista.splice(0,lista.length,...outros.filter(p=>!p.bloqueado),...selecionados,...outros.filter(p=>p.bloqueado));
+                });
+                return;
+            }
+            const retornando = fila.filter(p=>nomes.has(p.nome));
+            const a = retornando.filter(p=>(jogadores.find(x=>x.nome===p.nome)||{})._equipeAntes==='A')
+                .sort((x,y)=>scoreNumericoJogador(x)-scoreNumericoJogador(y));
+            const b = retornando.filter(p=>(jogadores.find(x=>x.nome===p.nome)||{})._equipeAntes==='B')
+                .sort((x,y)=>scoreNumericoJogador(y)-scoreNumericoJogador(x));
+            const mesclados=[];
+            while(a.length||b.length) {
+                if(a.length) mesclados.push(a.shift());
+                if(b.length) mesclados.push(b.shift());
+            }
+            const anteriores = fila.filter(p=>!nomes.has(p.nome));
+            fila.splice(0,fila.length,...anteriores.filter(p=>!p.bloqueado),...mesclados,...anteriores.filter(p=>p.bloqueado));
+            mesclados.forEach(p=>{p.reservaFormacao=false;});
+        }
         function formarDoisTimesPorScore(recemSaidos = []) {
-            // Seleção conjunta: respeita as duas filas, não pula estrelas nem jogadores
-            // gerais, exceto diamantes quando necessários às regras vigentes.
-            // Evita reutilizar jogadores recém-saídos sempre que houver composição válida.
-            const tamanho = Number(game.config?.size || 4);
-            if (!Number.isInteger(tamanho) || tamanho < 1 || tamanho > 8) return false;
-            const evitarRetorno = new Set(recemSaidos.map(p => p.nome));
-            const solucao = encontrarComplementoMaisCompetitivo([], [], { evitarRetorno,
-                apenasMinimoEstrelas: !balanceamentoDiamanteEstrelaAtivo() });
-            if (!solucao) return false;
-            aplicarComplementoJogadorPorJogador([], [], solucao);
-            return game.timeA.length === tamanho && game.timeB.length === tamanho;
+            const evitar = new Set(recemSaidos.map(p=>p.nome));
+            const sol = avaliarCandidato([],[],{evitarRetorno:evitar});
+            return aplicarFormacao([],[],sol);
         }
-
-        function dividirVencedoresECompletar(venceu, vencedores) {
-            const tamanho = Number(game.config?.size || 4);
-            const ordenados = [...(vencedores || [])].sort((a,b) => scoreNumericoJogador(b) - scoreNumericoJogador(a));
-            if (!ordenados.length) return false;
-
-            let baseVencedor = [];
-            let baseOutro = [];
-
-            if (tamanho === 4 && ordenados.length >= 4) {
-                // Regra solicitada: melhor + pior ficam juntos; os dois do meio vão ao outro time.
-                baseVencedor = [ordenados[0], ordenados[ordenados.length - 1]];
-                baseOutro = ordenados.slice(1, -1).slice(0, 2);
-            } else {
-                // Compatibilidade com tamanhos diferentes de 4: mantém os extremos juntos
-                // e distribui os demais de forma alternada antes de completar pelas filas.
-                baseVencedor = [ordenados[0]];
-                if (ordenados.length > 1) baseVencedor.push(ordenados[ordenados.length - 1]);
-                ordenados.slice(1, -1).forEach((p, i) => (i % 2 === 0 ? baseOutro : baseVencedor).push(p));
-                baseVencedor = baseVencedor.slice(0, Math.ceil(tamanho / 2));
-                baseOutro = baseOutro.slice(0, Math.floor(tamanho / 2));
+        function dividirVencedoresECompletar(venceu,vencedores) {
+            const tamanho = Number(game.config?.size||4);
+            const ordem = [...vencedores].sort((a,b)=>scoreNumericoJogador(b)-scoreNumericoJogador(a));
+            if (ordem.length !== tamanho) return false;
+            const opcoes = tamanho===4 ? combinacoesIndices(tamanho,2) :
+                combinacoesIndices(tamanho,Math.ceil(tamanho/2));
+            let melhor=null;
+            for (const indices of opcoes) {
+                const selected = new Set(indices);
+                const v=ordem.filter((_,i)=>selected.has(i));
+                const o=ordem.filter((_,i)=>!selected.has(i));
+                const a=venceu==='A'?v:o, b=venceu==='B'?v:o;
+                const sol=avaliarCandidato(a,b);
+                if (!sol) continue;
+                const penalidade = penalidadeParceiros([...a,...sol.addA])+penalidadeParceiros([...b,...sol.addB]);
+                const valor=sol.diff+penalidade*0.1;
+                if (!melhor || valor<melhor.valor) melhor={a,b,sol,valor};
             }
-
-            let baseA = venceu === 'A' ? baseVencedor : baseOutro;
-            let baseB = venceu === 'B' ? baseVencedor : baseOutro;
-
-            let complemento = encontrarComplementoMaisCompetitivo(baseA, baseB);
-            if (!complemento && tamanho === 4 && ordenados.length === 4) {
-                // "Melhor + pior" pode inviabilizar a regra 2 💎 = 2 ⭐.
-                // Só nesses casos tentamos uma divisão alternativa (2 vencedores por lado).
-                let alternativa = null;
-                for (const indices of combinacoesIndices(4, 2)) {
-                    const grupo1 = indices.map(i => ordenados[i]);
-                    const grupo2 = ordenados.filter((_, i) => !indices.includes(i));
-                    const a = venceu === 'A' ? grupo1 : grupo2;
-                    const b = venceu === 'B' ? grupo1 : grupo2;
-                    const resultado = encontrarComplementoMaisCompetitivo(a, b);
-                    if (!resultado) continue;
-                    if (!alternativa || resultado.diff < alternativa.complemento.diff - 0.0001) {
-                        alternativa = { baseA: a, baseB: b, complemento: resultado };
-                    }
-                }
-                if (alternativa) {
-                    baseA = alternativa.baseA;
-                    baseB = alternativa.baseB;
-                    complemento = alternativa.complemento;
-                }
-            }
-            if (!complemento) {
-                // Não deixar times pela metade; devolve vencedores às filas.
-                vencedores.forEach(j => reposicionarJogadorNaFila(j));
-                game.timeA = [];
-                game.timeB = [];
-                return false;
-            }
-
-            aplicarComplementoJogadorPorJogador(baseA, baseB, complemento);
-            return game.timeA.length === tamanho && game.timeB.length === tamanho;
+            if (melhor) return aplicarFormacao(melhor.a,melhor.b,melhor.sol);
+            // Se não houver candidatos suficientes, nenhum time fica pela metade.
+            vencedores.forEach(p=>reposicionarJogadorNaFila(p));
+            game.timeA=[];game.timeB=[];
+            return false;
         }
 
         function obterTamanhoCicloSaque() {
@@ -2623,8 +2461,12 @@
                         tV.forEach(j => { garantirStatsJogador(j.nome, j).ptsBonusVitorias += premio; });
                         game.historicoPartidas[0].premiacao = { porJogador: premio, jogadores: tV.map(j => j.nome), motivo: 'Máximo de vitórias - Sair Ambos' };
                     }
-                    const recemSaidos = [...tD, ...tV];
+                    const recemSaidos = [
+                        ...tD.map(p=>({...p,_equipeAntes:venceu==='A'?'B':'A'})),
+                        ...tV.map(p=>({...p,_equipeAntes:venceu}))
+                    ];
                     tV.forEach(j => reposicionarJogadorNaFila(j));
+                    misturarJogadoresRetornados(recemSaidos);
                     game.timeA=[]; game.timeB=[];
                     normalizarTodasAsFilas();
                     divisaoAplicada = formarDoisTimesPorScore(recemSaidos);
@@ -2637,8 +2479,12 @@
             normalizarTodasAsFilas();
 
             if (!divisaoAplicada) {
-                if (game.timeA.length === 0) formarProximoTime(game.timeA);
-                if (game.timeB.length === 0) formarProximoTime(game.timeB);
+                if (game.timeA.length === 0 && game.timeB.length === 0) {
+                    formarDoisTimesPorScore();
+                } else {
+                    if (game.timeA.length === 0) formarProximoTime(game.timeA);
+                    if (game.timeB.length === 0) formarProximoTime(game.timeB);
+                }
             }
 
             normalizarTodasAsFilas();
@@ -2669,12 +2515,16 @@
         }
 
         function getPesosAtuais() {
-            return {
-                atqG: 1, blqG: 1, aceG: 1,
-                atqE: 1, blqE: 3, aceE: 1,
-                err: 0.1, vit: 0, wTeam: 0,
-                ...(game.weights || {})
-            };
+            const w = {atqG:1,blqG:1,aceG:1,atqE:1,blqE:3,aceE:1,
+                atqD:1,blqD:1,aceD:1,err:0.1,vit:0,wTeam:0,...(game.weights||{})};
+            // Migra pesos globais existentes sem alterar o score das sessões antigas.
+            ['G','E','D'].forEach(cat=>{
+                ['err','vit','wTeam'].forEach(ch=>{
+                    const novo=ch+cat;
+                    if(w[novo]===undefined) w[novo]=w[ch];
+                });
+            });
+            return w;
         }
 
         function pesoNumero(valor, fallback = 0) {
@@ -2687,12 +2537,12 @@
             if(!s) return '0.00';
             const w = getPesosAtuais();
             const score =
-                pesoNumero(s.v) * pesoNumero(w.vit) +
-                pesoNumero(s.ptsAtaque) * pesoNumero(s.estrela ? w.atqE : w.atqG, 1) +
-                pesoNumero(s.ptsBloqueio) * pesoNumero(s.estrela ? w.blqE : w.blqG, s.estrela ? 3 : 1) +
-                pesoNumero(s.ptsAce) * pesoNumero(s.estrela ? w.aceE : w.aceG, 1) +
-                pesoNumero(s.ptsErroAdversario) * pesoNumero(w.err, 0.1) +
-                pesoNumero(s.ptsAcertoTime) * pesoNumero(w.wTeam) +
+                pesoNumero(s.v) * pesoNumero(s.elite?w.vitD:s.estrela?w.vitE:w.vitG) +
+                pesoNumero(s.ptsAtaque) * pesoNumero(s.elite ? w.atqD : (s.estrela ? w.atqE : w.atqG), 1) +
+                pesoNumero(s.ptsBloqueio) * pesoNumero(s.elite ? w.blqD : (s.estrela ? w.blqE : w.blqG), 1) +
+                pesoNumero(s.ptsAce) * pesoNumero(s.elite ? w.aceD : (s.estrela ? w.aceE : w.aceG), 1) +
+                pesoNumero(s.ptsErroAdversario) * pesoNumero(s.elite?w.errD:s.estrela?w.errE:w.errG,0.1) +
+                pesoNumero(s.ptsAcertoTime) * pesoNumero(s.elite?w.wTeamD:s.estrela?w.wTeamE:w.wTeamG) +
                 pesoNumero(s.ptsBonusVitorias);
             return score.toFixed(2);
         }
@@ -2705,9 +2555,9 @@
             document.getElementById('modalNomeTec').innerText = p.nome;
             if(isAdmin) {
                 const w = getPesosAtuais();
-                document.getElementById('labelAtq').innerText = "+" + (p.estrela?w.atqE:w.atqG);
-                document.getElementById('labelBlq').innerText = "+" + (p.estrela?w.blqE:w.blqG);
-                document.getElementById('labelAce').innerText = "+" + (p.estrela?w.aceE:w.aceG);
+                document.getElementById('labelAtq').innerText = "+" + (p.elite?w.atqD:p.estrela?w.atqE:w.atqG);
+                document.getElementById('labelBlq').innerText = "+" + (p.elite?w.blqD:p.estrela?w.blqE:w.blqG);
+                document.getElementById('labelAce').innerText = "+" + (p.elite?w.aceD:p.estrela?w.aceE:w.aceG);
                 const btn = document.getElementById('btnAceTec');
                 if(!(game.saqueLado === l && (l==='A'?game.idxA:game.idxB) === i)) {
                     btn.classList.add('opacity-50','pointer-events-none');
@@ -2743,7 +2593,8 @@
         window.abrirEscalacao = (tab, idx) => {
             if(!isAdmin) return;
             normalizarTodasAsFilas();
-            const l = tab === 'geral' ? game.esperaGeral : game.esperaEstrela;
+            const l = tab === 'unica' ? game.esperaUnica : tab === 'geral' ? game.esperaGeral : game.esperaEstrela;
+            if (!l?.[idx]) return;
             modalCtx = { pFila: l[idx], idxFila: idx, tabFila: tab };
             document.getElementById('modalNomeFila').innerText = modalCtx.pFila.nome;
             const btn = document.getElementById('btnStatusBloqueio');
@@ -2757,20 +2608,10 @@
 
             const catAtual = modalCtx.pFila.estrela ? 'estrela' : (modalCtx.pFila.elite ? 'diamante' : 'geral');
             const catBox = document.getElementById('filaCategoriaAcoes');
-            if(catBox) {
-                let acoes = '';
-                if(catAtual === 'estrela') {
-                    acoes = '<button onclick="window.mudarCategoriaFila(\'geral\')" class="w-full h-11 bg-slate-700 hover:bg-slate-600 rounded-xl text-[10px] font-black uppercase border border-slate-600">Promover para GERAL</button>';
-                } else if(catAtual === 'diamante') {
-                    acoes = '<button onclick="window.mudarCategoriaFila(\'geral\')" class="w-full h-11 bg-slate-700 hover:bg-slate-600 rounded-xl text-[10px] font-black uppercase border border-slate-600">Mudar para Geral</button>';
-                } else {
-                    acoes = '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">' +
-                        '<button onclick="window.mudarCategoriaFila(\'diamante\')" class="w-full h-11 bg-slate-700 hover:bg-slate-600 rounded-xl text-[10px] font-black uppercase border border-slate-600">Promover para Diamante</button>' +
-                        '<button onclick="window.mudarCategoriaFila(\'estrela\')" class="w-full h-11 bg-slate-700 hover:bg-slate-600 rounded-xl text-[10px] font-black uppercase border border-slate-600">Mudar para Estrela</button>' +
-                    '</div>';
-                }
-                catBox.innerHTML = acoes;
-            }
+            if (catBox) catBox.innerHTML = ['geral','diamante','estrela']
+                .filter(cat=>cat!==catAtual).map(cat=>
+                    '<button onclick="window.mudarCategoriaFila(\'' + cat + '\')" class="w-full h-11 bg-slate-700 rounded-xl text-[10px] font-black uppercase border border-slate-600">Alterar para ' +
+                    ({geral:'GERAL',diamante:'DIAMANTE 💎',estrela:'ESTRELA ⭐'}[cat]) + '</button>').join('');
 
             const gen = (t, side) => {
                 let parts = [];
@@ -2787,7 +2628,7 @@
         window.substituirJogador = (side, idx) => {
             const t = side === 'A' ? game.timeA : game.timeB;
             const sai = t.splice(idx, 1)[0];
-            const entra = (modalCtx.tabFila === 'geral' ? game.esperaGeral : game.esperaEstrela).splice(modalCtx.idxFila, 1)[0];
+            const entra = (modalCtx.tabFila === 'unica' ? game.esperaUnica : modalCtx.tabFila === 'geral' ? game.esperaGeral : game.esperaEstrela).splice(modalCtx.idxFila, 1)[0];
             entra.bloqueado = false;
             t.splice(idx, 0, entra);
             reposicionarJogadorNaFila(sai);
@@ -2798,7 +2639,7 @@
         window.escalarParaTime = (lado) => {
             const t = lado === 'A' ? game.timeA : game.timeB;
             if(t.length < game.config.size) {
-                const l = modalCtx.tabFila === 'geral' ? game.esperaGeral : game.esperaEstrela;
+                const l = modalCtx.tabFila === 'unica' ? game.esperaUnica : modalCtx.tabFila === 'geral' ? game.esperaGeral : game.esperaEstrela;
                 const p = l.splice(modalCtx.idxFila, 1)[0];
                 p.bloqueado = false;
                 t.push(p);
@@ -2978,23 +2819,25 @@
         };
 
         function renderLeaders() {
-            const pl = Object.entries(game.ranking || {}).map(([n, s]) => { return { n, ...s, score: parseFloat(calcularScoreComPesos(s)) }; });
-            const cats = [ {t:"Top Score", i:"🥇", f:p=>p.score}, {t:"Matador", i:"🔥", f:p=>p.ptsAtaque||0}, {t:"Paredão", i:"🚫", f:p=>p.ptsBloqueio||0}, {t:"Ace", i:"⚡", f:p=>p.ptsAce||0}, {t:"Vitórias", i:"🏆", f:p=>p.v||0} ];
-            let htmlParts = [];
+            const pl = Object.entries(game.ranking || {}).map(([n, s]) => ({ n, ...s, score: Number(calcularScoreComPesos(s)) }));
+            const cats = [ {t:'Top Score',i:'🥇',f:p=>p.score}, {t:'Matador',i:'🔥',f:p=>p.ptsAtaque||0},
+                {t:'Paredão',i:'🚫',f:p=>p.ptsBloqueio||0}, {t:'Ace',i:'⚡',f:p=>p.ptsAce||0},
+                {t:'Vitórias',i:'🏆',f:p=>p.v||0} ];
+            let parts = [];
             cats.forEach(c => {
-                const sortList = (l) => [...l].sort((a,b) => c.f(b) - c.f(a));
-                const listG = sortList(pl.filter(x => !x.estrela)); const listE = sortList(pl.filter(x => x.estrela));
-                const maxG = listG.length ? c.f(listG[0]) : 0; const maxE = listE.length ? c.f(listE[0]) : 0;
-                if(maxG === 0 && maxE === 0) return;
-                const winnersG = listG.filter(p => c.f(p) === maxG).map(p => escapeHtml(p.n)).join(', ');
-                const winnersE = listE.filter(p => c.f(p) === maxE).map(p => escapeHtml(p.n)).join(', ');
-                const destacaG = maxG > 0 && maxG >= maxE;
-                const destacaE = maxE > 0 && maxE >= maxG;
-                const classeG = destacaG ? 'border border-amber-400 bg-amber-500/10 shadow-[0_0_12px_rgba(251,191,36,.18)]' : 'border border-transparent bg-slate-700/30';
-                const classeE = destacaE ? 'border border-amber-400 bg-amber-500/10 shadow-[0_0_12px_rgba(251,191,36,.18)]' : 'border border-transparent bg-slate-700/30';
-                htmlParts.push('<div class="bg-slate-800 p-3 rounded mb-2"><div class="text-xs text-slate-400 mb-2 font-bold tracking-widest">' + c.i + c.t + '</div><div class="grid grid-cols-2 gap-2 text-[10px]"><div class="' + classeG + ' p-2 rounded-lg"><div class="flex justify-between items-center mb-1"><span class="text-[8px] text-slate-400 font-black uppercase">Geral</span>' + (destacaG ? '<span title="Maior valor">🏅</span>' : '') + '</div><div class="flex justify-between gap-2"><span class="text-orange-500 font-black truncate">' + (maxG>0 ? winnersG : '-') + '</span><span class="text-white font-black">' + (maxG>0 ? maxG : '') + '</span></div></div><div class="' + classeE + ' p-2 rounded-lg"><div class="flex justify-between items-center mb-1"><span class="text-[8px] text-slate-400 font-black uppercase">Estrela ⭐</span>' + (destacaE ? '<span title="Maior valor">🏅</span>' : '') + '</div><div class="flex justify-between gap-2"><span class="text-orange-500 font-black truncate">' + (maxE>0 ? winnersE : '-') + '</span><span class="text-white font-black">' + (maxE>0 ? maxE : '') + '</span></div></div></div></div>');
+                const grupos = [pl.filter(p=>!p.elite), pl.filter(p=>p.elite)];
+                const h = grupos.map((l, i) => {
+                    const list = [...l].sort((a,b)=>c.f(b)-c.f(a));
+                    const max = list.length ? c.f(list[0]) : 0;
+                    return '<div class="bg-slate-700/40 p-3 rounded-lg"><div class="text-[9px] font-black text-slate-300 mb-1">' +
+                        (i ? 'Diamantes 💎' : 'Geral + Estrelas ⭐') + '</div><div class="text-[10px] font-black text-orange-400">' +
+                        (max > 0 ? list.filter(p=>c.f(p)===max).map(p=>escapeHtml(p.n)).join(', ') : '—') +
+                        '</div><div class="text-xs font-bold">' + (max || '') + '</div></div>';
+                });
+                parts.push('<div class="bg-slate-800 p-3 rounded-lg mb-2"><div class="text-xs text-slate-300 font-bold mb-2">' +
+                    c.i + ' ' + c.t + '</div><div class="grid grid-cols-2 gap-2">' + h.join('') + '</div></div>');
             });
-            document.getElementById('leadersGrid').innerHTML = htmlParts.join('');
+            document.getElementById('leadersGrid').innerHTML = parts.join('');
         }
 
         function timeEmMatchBonus(lado) {
@@ -3052,28 +2895,39 @@
             document.getElementById('areaA').innerHTML = drawTeam('A'); document.getElementById('areaB').innerHTML = drawTeam('B');
             document.getElementById('labelTimeA').innerHTML = 'Time A <span class="block text-[8px] text-blue-300/70 mt-1">Score: ' + calcularScoreEquipe(game.timeA).toFixed(2) + '</span>'; document.getElementById('labelTimeB').innerHTML = 'Time B <span class="block text-[8px] text-orange-300/70 mt-1">Score: ' + calcularScoreEquipe(game.timeB).toFixed(2) + '</span>';
             
-            const f = filaTab === 'geral' ? (game.esperaGeral||[]) : (game.esperaEstrela||[]);
-            if (f.length) {
-                let fParts = [];
-                f.forEach((p, i) => {
-                    const blockText = p.bloqueado ? '<span class="text-[8px] text-red-400 font-bold ml-1 tracking-widest">(BLOQUEADO)</span>' : ''; const safeName = escapeHtml(p.nome);
-                    let eventClick = isAdmin ? 'onclick="window.abrirEscalacao(\'' + filaTab + '\', ' + i + ')"' : 'onclick="window.abrirPerfilJogador(this.getAttribute(\'data-player-name\'))"';
-                    fParts.push('<div data-id="' + p.id + '" data-player-name="' + safeName + '" ' + eventClick + ' class="bg-slate-800 p-3 rounded-xl flex items-center border border-slate-700 ' + (p.bloqueado ? 'is-bloqueado' : '') + ' cursor-pointer hover:bg-slate-700/60"><div class="flex-1 text-[10px] font-black uppercase text-slate-300 py-2">' + (p.estrela ? '⭐ ' : '') + (p.elite ? '💎 ' : '') + safeName + ' ' + blockText + '</div><div class="text-[9px] text-slate-500">❯</div></div>');
-                });
-                if(isAdmin) { const placeholderFila = filaTab === 'geral' ? 'Adicionar jogador à Fila Geral — Enter' : 'Adicionar jogador à Fila Estrelas — Enter'; fParts.push('<div class="admin-only-control mt-3"><input id="filaAddInput" type="text" maxlength="40" autocomplete="off" placeholder="' + placeholderFila + '" class="config-input h-11 text-[10px] uppercase" onkeydown="if(event.key===\'Enter\'){event.preventDefault(); const v=this.value; this.value=\'\'; window.adicionarNaFila(\'' + filaTab + '\', v);}"></div>'); }
-                document.getElementById('esperaContainer').innerHTML = fParts.join('');
-            } else {
-                let htmlFila = '<div class="text-center text-slate-600 text-[10px] py-4 italic">Fila vazia...</div>';
-                if(isAdmin) { const placeholderFila = filaTab === 'geral' ? 'Adicionar jogador à Fila Geral — Enter' : 'Adicionar jogador à Fila Estrelas — Enter'; htmlFila += '<div class="admin-only-control mt-3"><input id="filaAddInput" type="text" maxlength="40" autocomplete="off" placeholder="' + placeholderFila + '" class="config-input h-11 text-[10px] uppercase" onkeydown="if(event.key===\'Enter\'){event.preventDefault(); const v=this.value; this.value=\'\'; window.adicionarNaFila(\'' + filaTab + '\', v);}"></div>'; }
-                document.getElementById('esperaContainer').innerHTML = htmlFila;
-            }
-            const todos = [...(game.timeA||[]), ...(game.timeB||[])];
-            document.getElementById('countGeral').innerText = (game.esperaGeral||[]).filter(j=>!j.bloqueado).length + todos.filter(j=>!j.estrela).length;
-            document.getElementById('countEstrela').innerText = (game.esperaEstrela||[]).filter(j=>!j.bloqueado).length + todos.filter(j=>j.estrela).length;
-            document.getElementById('tabGeral').className = "text-[10px] font-black uppercase px-4 py-2 rounded-lg transition " + (filaTab === 'geral' ? 'tab-active shadow-lg' : 'bg-slate-700 hover:bg-slate-600');
-            document.getElementById('tabEstrela').className = "text-[10px] font-black uppercase px-4 py-2 rounded-lg transition " + (filaTab === 'estrela' ? 'tab-active shadow-lg' : 'bg-slate-700 hover:bg-slate-600');
-            
-            const rk = Object.entries(game.ranking||[]).map(([n, s]) => { return { n, ...s, score: parseFloat(calcularScoreComPesos(s)) }; }).filter(x => { let isMatch = false; if(rkTab === 'tudo') isMatch = true; else if(rkTab === 'estrela') isMatch = x.estrela; else isMatch = !x.estrela; return x.score > 0 && isMatch; }).sort((a,b) => b.score - a.score);
+            const unica = modoFilaUnica();
+            const tabs = document.getElementById('tabEstrela');
+            tabs.classList.toggle('hidden', unica);
+            document.getElementById('tabGeral').innerHTML = (unica ? 'Fila Única ' : 'Geral ') +
+                '<span id="countGeral" class="ml-1 opacity-50">0</span>';
+            if (unica) filaTab = 'geral';
+            const f = unica ? game.esperaUnica || [] : filaTab === 'geral' ? game.esperaGeral || [] : game.esperaEstrela || [];
+            const tabAtual = unica ? 'unica' : filaTab;
+            let fParts = [];
+            f.forEach((p,i) => {
+                const safeName = escapeHtml(p.nome);
+                const status = p.bloqueado ? '<span class="text-red-400 ml-1">(BLOQUEADO)</span>' :
+                    p.reservaFormacao ? '<span class="text-amber-400 ml-1">(PRIORIDADE)</span>' : '';
+                const evento = isAdmin ? 'onclick="window.abrirEscalacao(\'' + tabAtual + '\',' + i + ')"' :
+                    'onclick="window.abrirPerfilJogador(this.getAttribute(\'data-player-name\'))"';
+                fParts.push('<div data-player-name="' + safeName + '" ' + evento +
+                    ' class="bg-slate-800 p-3 rounded-xl flex items-center border border-slate-700 cursor-pointer ' +
+                    (p.bloqueado?'is-bloqueado':'') + '"><span class="flex-1 text-[10px] font-black uppercase">' +
+                    (p.estrela?'⭐ ':p.elite?'💎 ':'') + safeName + status + '</span><span class="text-slate-500">❯</span></div>');
+            });
+            if (!f.length) fParts.push('<div class="text-center text-slate-500 text-xs py-4">Fila vazia...</div>');
+            if (isAdmin) fParts.push('<div class="admin-only-control mt-3"><input id="filaAddInput" type="text" maxlength="40" autocomplete="off" placeholder="Adicionar jogador — Enter" class="config-input h-11 text-[10px] uppercase" onkeydown="if(event.key===\'Enter\'){event.preventDefault(); const v=this.value; this.value=\'\'; window.adicionarNaFila(\'' + tabAtual + '\',v);}"></div>');
+            document.getElementById('esperaContainer').innerHTML = fParts.join('');
+            const todos = [...(game.timeA||[]),...(game.timeB||[])];
+            document.getElementById('countGeral').innerText = unica ? (game.esperaUnica||[]).filter(p=>!p.bloqueado).length + todos.length :
+                (game.esperaGeral||[]).filter(p=>!p.bloqueado).length + todos.filter(p=>!p.estrela).length;
+            document.getElementById('countEstrela').innerText = (game.esperaEstrela||[]).filter(p=>!p.bloqueado).length + todos.filter(p=>p.estrela).length;
+            document.getElementById('tabGeral').className = 'text-[10px] font-black uppercase px-4 py-2 rounded-lg transition ' +
+                (filaTab==='geral'?'tab-active shadow-lg':'bg-slate-700 hover:bg-slate-600');
+            document.getElementById('tabEstrela').className = 'text-[10px] font-black uppercase px-4 py-2 rounded-lg transition ' +
+                (filaTab==='estrela'?'tab-active shadow-lg':'bg-slate-700 hover:bg-slate-600') + (unica?' hidden':'');
+
+            const rk = Object.entries(game.ranking||[]).map(([n, s]) => { return { n, ...s, score: parseFloat(calcularScoreComPesos(s)) }; }).filter(x => { let isMatch = false; if(rkTab === 'tudo') isMatch = true; else if(rkTab === 'diamante') isMatch = x.elite; else isMatch = !x.elite; return x.score > 0 && isMatch; }).sort((a,b) => b.score - a.score);
             let rkParts = [];
             rk.forEach((j, i) => {
                 let recEmojis = ""; if(sessionEmojis[j.n]) recEmojis = formatarElogios(j.n); const safeName = escapeHtml(j.n);
