@@ -1277,55 +1277,48 @@
         async function computarESalvarInsigneas() {
             if (!game.ranking || !currentShortId) return;
 
-            // Mantém a divisão existente do Ranking Master / Hall da Fama:
-            // Geral + Estrela concorrem juntos; Diamantes concorrem entre si.
+            // Uma única disputa por insígnia entre TODOS os jogadores,
+            // independentemente da coluna (Geral + Estrelas ou Diamantes).
+            // Empates na maior marca recebem a mesma insígnia.
             const jogadores = Object.entries(game.ranking).map(([nome, stats]) => ({
                 nome,
                 ...stats,
                 scorePremiacao: Number(Number(calcularScoreComPesos(stats)).toFixed(2))
             }));
-            const grupos = [
-                jogadores.filter(j => !j.elite),
-                jogadores.filter(j => j.elite)
-            ];
             const numero = valor => {
                 const n = Number(valor);
                 return Number.isFinite(n) ? n : 0;
             };
             const premiados = new Map();
-            const premiarEmpatados = (grupo, tipo, valorDeReferencia) => {
-                const maior = Math.max(0, ...grupo.map(j => numero(valorDeReferencia(j))));
+            const adicionarPremio = (jogador, tipo) => {
+                if (!premiados.has(jogador.nome)) premiados.set(jogador.nome, new Set());
+                premiados.get(jogador.nome).add(tipo);
+            };
+            const premiarEmpatados = (tipo, valorDeReferencia) => {
+                const maior = Math.max(0, ...jogadores.map(j => numero(valorDeReferencia(j))));
                 if (maior <= 0) return;
-                grupo.filter(j => numero(valorDeReferencia(j)) === maior).forEach(j => {
-                    if (!premiados.has(j.nome)) premiados.set(j.nome, new Set());
-                    premiados.get(j.nome).add(tipo);
-                });
+                jogadores.filter(j => numero(valorDeReferencia(j)) === maior)
+                    .forEach(j => adicionarPremio(j, tipo));
             };
-            const premiarPosicao = (grupo, posicao, tipo) => {
-                // Empatados ocupam a mesma colocação. A próxima medalha é para
-                // o próximo score distinto (ex.: 50, 50, 40 => dois 1º e um 2º).
-                const scoresDistintos = [...new Set(grupo.map(j => numero(j.scorePremiacao)))]
+            const premiarPosicao = (posicao, tipo) => {
+                // Colocações calculadas globalmente, por score distinto.
+                const scores = [...new Set(jogadores.map(j => numero(j.scorePremiacao)))]
                     .filter(score => score > 0).sort((a, b) => b - a);
-                const scoreDaPosicao = scoresDistintos[posicao - 1];
-                if (scoreDaPosicao === undefined) return;
-                grupo.filter(j => numero(j.scorePremiacao) === scoreDaPosicao).forEach(j => {
-                    if (!premiados.has(j.nome)) premiados.set(j.nome, new Set());
-                    premiados.get(j.nome).add(tipo);
-                });
+                const valor = scores[posicao - 1];
+                if (valor === undefined) return;
+                jogadores.filter(j => numero(j.scorePremiacao) === valor)
+                    .forEach(j => adicionarPremio(j, tipo));
             };
 
-            for (const grupo of grupos) {
-                premiarEmpatados(grupo, 'topScore', j => j.scorePremiacao);
-                premiarEmpatados(grupo, 'matador', j => j.ptsAtaque);
-                premiarEmpatados(grupo, 'paredao', j => j.ptsBloqueio);
-                premiarEmpatados(grupo, 'ace', j => j.ptsAce);
-                premiarEmpatados(grupo, 'vitorias', j => j.v);
-                premiarPosicao(grupo, 2, 'second');
-                premiarPosicao(grupo, 3, 'third');
-            }
+            premiarEmpatados('topScore', j => j.scorePremiacao);
+            premiarEmpatados('matador', j => j.ptsAtaque);
+            premiarEmpatados('paredao', j => j.ptsBloqueio);
+            premiarEmpatados('ace', j => j.ptsAce);
+            premiarEmpatados('vitorias', j => j.v);
+            premiarPosicao(2, 'second');
+            premiarPosicao(3, 'third');
 
-            // Adiciona uma conquista por tipo a cada premiado, sem apagar
-            // conquistas acumuladas de eventos anteriores no Firebase.
+            // Preserva as conquistas anteriores; acrescenta apenas as deste evento.
             for (const [nome, tipos] of premiados) {
                 if (!globalBadges[nome]) globalBadges[nome] = {};
                 for (const tipo of tipos) {
@@ -2819,20 +2812,36 @@
         };
 
         function renderLeaders() {
-            const pl = Object.entries(game.ranking || {}).map(([n, s]) => ({ n, ...s, score: Number(calcularScoreComPesos(s)) }));
-            const cats = [ {t:'Top Score',i:'🥇',f:p=>p.score}, {t:'Matador',i:'🔥',f:p=>p.ptsAtaque||0},
-                {t:'Paredão',i:'🚫',f:p=>p.ptsBloqueio||0}, {t:'Ace',i:'⚡',f:p=>p.ptsAce||0},
-                {t:'Vitórias',i:'🏆',f:p=>p.v||0} ];
+            const pl = Object.entries(game.ranking || {}).map(([n, s]) => ({
+                n, ...s, score: Number(Number(calcularScoreComPesos(s)).toFixed(2))
+            }));
+            const cats = [
+                {t:'Top Score',i:'🥇',f:p=>p.score},
+                {t:'Matador',i:'🔥',f:p=>p.ptsAtaque||0},
+                {t:'Paredão',i:'🚫',f:p=>p.ptsBloqueio||0},
+                {t:'Ace',i:'⚡',f:p=>p.ptsAce||0},
+                {t:'Vitórias',i:'🏆',f:p=>p.v||0}
+            ];
             let parts = [];
             cats.forEach(c => {
+                const maiorGeral = Math.max(0, ...pl.map(p => Number(c.f(p)) || 0));
                 const grupos = [pl.filter(p=>!p.elite), pl.filter(p=>p.elite)];
                 const h = grupos.map((l, i) => {
                     const list = [...l].sort((a,b)=>c.f(b)-c.f(a));
-                    const max = list.length ? c.f(list[0]) : 0;
-                    return '<div class="bg-slate-700/40 p-3 rounded-lg"><div class="text-[9px] font-black text-slate-300 mb-1">' +
-                        (i ? 'Diamantes 💎' : 'Geral + Estrelas ⭐') + '</div><div class="text-[10px] font-black text-orange-400">' +
-                        (max > 0 ? list.filter(p=>c.f(p)===max).map(p=>escapeHtml(p.n)).join(', ') : '—') +
-                        '</div><div class="text-xs font-bold">' + (max || '') + '</div></div>';
+                    const max = list.length ? Number(c.f(list[0])) || 0 : 0;
+                    const vencedor = max > 0 && max === maiorGeral;
+                    const nomes = max > 0
+                        ? list.filter(p=>Number(c.f(p))===max).map(p=>escapeHtml(p.n)).join(', ')
+                        : '—';
+                    return '<div class="p-3 rounded-lg ' +
+                        (vencedor ? 'bg-amber-500/10 border border-amber-500/60' : 'bg-slate-700/40 border border-transparent') +
+                        '"><div class="text-[9px] font-black text-slate-300 mb-1">' +
+                        (i ? 'Diamantes 💎' : 'Geral + Estrelas ⭐') +
+                        (vencedor ? ' · 🏅 VENCEDOR' : '') +
+                        '</div><div class="text-[10px] font-black ' +
+                        (vencedor ? 'text-orange-400' : 'text-slate-400') + '">' +
+                        nomes + '</div><div class="text-xs font-bold">' +
+                        (max || '') + '</div></div>';
                 });
                 parts.push('<div class="bg-slate-800 p-3 rounded-lg mb-2"><div class="text-xs text-slate-300 font-bold mb-2">' +
                     c.i + ' ' + c.t + '</div><div class="grid grid-cols-2 gap-2">' + h.join('') + '</div></div>');
