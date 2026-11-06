@@ -30,6 +30,7 @@
         .hidden { display: none !important; }
         .admin-only-control { display: none !important; }
         body.is-admin .admin-only-control { display: block !important; }
+        body.is-admin .admin-only-control.hidden { display: none !important; }
         .admin-section { display: none; } 
         body.is-admin .admin-section, body.show-public .admin-section { display: block; }
         .player-readonly { pointer-events: none; }
@@ -82,7 +83,7 @@
 
     <header class="p-4 bg-slate-800 sticky top-0 shadow-2xl z-40 border-b border-slate-700">
         <div class="flex justify-between items-center max-w-md mx-auto mb-3">
-            <h1 id="apitoArea" onpointerdown="window.iniciarApito(event)" onpointerup="window.pararApito(event)" onpointercancel="window.pararApito(event)" onpointerleave="window.pararApito(event)" title="Pressione Vôlei Hub para apitar" class="text-orange-500 font-black text-lg italic uppercase tracking-tighter select-none cursor-pointer" style="touch-action:none;">
+            <h1 id="apitoArea" onpointerdown="window.iniciarApito(event)" onpointerup="window.pararApito(event)" onpointercancel="window.pararApito(event)" onlostpointercapture="window.pararApito(event)" title="Pressione Vôlei Hub para apitar" class="text-orange-500 font-black text-lg italic uppercase tracking-tighter select-none cursor-pointer" style="touch-action:none;-webkit-user-select:none;user-select:none;">
                 Vôlei Hub <span class="text-xs text-blue-400">PRO</span> 
                 <span id="displayEventId" class="text-[10px] ml-1 bg-slate-700 px-2 py-0.5 rounded text-white tracking-widest font-bold hidden">#---</span>
             </h1>
@@ -292,7 +293,15 @@
             <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">ID Curto do Evento (Até 8 chars):</label>
             <input type="text" id="idNovoEvento" maxlength="8" placeholder="Ex: ABC12" class="config-input mb-3 h-12 text-sm uppercase">
             <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Nome do Evento:</label>
-            <input type="text" id="nomeNovoEvento" placeholder="Ex: Vôlei de Sábado" class="config-input mb-6 h-12 text-sm">
+            <input type="text" id="nomeNovoEvento" placeholder="Ex: Vôlei de Sábado" class="config-input mb-3 h-12 text-sm">
+            <label for="scoreFonteNovoEvento" class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Score para balanceamento:</label>
+            <select id="scoreFonteNovoEvento" class="config-input mb-2 h-12 text-sm">
+                <option value="ultimo" selected>Último evento</option>
+                <option value="mes">Este mês</option>
+                <option value="historico">Todo o histórico</option>
+                <option value="nenhum">Somente este evento (sem histórico)</option>
+            </select>
+            <p class="text-[9px] text-slate-500 mb-4">O histórico será usado apenas para equilibrar os times. O ranking e o score exibidos no evento começam zerados.</p>
             <button onclick="window.criarNovoEvento()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-4 rounded-xl uppercase text-xs font-black text-white shadow-lg mb-2 mt-4">Criar e Iniciar</button>
             <button onclick="document.getElementById('modalNovoEvento').classList.add('hidden'); document.getElementById('modalAdminChoice').classList.remove('hidden')" class="w-full bg-slate-700 py-3 rounded-xl uppercase text-xs font-black hover:bg-slate-600 text-white">Voltar</button>
         </div>
@@ -320,6 +329,16 @@
                     <div class="flex justify-between items-center gap-2 border-t border-slate-600 pt-3">
                         <label class="text-[10px] uppercase font-black text-purple-400">Vincular ⭐ a 💎</label>
                         <button id="btnVinculo" type="button" onclick="window.toggleVinculoCategorias()" class="text-[10px] font-bold px-3 py-2 rounded border border-slate-500">DESATIVADO</button>
+                    </div>
+                    <div class="border-t border-slate-600 pt-3">
+                        <label for="cScoreBalanceamento" class="text-[10px] uppercase font-black text-amber-300 block mb-2">Score usado no balanceamento</label>
+                        <select id="cScoreBalanceamento" class="config-input">
+                            <option value="nenhum">Somente este evento (desativado)</option>
+                            <option value="ultimo">Último evento</option>
+                            <option value="mes">Este mês</option>
+                            <option value="historico">Todo o histórico</option>
+                        </select>
+                        <p class="text-[9px] text-slate-400 mt-2">O score histórico é somado ao score atual somente na formação/equilíbrio dos times. O ranking diário continua contando apenas este evento. Você pode desativar aqui a qualquer momento.</p>
                     </div>
                     <p class="text-[9px] text-slate-400">No modo de fila única, quando houver um adversário, o vínculo poderá ser flexibilizado se a equipe com ⭐ sem 💎 já estiver equilibrada (diferença até 3 pontos ou 15%).</p>
                     <label for="cJanela" class="text-[10px] uppercase font-black text-blue-300 block">Janela de seleção</label>
@@ -529,6 +548,7 @@
                     <div id="subsB" class="space-y-2"></div>
                 </div>
             </div>
+            <button id="btnMoverTopoFila" onclick="window.moverJogadorTopoFila()" class="w-full h-11 bg-blue-700 hover:bg-blue-600 px-3 rounded-xl font-black uppercase text-xs mb-2 border border-blue-500 transition">⬆ Mover para o topo</button>
             <button id="btnStatusBloqueio" class="w-full h-11 px-3 rounded-xl font-black uppercase text-xs mb-2 border transition">---</button>
             <button id="btnToggleCategoria" onclick="window.toggleCategoriaAcoes()" class="w-full h-11 bg-slate-700 hover:bg-slate-600 px-3 rounded-xl font-black uppercase text-xs mb-2 border border-slate-600">Alterar categoria</button>
             <div id="filaCategoriaAcoes" class="admin-only-control hidden space-y-2 mb-3 bg-slate-900/40 border border-slate-700 rounded-2xl p-3"></div>
@@ -629,7 +649,7 @@
         let game = { baseJogadores: {}, config: {}, weights: {}, esperaGeral: [], esperaEstrela: [], esperaUnica: [] };
         let isHistoricalView = false, globalBadges = {}, sessionEmojis = {}, sessoesFiltradasInfo = [], historicoLocal = [], tempConfig = {};
         let adminNotifications = {}, unsubscribeAdminNotifications = null, lastCelebrationId = null;
-        let unlockRequests = {};
+        let unlockRequests = {}, adminNotificationError = '';
         let matchLogOculto = localStorage.getItem('voleihub_matchlog_oculto') === '1';
         let narradorVoice = null;
         window.sessoesCache = {}; 
@@ -686,84 +706,90 @@
         window.fecharModais = () => { document.querySelectorAll('.modal-global, #modalPontoTec').forEach(m => m.classList.add('hidden')); if (typeof window.fecharMiniGame === 'function') window.fecharMiniGame(); };
         function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, ch => { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]; }); }
         
-            window.iniciarApito = (e) => {
-        if (!isAdmin) return;
-        if(e && (e.type === 'touchstart' || e.type === 'pointerdown')) e.preventDefault();
-        if(isApitoTocando) return;
-        isApitoTocando = true;
-        pressStartTime = Date.now();
-        try {
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            if (!AudioCtx) { isApitoTocando = false; return; }
-            if (!apitoCtx) apitoCtx = new AudioCtx();
-            if (apitoCtx.state === 'suspended') apitoCtx.resume();
-            
-            const now = apitoCtx.currentTime;
-            
-            apitoGain = apitoCtx.createGain();
-            apitoGain.gain.setValueAtTime(0.0001, now);
-            apitoGain.gain.exponentialRampToValueAtTime(0.78, now + 0.05);
-            apitoGain.connect(apitoCtx.destination);
-    
-            apitoOsc1 = apitoCtx.createOscillator();
-            apitoOsc1.type = 'triangle';
-            apitoOsc1.frequency.setValueAtTime(2660, now);
-    
-            apitoOsc2 = apitoCtx.createOscillator();
-            apitoOsc2.type = 'sine';
-            apitoOsc2.frequency.setValueAtTime(2740, now);
-    
-            apitoLFO = apitoCtx.createOscillator();
-            apitoLFO.frequency.setValueAtTime(22, now);
-            const lfoGain = apitoCtx.createGain();
-            lfoGain.gain.setValueAtTime(18, now);
-            apitoLFO.connect(lfoGain);
-            lfoGain.connect(apitoOsc1.frequency);
-            lfoGain.connect(apitoOsc2.frequency);
-            
-            // CORREÇÃO: Estas duas linhas haviam sumido, elas mandam o som pra saída!
-            apitoOsc1.connect(apitoGain);
-            apitoOsc2.connect(apitoGain);
-    
-            apitoLFO.start(now);
-            apitoOsc1.start(now);
-            apitoOsc2.start(now);
-        } catch(e) { 
-            console.warn('Apito indisponível', e);
-            isApitoTocando = false; 
-        }
-    };
-    
-    window.pararApito = (e) => {
-        if (!isApitoTocando) return;
-        if (e && (e.type === 'touchend' || e.type === 'touchcancel' || e.type === 'pointerup' || e.type === 'pointercancel' || e.type === 'pointerleave')) e.preventDefault();
-        const duration = Date.now() - pressStartTime;
-        if (duration < 300) { setTimeout(() => doStopApito(), 300 - duration); } else { doStopApito(); }
-    };
-    
-    function doStopApito() {
-        isApitoTocando = false;
-        if(!apitoGain) return;
-        try {
-            const now = apitoCtx.currentTime;
-            apitoGain.gain.cancelScheduledValues(now); // Evita falhas no celular
-            apitoGain.gain.setValueAtTime(apitoGain.gain.value, now);
-            apitoGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
-            
-            const o1 = apitoOsc1, o2 = apitoOsc2, lfo = apitoLFO;
-            setTimeout(() => {
-                try {
-                    if(o1) o1.stop();
-                    if(o2) o2.stop();
-                    if(lfo) lfo.stop();
-                    if(o1) o1.disconnect();
-                    if(o2) o2.disconnect();
-                    if(lfo) lfo.disconnect();
-                } catch(e){}
-            }, 150);
+        let apitoToken = 0, apitoStopTimer = null;
+        window.iniciarApito = (e) => {
+            if (!isAdmin) return;
+            if (e?.cancelable) e.preventDefault();
+            e?.stopPropagation?.();
+            if (isApitoTocando) return;
+            isApitoTocando = true;
+            pressStartTime = Date.now();
+            const token = ++apitoToken;
+            if (apitoStopTimer) { clearTimeout(apitoStopTimer); apitoStopTimer = null; }
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) throw new Error('AudioContext não disponível neste navegador.');
+                if (!apitoCtx || apitoCtx.state === 'closed') apitoCtx = new AudioCtx();
+                // No Safari/iOS, resume precisa ser disparado diretamente pelo gesto do usuário
+                // e aguardado antes de iniciar os osciladores.
+                const retomada = apitoCtx.state === 'running' ? Promise.resolve() : apitoCtx.resume();
+                Promise.resolve(retomada).then(() => {
+                    if (!isApitoTocando || token !== apitoToken || !apitoCtx || apitoCtx.state !== 'running') return;
+                    const now = apitoCtx.currentTime;
+                    const gain = apitoCtx.createGain();
+                    gain.gain.setValueAtTime(0.0001, now);
+                    gain.gain.exponentialRampToValueAtTime(0.78, now + 0.05);
+                    gain.connect(apitoCtx.destination);
+                    const o1 = apitoCtx.createOscillator();
+                    o1.type = 'triangle';
+                    o1.frequency.setValueAtTime(2660, now);
+                    const o2 = apitoCtx.createOscillator();
+                    o2.type = 'sine';
+                    o2.frequency.setValueAtTime(2740, now);
+                    const lfo = apitoCtx.createOscillator();
+                    lfo.frequency.setValueAtTime(22, now);
+                    const lfoGain = apitoCtx.createGain();
+                    lfoGain.gain.setValueAtTime(18, now);
+                    lfo.connect(lfoGain);
+                    lfoGain.connect(o1.frequency);
+                    lfoGain.connect(o2.frequency);
+                    o1.connect(gain);
+                    o2.connect(gain);
+                    apitoGain = gain; apitoOsc1 = o1; apitoOsc2 = o2; apitoLFO = lfo;
+                    lfo.start(now); o1.start(now); o2.start(now);
+                }).catch(err => {
+                    console.warn('Não foi possível reativar o áudio do apito:', err);
+                    isApitoTocando = false;
+                });
+                try { e?.currentTarget?.setPointerCapture?.(e.pointerId); } catch (_) {}
+            } catch (err) {
+                console.warn('Apito indisponível', err);
+                isApitoTocando = false;
+            }
+        };
+
+        window.pararApito = (e) => {
+            if (!isApitoTocando && !apitoGain) return;
+            if (e?.cancelable) e.preventDefault();
+            const duration = Date.now() - pressStartTime;
+            const aguardar = Math.max(0, 280 - duration);
+            if (apitoStopTimer) clearTimeout(apitoStopTimer);
+            apitoStopTimer = setTimeout(() => { apitoStopTimer = null; doStopApito(); }, aguardar);
+        };
+
+        function doStopApito() {
+            isApitoTocando = false;
+            // Invalida uma retomada assíncrona que ainda não tenha criado os osciladores.
+            apitoToken++;
+            const gain = apitoGain, o1 = apitoOsc1, o2 = apitoOsc2, lfo = apitoLFO;
             apitoGain = null; apitoOsc1 = null; apitoOsc2 = null; apitoLFO = null;
-        } catch(e) {}
-    }
+            if (!gain || !apitoCtx) return;
+            try {
+                const now = apitoCtx.currentTime;
+                gain.gain.cancelScheduledValues(now);
+                gain.gain.setValueAtTime(Math.max(gain.gain.value, 0.0001), now);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+                setTimeout(() => {
+                    try { o1?.stop(); } catch (_) {}
+                    try { o2?.stop(); } catch (_) {}
+                    try { lfo?.stop(); } catch (_) {}
+                    try { o1?.disconnect(); } catch (_) {}
+                    try { o2?.disconnect(); } catch (_) {}
+                    try { lfo?.disconnect(); } catch (_) {}
+                    try { gain.disconnect(); } catch (_) {}
+                }, 160);
+            } catch (err) { console.warn('Falha ao encerrar o apito:', err); }
+        }
 
         onAuthStateChanged(auth, (user) => {
             if (user && !user.isAnonymous) { 
@@ -780,7 +806,12 @@
             const rBox = document.getElementById('reactionBox'); 
             if (isAdmin) { rBox.classList.add('hidden'); rBox.dataset.target = ''; }
             atualizarBotaoMeuPerfil();
-            if(unsubscribeUnlockRequests && !isAdmin) { unsubscribeUnlockRequests(); unsubscribeUnlockRequests = null; }
+            if (!isAdmin) {
+                if (unsubscribeAdminNotifications) { unsubscribeAdminNotifications(); unsubscribeAdminNotifications = null; }
+                if (unsubscribeUnlockRequests) { unsubscribeUnlockRequests(); unsubscribeUnlockRequests = null; }
+                adminNotifications = {}; unlockRequests = {}; adminNotificationError = '';
+                renderAdminNotifications();
+            }
             if(isAdmin && currentInstanceId && !isHistoricalView) iniciarListenerNotificacoesAdmin();
             if(!currentInstanceId && isAdmin) window.abrirOpcoesEvento();
         });
@@ -827,7 +858,8 @@
                     game = { 
                         ...data, 
                         timeA: data.timeA || [], timeB: data.timeB || [], esperaGeral: data.esperaGeral || [], esperaEstrela: data.esperaEstrela || [], esperaUnica: data.esperaUnica || [], 
-                        ranking: data.ranking || {}, baseJogadores: data.baseJogadores || {}, historicoPartidas: data.historicoPartidas || [], 
+                        ranking: data.ranking || {}, baseJogadores: data.baseJogadores || {}, historicoPartidas: data.historicoPartidas || [],
+                        scoreBalanceamento: data.scoreBalanceamento || {},
                         matchLog: data.matchLog || [], config: normalizarConfigFormacao(data.config || {}), weights: data.weights || {}, scoreA: data.scoreA || 0, 
                         scoreB: data.scoreB || 0, winsConsecA: data.winsConsecA || 0, winsConsecB: data.winsConsecB || 0, idxA: data.idxA || 0, 
                         idxB: data.idxB || 0, saqueLado: data.saqueLado || 'A',
@@ -853,60 +885,76 @@
             if (isAdmin && !isHistoricalView) { iniciarListenerNotificacoesAdmin(); }
         };
 
-                function iniciarListenerNotificacoesAdmin() {
+        function iniciarListenerNotificacoesAdmin() {
             if (!isAdmin || !currentShortId || !currentInstanceId || isHistoricalView) return;
-            
-            // Listener de Bloqueios
+
             if (unsubscribeAdminNotifications) unsubscribeAdminNotifications();
             const nRef = ref(db, "notificacoes_admin/" + currentShortId + "/" + currentInstanceId);
             unsubscribeAdminNotifications = onValue(nRef, (snap) => {
                 adminNotifications = snap.exists() ? (snap.val() || {}) : {};
+                adminNotificationError = '';
+                renderAdminNotifications();
+            }, (error) => {
+                adminNotificationError = error?.code || 'permission-denied';
+                console.error('Falha ao ler notificações do evento:', error);
                 renderAdminNotifications();
             });
-        
-            // Listener de Desbloqueios
+
+            // Leitura de solicitações antigas de desbloqueio, para não perder pedidos
+            // gravados antes desta versão do aplicativo.
             if (unsubscribeUnlockRequests) unsubscribeUnlockRequests();
             const reqRef = ref(db, "solicitacoes_desbloqueio/" + currentShortId + "/" + currentInstanceId);
             unsubscribeUnlockRequests = onValue(reqRef, (snap) => {
                 unlockRequests = snap.exists() ? (snap.val() || {}) : {};
                 renderAdminNotifications();
+            }, (error) => {
+                console.warn('Falha ao ler solicitações antigas de desbloqueio:', error);
             });
         }
 
-                function renderAdminNotifications() {
-            // Mescla as duas listas de solicitações
-            const listBloqueios = Object.entries(adminNotifications || {}).map(([id, n]) => ({ id, ...n, tipoReq: 'bloqueio' }));
-            const listDesbloqueios = Object.entries(unlockRequests || {}).map(([id, n]) => ({ id, ...n, tipoReq: 'desbloqueio' }));
-            
-            const listAll = [...listBloqueios, ...listDesbloqueios].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        function renderAdminNotifications() {
+            const listNovas = Object.entries(adminNotifications || {}).map(([id, n]) => ({
+                id, ...n,
+                tipoReq: (n?.tipo === 'desbloqueio_solicitado' || n?.acao === 'desbloquear') ? 'desbloqueio' : 'bloqueio',
+                origem: 'notificacoes_admin'
+            }));
+            const listAntigas = Object.entries(unlockRequests || {}).map(([id, n]) => ({
+                id, ...n, tipoReq: 'desbloqueio', origem: 'solicitacoes_desbloqueio'
+            }));
+            const listAll = [...listNovas, ...listAntigas].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
             const pending = listAll.filter(n => n.status === 'pending' || n.tipoReq === 'desbloqueio');
             const notifBtn = document.getElementById('btnAdminNotifications');
             const notifCount = document.getElementById('adminNotifCount');
-            if(notifCount) notifCount.innerText = pending.length;
-            if(notifBtn) notifBtn.classList.toggle('hidden', pending.length === 0);
+            if (notifCount) notifCount.innerText = adminNotificationError && !pending.length ? '!' : pending.length;
+            if (notifBtn) notifBtn.classList.toggle('hidden', pending.length === 0 && !adminNotificationError);
             const c = document.getElementById('adminNotificationsList');
-            if (!listAll.length) { c.innerHTML = '<div class="text-center text-slate-500 text-xs italic py-6">Nenhuma notificação.</div>'; return; }
-            
+            if (!c) return;
+            if (!listAll.length) {
+                c.innerHTML = adminNotificationError
+                    ? '<div class="text-center text-red-300 text-xs py-6">Não foi possível carregar as notificações. Verifique as regras de leitura do Firebase (' + escapeHtml(adminNotificationError) + ').</div>'
+                    : '<div class="text-center text-slate-500 text-xs italic py-6">Nenhuma notificação.</div>';
+                return;
+            }
             let htmlParts = [];
-            for (let n of listAll) {
+            if (adminNotificationError) htmlParts.push('<div class="text-[9px] text-amber-300 bg-amber-900/20 border border-amber-700/40 rounded-lg p-2">Aviso: leitura parcial das notificações (' + escapeHtml(adminNotificationError) + ').</div>');
+            for (const n of listAll) {
                 const pend = n.status === 'pending' || n.tipoReq === 'desbloqueio';
                 const when = n.timestamp ? new Date(n.timestamp).toLocaleString('pt-BR') : '';
                 const safeId = escapeHtml(n.id);
                 const safeNome = escapeHtml(n.nome || 'Jogador');
-                
-                if (n.tipoReq === 'bloqueio') {
-                    const statusText = pend ? 'Solicitação de bloqueio aguardando aprovação.' : "Status: " + escapeHtml(n.status || '');
-                    let btnHtml = "";
-                    if (pend) {
+                let btnHtml = '';
+                if (pend) {
+                    if (n.tipoReq === 'bloqueio') {
                         btnHtml = '<div class="flex gap-2 mt-3"><button data-notif-id="' + safeId + '" onclick="window.aprovarBloqueio(this.getAttribute(\'data-notif-id\'))" class="flex-1 bg-red-600 hover:bg-red-500 py-2 rounded-lg text-[9px] font-black uppercase">Bloquear</button><button data-notif-id="' + safeId + '" onclick="window.recusarBloqueio(this.getAttribute(\'data-notif-id\'))" class="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-lg text-[9px] font-black uppercase">Recusar</button></div>';
+                    } else {
+                        btnHtml = '<div class="flex gap-2 mt-3"><button data-notif-id="' + safeId + '" data-origem="' + n.origem + '" onclick="window.aprovarDesbloqueio(this.getAttribute(\'data-notif-id\'), this.getAttribute(\'data-origem\'))" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg text-[9px] font-black uppercase">Desbloquear</button><button data-notif-id="' + safeId + '" data-origem="' + n.origem + '" onclick="window.recusarDesbloqueio(this.getAttribute(\'data-notif-id\'), this.getAttribute(\'data-origem\'))" class="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-lg text-[9px] font-black uppercase">Recusar</button></div>';
                     }
-                    htmlParts.push('<div class="bg-slate-900/70 p-3 rounded-xl border border-slate-700 ' + (pend ? 'notification-pending' : 'notification-done') + '"><div class="text-xs font-black uppercase text-white">🔒 ' + safeNome + '</div><div class="text-[9px] text-slate-400 mt-1">' + statusText + '</div><div class="text-[8px] text-slate-600 mt-1">' + when + '</div>' + btnHtml + '</div>');
-                } else {
-                    const statusText = 'Solicitação de identificação (Desbloqueio).';
-                    let btnHtml = '<div class="flex gap-2 mt-3"><button data-notif-id="' + safeId + '" onclick="window.aprovarDesbloqueio(this.getAttribute(\'data-notif-id\'))" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg text-[9px] font-black uppercase">Desbloquear</button><button data-notif-id="' + safeId + '" onclick="window.recusarDesbloqueio(this.getAttribute(\'data-notif-id\'))" class="flex-1 bg-slate-700 hover:bg-slate-600 py-2 rounded-lg text-[9px] font-black uppercase">Recusar</button></div>';
-                    
-                    htmlParts.push('<div class="bg-slate-900/70 p-3 rounded-xl border border-emerald-500/50 notification-pending"><div class="text-xs font-black uppercase text-white">✅ ' + safeNome + '</div><div class="text-[9px] text-slate-400 mt-1">' + statusText + '</div><div class="text-[8px] text-slate-600 mt-1">' + when + '</div>' + btnHtml + '</div>');
                 }
+                const titulo = n.tipoReq === 'bloqueio' ? '🔒 ' : '✅ ';
+                const statusText = pend
+                    ? (n.tipoReq === 'bloqueio' ? 'Solicitação de bloqueio aguardando aprovação.' : 'Solicitação de desbloqueio aguardando aprovação.')
+                    : 'Status: ' + escapeHtml(n.status || '');
+                htmlParts.push('<div class="bg-slate-900/70 p-3 rounded-xl border ' + (n.tipoReq === 'bloqueio' ? 'border-slate-700' : 'border-emerald-500/50') + ' ' + (pend ? 'notification-pending' : 'notification-done') + '"><div class="text-xs font-black uppercase text-white">' + titulo + safeNome + '</div><div class="text-[9px] text-slate-400 mt-1">' + statusText + '</div><div class="text-[8px] text-slate-600 mt-1">' + when + '</div>' + btnHtml + '</div>');
             }
             c.innerHTML = htmlParts.join('');
         }
@@ -928,44 +976,44 @@
         };
 
         window.recusarBloqueio = async (notificationId) => { if (!isAdmin || !currentInstanceId) return; const n = adminNotifications?.[notificationId]; if (!n || n.status !== 'pending') return; try { await remove(ref(db, "notificacoes_admin/" + currentShortId + "/" + currentInstanceId + "/" + notificationId)); } catch(e) {} };
-        window.aprovarDesbloqueio = async (solicitacaoId) => {
+        window.aprovarDesbloqueio = async (solicitacaoId, origem = 'notificacoes_admin') => {
             if (!isAdmin || !currentInstanceId) return;
-            const req = unlockRequests?.[solicitacaoId];
+            const req = origem === 'solicitacoes_desbloqueio' ? unlockRequests?.[solicitacaoId] : adminNotifications?.[solicitacaoId];
             if (!req) return;
-            
             const info = localizarJogador(req.nome);
             if (!info || !info.p) return customAlert('Jogador não encontrado nesta sessão.');
-            
             try {
-                // Altera o estado do jogador na partida (na memória)
                 info.p.bloqueado = false;
                 reposicionarJogadorNaFila(info.p);
-                
-                // 1. Salva o novo estado da partida na raiz (o admin tem permissão para isso)
-                await set(gameRef, game); 
-                
-                // 2. Apaga a solicitação da fila (para sumir da tela de notificações)
-                await remove(ref(db, "solicitacoes_desbloqueio/" + currentShortId + "/" + currentInstanceId + "/" + solicitacaoId));
-                
-                customAlert(req.nome + " foi desbloqueado e agora pode enviar reações e jogar!");
+                await set(gameRef, game);
+                const caminho = origem === 'solicitacoes_desbloqueio'
+                    ? 'solicitacoes_desbloqueio/' + currentShortId + '/' + currentInstanceId + '/' + solicitacaoId
+                    : 'notificacoes_admin/' + currentShortId + '/' + currentInstanceId + '/' + solicitacaoId;
+                await remove(ref(db, caminho));
+                customAlert(req.nome + ' foi desbloqueado e agora pode jogar!');
             } catch(e) {
-                console.error(e);
-                customAlert('Erro ao aprovar o desbloqueio. Verifique as permissões.');
+                console.error('Falha ao aprovar desbloqueio:', e);
+                customAlert('Erro ao aprovar o desbloqueio (' + (e?.code || 'erro') + '). Verifique as permissões do Firebase.');
             }
         };
-        
-        window.recusarDesbloqueio = async (solicitacaoId) => {
+
+        window.recusarDesbloqueio = async (solicitacaoId, origem = 'notificacoes_admin') => {
             if (!isAdmin || !currentInstanceId) return;
             try {
-                await remove(ref(db, "solicitacoes_desbloqueio/" + currentShortId + "/" + currentInstanceId + "/" + solicitacaoId));
-            } catch(e) {}
+                const caminho = origem === 'solicitacoes_desbloqueio'
+                    ? 'solicitacoes_desbloqueio/' + currentShortId + '/' + currentInstanceId + '/' + solicitacaoId
+                    : 'notificacoes_admin/' + currentShortId + '/' + currentInstanceId + '/' + solicitacaoId;
+                await remove(ref(db, caminho));
+            } catch(e) { console.error('Falha ao recusar desbloqueio:', e); }
         };
+
         function normalizarConfigFormacao(c = {}) {
             const base = { size: 4, filaUnica: true, janelaBalanceamento: 6, minStars: 0, stars: 2,
                 minDiamantes: 0, elites: 2, minGerais: 0, maxGerais: 4,
                 vincularEstrelaDiamante: false, points: 12, desempate: '3direto',
-                premiacaoMaxVitorias: 5, narradorPontos: true };
+                premiacaoMaxVitorias: 5, narradorPontos: true, scoreBalanceamentoFonte: 'nenhum' };
             const cfg = { ...base, ...c };
+            if (!['nenhum','ultimo','mes','historico'].includes(cfg.scoreBalanceamentoFonte)) cfg.scoreBalanceamentoFonte = 'nenhum';
             // Converte os limites históricos sem tornar a Estrela obrigatória em fila única.
             if (c.filaUnica === undefined) {
                 cfg.filaUnica = true;
@@ -1186,6 +1234,7 @@
             window.criarNovoEvento = async () => {
         const sId = document.getElementById('idNovoEvento').value.toUpperCase().trim();
         const nom = document.getElementById('nomeNovoEvento').value.trim();
+        const fonteScore = document.getElementById('scoreFonteNovoEvento')?.value || 'ultimo';
         if(!sId) return customAlert("Defina um ID.");
         if((await get(ref(db, "eventos_ativos/" + sId))).exists()) return customAlert("ID já ativo. Encerre-o antes.");
         
@@ -1194,7 +1243,7 @@
         while((await get(ref(db, "listaEventos/" + instId))).exists()) { count++; instId = sId + "_" + dataH + "_" + String(count).padStart(2,'0'); }
         
         // 1. DADOS PADRÕES ZERADOS (Caso seja realmente um evento novo)
-        let bc = {size:4,filaUnica:true,janelaBalanceamento:6,minStars:0,stars:2,minDiamantes:0,elites:2,minGerais:0,maxGerais:4,vincularEstrelaDiamante:false,points:12,desempate:'3direto',maxWins:'',reaction:'',hideScoreboard:false,premiacaoMaxVitorias:5,narradorPontos:true};
+        let bc = {size:4,filaUnica:true,janelaBalanceamento:6,minStars:0,stars:2,minDiamantes:0,elites:2,minGerais:0,maxGerais:4,vincularEstrelaDiamante:false,points:12,desempate:'3direto',maxWins:'',reaction:'',hideScoreboard:false,premiacaoMaxVitorias:5,narradorPontos:true,scoreBalanceamentoFonte:fonteScore};
         let bw = {atqG:1,blqG:1,aceG:1,atqE:1,blqE:3,aceE:1,atqD:1,blqD:1,aceD:1,err:0.1,vit:0,wTeam:0};
         let bj = {};
     
@@ -1224,6 +1273,19 @@
         } catch(e) {
             console.error("Erro ao tentar puxar o histórico", e);
         }
+        // A configuração herdada da última sessão não pode sobrescrever a escolha
+        // feita agora na tela de criação deste novo evento.
+        bc.scoreBalanceamentoFonte = fonteScore;
+
+        // Score histórico separado: auxilia somente o balanceamento. O ranking diário
+        // continua sendo criado zerado logo abaixo.
+        let scoreBalanceamento = {}, falhaScoreHistorico = false;
+        try {
+            scoreBalanceamento = await carregarScoresHistoricos(sId, fonteScore, null);
+        } catch(e) {
+            falhaScoreHistorico = true;
+            console.error('Erro ao carregar scores anteriores para balanceamento:', e);
+        }
     
         // 3. MONTAR A FILA INICIAL BLOQUEADA BASEADA NOS JOGADORES HERDADOS
         let bg = [], be = [], rk = {};
@@ -1236,7 +1298,8 @@
         
         // 4. SALVAR A NOVA INSTÂNCIA
         await set(ref(db, "partida/" + instId), { 
-            baseJogadores: bj, config: bc, weights: bw, publicRanking: true, partidaAtiva: true, 
+            baseJogadores: bj, config: bc, weights: bw, publicRanking: true, partidaAtiva: true,
+            scoreBalanceamento: scoreBalanceamento,
             scoreA: 0, scoreB: 0, winsConsecA: 0, winsConsecB: 0, saqueLado: 'A', saqueInicio: 'A', saqueIndiceBase: 0, saqueTurno: 0, saqueModelo: 'oponente', firstServeA: true, 
             firstServeB: true, historicoPartidas: [], matchLog: [], ranking: rk, 
             esperaGeral: bc.filaUnica ? [] : bg, esperaEstrela: bc.filaUnica ? [] : be,
@@ -1250,7 +1313,9 @@
         document.getElementById('modalNovoEvento').classList.add('hidden'); 
         window.joinEvent(sId, instId, false);
         
-        customAlert("Evento #" + sId + " Criado! Dados anteriores recuperados."); 
+        customAlert(falhaScoreHistorico
+            ? "Evento #" + sId + " criado, mas não foi possível carregar o score histórico. O balanceamento começará com score atual."
+            : "Evento #" + sId + " criado! Base recuperada e ranking diário zerado.");
         setTimeout(() => { window.abrirConfig(); }, 1000);
     };
 
@@ -1264,6 +1329,8 @@
                 await remove(ref(db, "eventos_ativos/" + currentShortId));
                 if(unsubscribeListener) unsubscribeListener();
                 if(unsubscribeAdminNotifications) { unsubscribeAdminNotifications(); unsubscribeAdminNotifications = null; }
+                if(unsubscribeUnlockRequests) { unsubscribeUnlockRequests(); unsubscribeUnlockRequests = null; }
+                adminNotifications = {}; unlockRequests = {}; adminNotificationError = '';
                 document.getElementById('placarDisplay').classList.add('hidden');
                 window.fecharModais();
                 currentShortId = null; currentInstanceId = null; gameRef = null;
@@ -1471,6 +1538,7 @@
                 document.getElementById(id).value = tempConfig[k];
             });
             document.getElementById('cJanela').value = tempConfig.janelaBalanceamento;
+            document.getElementById('cScoreBalanceamento').value = tempConfig.scoreBalanceamentoFonte || 'nenhum';
             tempConfig.obrigarCategoria = {
                 Estrela: Number(tempConfig.minStars)>0, Diamante: Number(tempConfig.minDiamantes)>0,
                 Geral: Number(tempConfig.minGerais)>0
@@ -1484,7 +1552,7 @@
             window.atualizarBotoesConfig();
             document.getElementById('modalConfigMenu').classList.remove('hidden');
         };
-        window.salvarConfigEClose = () => {
+        window.salvarConfigEClose = async () => {
             const size = Number(document.getElementById('cSize').value);
             if (!Number.isInteger(size) || size < 1 || size > 8) return customAlert('Jogadores por time: informe de 1 a 8.');
             const limits = {};
@@ -1516,7 +1584,17 @@
             const premio = Number(document.getElementById('cPremiacao').value);
             if (!Number.isFinite(premio) || premio < 0) return customAlert('Premiação inválida.');
             const eraUnica = modoFilaUnica();
+            const scoreFonte = document.getElementById('cScoreBalanceamento')?.value || 'nenhum';
+            let novosScoresHistoricos = game.scoreBalanceamento || {};
+            try {
+                novosScoresHistoricos = await carregarScoresHistoricos(currentShortId, scoreFonte, currentInstanceId);
+            } catch (err) {
+                console.error('Falha ao consultar score histórico:', err);
+                return customAlert('Não foi possível consultar o histórico para o balanceamento. Verifique a leitura de listaEventos e tente novamente.');
+            }
+            game.scoreBalanceamento = novosScoresHistoricos;
             game.config = { ...game.config, ...limits, size,
+                scoreBalanceamentoFonte: scoreFonte,
                 filaUnica: tempConfig.filaUnica !== false, vincularEstrelaDiamante: tempConfig.vincularEstrelaDiamante === true,
                 janelaBalanceamento: Number(document.getElementById('cJanela').value) || 6,
                 balanceamentoDiamanteEstrela: false, points: Number(document.getElementById('cPoints').value) || 12,
@@ -1819,7 +1897,10 @@
             const total = lista.reduce((sum, jogador) => {
                 const stats = game.ranking?.[jogador.nome];
                 const statsAtuais = stats ? { ...stats, estrela: !!jogador.estrela, elite: !!jogador.elite } : null;
-                return sum + (statsAtuais ? parseFloat(calcularScoreComPesos(statsAtuais)) : 0);
+                const scoreEvento = statsAtuais ? parseFloat(calcularScoreComPesos(statsAtuais)) : 0;
+                const scorePassado = game.config?.scoreBalanceamentoFonte !== 'nenhum'
+                    ? Number(game.scoreBalanceamento?.[jogador.nome] || 0) : 0;
+                return sum + scoreEvento + scorePassado;
             }, 0);
             return lista.length ? total / lista.length : 0;
         }
@@ -1951,7 +2032,10 @@
         function scoreNumericoJogador(p) {
             const r = game.ranking?.[p?.nome] || {};
             const s = { ...r, estrela: !!p?.estrela, elite: !!p?.elite };
-            return Number(calcularScoreComPesos(s)) || 0;
+            const scoreEvento = Number(calcularScoreComPesos(s)) || 0;
+            const scorePassado = game.config?.scoreBalanceamentoFonte !== 'nenhum'
+                ? Number(game.scoreBalanceamento?.[p?.nome] || 0) : 0;
+            return scoreEvento + scorePassado;
         }
         function combinacoesIndices(n, k) {
             const resultado = [];
@@ -2526,18 +2610,59 @@
             return Number.isFinite(n) ? n : fallback;
         }
 
-        function calcularScoreComPesos(s) {
-            if(!s) return '0.00';
-            const w = getPesosAtuais();
-            const score =
-                pesoNumero(s.v) * pesoNumero(s.elite?w.vitD:s.estrela?w.vitE:w.vitG) +
-                pesoNumero(s.ptsAtaque) * pesoNumero(s.elite ? w.atqD : (s.estrela ? w.atqE : w.atqG), 1) +
-                pesoNumero(s.ptsBloqueio) * pesoNumero(s.elite ? w.blqD : (s.estrela ? w.blqE : w.blqG), 1) +
-                pesoNumero(s.ptsAce) * pesoNumero(s.elite ? w.aceD : (s.estrela ? w.aceE : w.aceG), 1) +
-                pesoNumero(s.ptsErroAdversario) * pesoNumero(s.elite?w.errD:s.estrela?w.errE:w.errG,0.1) +
-                pesoNumero(s.ptsAcertoTime) * pesoNumero(s.elite?w.wTeamD:s.estrela?w.wTeamE:w.wTeamG) +
+        function calcularScoreComPesosDados(s, pesos = {}) {
+            if (!s) return 0;
+            const w = { atqG:1, blqG:1, aceG:1, atqE:1, blqE:3, aceE:1,
+                atqD:1, blqD:1, aceD:1, err:0.1, vit:0, wTeam:0, ...pesos };
+            ['G','E','D'].forEach(cat => {
+                ['err','vit','wTeam'].forEach(ch => {
+                    const novo = ch + cat;
+                    if (w[novo] === undefined) w[novo] = w[ch];
+                });
+            });
+            const cat = s.elite ? 'D' : (s.estrela ? 'E' : 'G');
+            return pesoNumero(s.v) * pesoNumero(w['vit' + cat]) +
+                pesoNumero(s.ptsAtaque) * pesoNumero(w['atq' + cat], 1) +
+                pesoNumero(s.ptsBloqueio) * pesoNumero(w['blq' + cat], 1) +
+                pesoNumero(s.ptsAce) * pesoNumero(w['ace' + cat], 1) +
+                pesoNumero(s.ptsErroAdversario) * pesoNumero(w['err' + cat], 0.1) +
+                pesoNumero(s.ptsAcertoTime) * pesoNumero(w['wTeam' + cat]) +
                 pesoNumero(s.ptsBonusVitorias);
-            return score.toFixed(2);
+        }
+
+        function calcularScoreComPesos(s) {
+            return calcularScoreComPesosDados(s, getPesosAtuais()).toFixed(2);
+        }
+
+        async function carregarScoresHistoricos(shortId, fonte = 'nenhum', excluirInstanceId = null) {
+            const resultado = {};
+            if (!shortId || fonte === 'nenhum') return resultado;
+            if (!['ultimo','mes','historico'].includes(fonte)) return resultado;
+            const eventosSnap = await get(ref(db, 'listaEventos'));
+            if (!eventosSnap.exists()) return resultado;
+            const agora = new Date();
+            const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1).getTime();
+            let eventos = Object.values(eventosSnap.val() || {})
+                .filter(ev => ev && ev.baseId === shortId && ev.id && ev.id !== excluirInstanceId)
+                .sort((a,b) => Number(b.timestamp || 0) - Number(a.timestamp || 0));
+            if (fonte === 'ultimo') eventos = eventos.slice(0, 1);
+            else if (fonte === 'mes') eventos = eventos.filter(ev => Number(ev.timestamp || 0) >= inicioMes && Number(ev.timestamp || 0) <= Date.now());
+            if (!eventos.length) return resultado;
+            const snapshots = await Promise.all(eventos.map(async ev => {
+                try { return { ev, snap: await get(ref(db, 'partida/' + ev.id)) }; }
+                catch (err) { console.warn('Não foi possível ler o score do evento ' + ev.id, err); return { ev, snap: null }; }
+            }));
+            snapshots.forEach(({snap}) => {
+                if (!snap?.exists()) return;
+                const data = snap.val() || {};
+                const ranking = data.ranking || {};
+                Object.entries(ranking).forEach(([nome, stats]) => {
+                    const valor = calcularScoreComPesosDados(stats, data.weights || {});
+                    resultado[nome] = (Number(resultado[nome]) || 0) + valor;
+                });
+            });
+            Object.keys(resultado).forEach(nome => { resultado[nome] = Number(resultado[nome].toFixed(2)); });
+            return resultado;
         }
 
         window.abrirPontoTecnico = (l, i) => {
@@ -2583,6 +2708,36 @@
             salvarState();
         };
 
+        window.toggleCategoriaAcoes = () => {
+            if (!isAdmin) return;
+            const box = document.getElementById('filaCategoriaAcoes');
+            const btn = document.getElementById('btnToggleCategoria');
+            if (!box || !btn) return;
+            const vaiAbrir = box.classList.contains('hidden');
+            box.classList.toggle('hidden', !vaiAbrir);
+            btn.innerText = vaiAbrir ? 'Ocultar categorias' : 'Alterar categoria';
+        };
+
+        window.moverJogadorTopoFila = () => {
+            if (!isAdmin || isHistoricalView || !modalCtx?.pFila) return;
+            const fila = modalCtx.tabFila === 'unica' ? game.esperaUnica
+                : modalCtx.tabFila === 'geral' ? game.esperaGeral : game.esperaEstrela;
+            if (!Array.isArray(fila)) return;
+            const indiceAtual = fila.findIndex(p => p.nome === modalCtx.pFila.nome);
+            if (indiceAtual < 0) return customAlert('Jogador não encontrado na fila.');
+            const [jogador] = fila.splice(indiceAtual, 1);
+            // Jogadores liberados ficam no topo da fila; bloqueados ficam no topo
+            // do grupo bloqueado, sem ultrapassar quem está apto a jogar.
+            let destino = jogador.bloqueado ? fila.findIndex(p => p.bloqueado) : 0;
+            if (destino < 0) destino = fila.length;
+            fila.splice(destino, 0, jogador);
+            fila.forEach((p, i) => { p.ordemFila = i + 1; });
+            normalizarTodasAsFilas();
+            window.fecharModais();
+            salvarState(true);
+            render();
+        };
+
         window.abrirEscalacao = (tab, idx) => {
             if(!isAdmin) return;
             normalizarTodasAsFilas();
@@ -2601,10 +2756,15 @@
 
             const catAtual = modalCtx.pFila.estrela ? 'estrela' : (modalCtx.pFila.elite ? 'diamante' : 'geral');
             const catBox = document.getElementById('filaCategoriaAcoes');
-            if (catBox) catBox.innerHTML = ['geral','diamante','estrela']
-                .filter(cat=>cat!==catAtual).map(cat=>
-                    '<button onclick="window.mudarCategoriaFila(\'' + cat + '\')" class="w-full h-11 bg-slate-700 rounded-xl text-[10px] font-black uppercase border border-slate-600">Alterar para ' +
-                    ({geral:'GERAL',diamante:'DIAMANTE 💎',estrela:'ESTRELA ⭐'}[cat]) + '</button>').join('');
+            const catToggle = document.getElementById('btnToggleCategoria');
+            if (catBox) {
+                catBox.classList.add('hidden');
+                catBox.innerHTML = ['geral','diamante','estrela']
+                    .filter(cat=>cat!==catAtual).map(cat=>
+                        '<button onclick="window.mudarCategoriaFila(\'' + cat + '\')" class="w-full h-11 bg-slate-700 rounded-xl text-[10px] font-black uppercase border border-slate-600">Alterar para ' +
+                        ({geral:'GERAL',diamante:'DIAMANTE 💎',estrela:'ESTRELA ⭐'}[cat]) + '</button>').join('');
+            }
+            if (catToggle) catToggle.innerText = 'Alterar categoria';
 
             const gen = (t, side) => {
                 let parts = [];
@@ -2663,16 +2823,14 @@
         
             try {
                 await garantirGuestAnonimo();
-                const solicitacaoId = Date.now().toString();
-                const reqRef = ref(db, "solicitacoes_desbloqueio/" + currentShortId + "/" + currentInstanceId + "/" + solicitacaoId);
-        
-                // Grava no nó permitido pelas regras
+                const solicitacaoId = Date.now().toString() + '_' + Math.random().toString(36).slice(2, 8);
+                const reqRef = ref(db, "notificacoes_admin/" + currentShortId + "/" + currentInstanceId + "/" + solicitacaoId);
+                const uid = auth.currentUser?.uid;
+                if (!uid) throw new Error('guest-auth-missing');
                 await set(reqRef, {
-                    nome: nome,
-                    instanceId: currentInstanceId,
-                    fila: info.fila,
-                    indice: info.idx,
-                    timestamp: Date.now()
+                    tipo: 'desbloqueio_solicitado', acao: 'desbloquear', nome: nome,
+                    requesterUid: uid, instanceId: currentInstanceId,
+                    fila: info.fila, indice: info.idx, status: 'pending', timestamp: Date.now()
                 });
         
                 // Salva a identificação localmente
@@ -2684,8 +2842,11 @@
                 renderMyTrophies(); render();
                 customAlert("Solicitação de desbloqueio enviada! Aguarde a aprovação do admin.");
             } catch (e) {
-                console.error(e);
-                customAlert("Erro ao solicitar desbloqueio.");
+                console.error('Falha na solicitação de desbloqueio:', e);
+                const codigo = e?.code || e?.message || 'erro desconhecido';
+                const regra = String(codigo).toUpperCase().includes('PERMISSION')
+                    ? ' O Firebase está negando a gravação em notificacoes_admin.' : '';
+                customAlert('Não foi possível enviar o pedido de desbloqueio (' + codigo + ').' + regra);
             }
         };
 
@@ -2773,23 +2934,23 @@
             
             try {
                 const user = await garantirGuestAnonimo();
-                const notificacaoId = Date.now().toString(); 
+                const notificacaoId = Date.now().toString() + '_' + Math.random().toString(36).slice(2, 8);
                 const notifRef = ref(db, "notificacoes_admin/" + currentShortId + "/" + currentInstanceId + "/" + notificacaoId);
-        
-                // Grava no nó permitido pelas regras
+                if (!user?.uid) throw new Error('guest-auth-missing');
                 await set(notifRef, {
-                    tipo: 'bloqueio_solicitado',
-                    nome: nome,
-                    requesterUid: user.uid,
-                    status: 'pending',
-                    timestamp: Date.now()
+                    tipo: 'bloqueio_solicitado', acao: 'bloquear', nome: nome,
+                    requesterUid: user.uid, instanceId: currentInstanceId,
+                    status: 'pending', timestamp: Date.now()
                 });
         
                 if (fecharApos) window.fecharModais();
                 customAlert("Solicitação de bloqueio enviada para aprovação do administrador!");
             } catch (e) {
-                console.error(e);
-                customAlert("Erro ao solicitar bloqueio.");
+                console.error('Falha na solicitação de bloqueio:', e);
+                const codigo = e?.code || e?.message || 'erro desconhecido';
+                const regra = String(codigo).toUpperCase().includes('PERMISSION')
+                    ? ' O Firebase está negando a gravação em notificacoes_admin.' : '';
+                customAlert('Não foi possível enviar o pedido de bloqueio (' + codigo + ').' + regra);
             }
         };
 
